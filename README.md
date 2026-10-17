@@ -2,7 +2,7 @@
 
 A text-only Python CLI and Microsoft Agent Framework chat core with bounded, process-local session history. The deterministic offline default requires **no Azure account or credentials** after dependencies are installed. No tools, MCP, skills, durable memory, or command execution are implemented.
 
-This is a local teaching implementation plus a minimal authenticated API boundary, **not a deployed or production-ready service**. The [specification](docs/secure-agent-teaching-spec.md) and [stage tasks](docs/tasks/README.md) remain authoritative. Hosted acceptance and live-model evaluation are still pending.
+This is a teaching implementation plus a single-replica authenticated API test deployment, **not a production-ready service**. The [specification](docs/secure-agent-teaching-spec.md) and [stage tasks](docs/tasks/README.md) remain authoritative. The private registry image, infrastructure templates, and hosted evidence are documented in [the hosted runbook](docs/stage-1-hosted.md); signed-in acceptance and live-model evaluation are still pending.
 
 ## Run locally
 
@@ -41,7 +41,7 @@ This version supports **one process only**: restart loses sessions, and unknown 
 
 ## Minimal hosted boundary
 
-The selected path remains CLI → HTTPS Container Apps ingress with Entra Easy Auth → Python API → shared agent core. No Azure resources are provisioned by this change. FastAPI supplies a small HTTP adapter; it does not replace Easy Auth. The adapter **also verifies the original Entra v2 bearer token** against the configured issuer/audience/signature/time claims, requires delegated `Chat.Access`, and enforces a configured user-object-ID allowlist. It never trusts `X-MS-CLIENT-PRINCIPAL`, identity in JSON, or a CLI claim of tenant/user. Thus directly reaching this API does not turn a forged header into identity.
+The selected path remains CLI → HTTPS Container Apps ingress with Entra Easy Auth → Python API → shared agent core. A dedicated Azure test foundation and fake-mode API are deployed. FastAPI supplies a small HTTP adapter; it does not replace Easy Auth. The adapter **also verifies the original Entra v2 bearer token** against the configured issuer/audience/signature/time claims, requires delegated `Chat.Access`, and enforces a configured user-object-ID allowlist. It never trusts `X-MS-CLIENT-PRINCIPAL`, identity in JSON, or a CLI claim of tenant/user. Thus directly reaching this API does not turn a forged header into identity.
 
 Configure before hosted testing:
 
@@ -50,7 +50,7 @@ Configure before hosted testing:
 3. Use one replica/process for this limited test deployment; do not claim shared accounting/resumption. Run `uvicorn az_maf_agent.api:from_env --factory --host 0.0.0.0 --port 8000 --workers 1 --limit-concurrency 32 --no-access-log` behind the HTTPS ingress. Set `AGENT_CONFIG` to the approved JSON file. A fake-mode API still requires real Entra authentication; there is no server development-auth bypass.
 4. For a live model, copy the complete offline configuration and set `mode: "azure"`, approved `endpoint` (an HTTPS `*.openai.azure.com` resource origin), `deployment`, `api_version`, `model_context_tokens`, and explicit input/output USD-per-million prices. Select a deployment compatible with text chat completions, `max_completion_tokens`, and the usage accounting contract. Do not put API keys in configuration. This deliberately narrow adapter is not a claim of support for all Azure model endpoints.
 5. Assign a dedicated Container Apps managed identity with least-privilege model inference access; optionally configure its client ID. No local CLI identity or user token is forwarded to the model. Key Vault-backed references are required if a future dependency needs a secret. This implementation uses managed identity and contains no downstream key fallback.
-6. Acquire an API bearer token via an approved Entra public-client flow outside chat, provide it securely as `AGENT_ACCESS_TOKEN` (never a command-line argument or source-controlled file), then run `agent-chat --api https://YOUR_APPROVED_API`. The client distinguishes 401 reauthentication from 403 denial. Ctrl-C requests server cancellation; an unconfirmed cancellation is reported and server deadlines remain in effect.
+6. Copy the complete offline configuration to a private client configuration file, set its `api_origin` to the exact approved HTTPS API origin, and acquire an API bearer token via an approved Entra public-client flow outside chat. Provide it securely as `AGENT_ACCESS_TOKEN` (never a command-line argument or source-controlled file), then run `agent-chat --config PATH --api https://YOUR_APPROVED_API`. The client distinguishes 401 reauthentication from 403 denial. Ctrl-C requests server cancellation; an unconfirmed cancellation is reported and server deadlines remain in effect.
 
 API routes: `POST /sessions`, `POST /sessions/{id}/chat` with `{"text":"hello","revision":0}`, and `POST /sessions/{id}/reset` or `/cancel`. There are no tool, operator, file, or memory routes. Request bodies and ingestion time are bounded. OpenAPI/docs routes are disabled. All functional routes require authentication; errors omit raw invalid input/provider payloads.
 
@@ -62,6 +62,6 @@ Validate live tokens, real Easy Auth behavior, workload RBAC, endpoint compatibi
 - RAM history and trimming keep the local lesson small. Reconsider shared TTL storage for multiple replicas/resumption; reconsider summarization only after testing poisoning and budgets. Durable memory remains Stage 4.
 - JWT verification supplements Easy Auth to avoid relying on spoofable headers during local API tests or accidental alternate ingress. It adds a JWKS dependency; review a platform-only trust adapter only when its network boundary is demonstrably enforced.
 - A single configured Azure deployment is supported; model choice, API deployment/version, pricing, session backend, and distributed control product remain open. Foundry hosting, API Management, and runtime model routing remain future options.
-- No container image or infrastructure has been deployed or production-tested. Image pinning/build provenance, distributed controls, egress enforcement, non-cooperative-worker termination, durable audit, secret rotation drills, and hosted evaluation are not demonstrated here.
+- The fake-mode image is in the private test registry and the API runs in Azure. Registry provenance beyond its recorded digest, distributed controls, egress enforcement, non-cooperative-worker termination, durable audit, secret rotation drills, signed-in hosted acceptance, and live-model evaluation are not demonstrated here.
 
 See [Stage 1 validation](docs/stage-1-validation.md) for evidence and incomplete gates. Subsequent stages must preserve these tests and the spec's read-only agent catalog policy.
