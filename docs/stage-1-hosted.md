@@ -31,6 +31,7 @@ az deployment group what-if --resource-group <TEST_RESOURCE_GROUP> \
 Initially keep `externalIngress` false. Verify the revision and the Easy Auth readback: enabled, `Return401`, no excluded paths, HTTPS required, exact access-token audience, and only the approved CLI client. Then set `externalIngress` to true and deploy the same reviewed template. Set the API registration redirect URI to `<public-origin>/.auth/login/aad/callback`.
 
 Set the API registration's `requestedAccessTokenVersion` to `2`. The Container App and Python API validate v2 issuer and client claims; a legacy v1 access token will be rejected before it reaches the application.
+For this v2 API, configure the Container App `audience` and Easy Auth allowed audience as the API application ID (`e7898571-069f-49c7-91b5-4b08a9edcb30`), not its `api://` identifier URI.
 
 ## Acceptance checks
 

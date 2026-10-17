@@ -6,6 +6,7 @@ param image string
 param registryLoginServer string
 param pullIdentityId string
 param tenantId string
+@description('Microsoft Entra v2 access-token audience: the API application (client) ID.')
 param audience string
 param allowedUsers string
 param apiClientId string

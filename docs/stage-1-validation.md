@@ -10,7 +10,7 @@ On 2026-10-16, an approved test foundation was deployed in `rg-az-maf-stage1` in
 
 The Container App was then deployed with one replica, digest-pinned image pull, Entra Easy Auth, exact API audience, allowed CLI client, and HTTPS required. It was verified ready with no restarts. Public ingress was enabled only after that authentication readback. The public URL returned 401 for missing bearer tokens, invalid bearer tokens, and forged identity headers; plain HTTP returned 301. A signed-in positive flow and authenticated forbidden-user check remain pending.
 
-On 2026-10-17, signed-in testing initially returned 403 because the API registration's access-token version was unset, causing Entra to issue a v1 token. The registration was corrected to `requestedAccessTokenVersion: 2`; acquire a fresh token before rerunning the acceptance script.
+On 2026-10-17, signed-in testing initially returned 403 because the API registration's access-token version was unset, causing Entra to issue a v1 token. The registration was corrected to `requestedAccessTokenVersion: 2`. The corresponding v2 access token uses the API application ID as its audience, so Easy Auth and the application must be configured with that exact value; acquire a fresh token before rerunning the acceptance script.
 
 ## Local checks
 

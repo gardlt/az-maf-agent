@@ -91,7 +91,7 @@ def show_safe_claims(token: str) -> None:
 
 def validate_stage1_claims(token: str) -> None:
     claims = unverified_claims(token)
-    if claims.get("aud") != f"api://{API_APP_ID}":
+    if claims.get("aud") != API_APP_ID:
         raise RuntimeError("token audience is not the Stage 1 API")
     if claims.get("tid") != TENANT_ID:
         raise RuntimeError("token tenant is not the Stage 1 tenant")
