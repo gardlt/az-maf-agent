@@ -67,3 +67,5 @@ Validate live tokens, real Easy Auth behavior, workload RBAC, endpoint compatibi
 - The fake-mode image is in the private test registry and the API runs in Azure. Registry provenance beyond its recorded digest, distributed controls, egress enforcement, non-cooperative-worker termination, durable audit, secret rotation drills, signed-in hosted acceptance, and live-model evaluation are not demonstrated here.
 
 See [Stage 1 validation](docs/stage-1-validation.md) for evidence and incomplete gates. Subsequent stages must preserve these tests and the spec's read-only agent catalog policy.
+
+See [the change log](docs/change-log.md) for a committed record of material deployment, authentication, and hosted-test changes.
