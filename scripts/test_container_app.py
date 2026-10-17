@@ -118,6 +118,15 @@ def require_status(response: httpx.Response, expected: int, label: str) -> dict[
     return response.json() if response.content else {}
 
 
+def require_live_model_response(result: dict[str, object], label: str) -> None:
+    text = result.get("text")
+    if not isinstance(text, str) or not text.strip():
+        raise RuntimeError(f"{label} returned no model text")
+    if text.startswith("Offline reply:"):
+        raise RuntimeError(f"{label} used the offline model")
+    print(f"{label} live model response: {len(text)} characters")
+
+
 def test_container_app(origin: str, token: str) -> None:
     with httpx.Client(timeout=30, follow_redirects=False) as public_client:
         unauthenticated = public_client.post(f"{origin}/sessions")
@@ -140,6 +149,7 @@ def test_container_app(origin: str, token: str) -> None:
             200,
             "first chat",
         )
+        require_live_model_response(first, "first chat")
         stale = client.post(
             f"/sessions/{session_id}/chat", json={"text": "replay", "revision": revision}
         )
@@ -153,6 +163,7 @@ def test_container_app(origin: str, token: str) -> None:
             200,
             "second chat",
         )
+        require_live_model_response(second, "second chat")
         reset = require_status(client.post(f"/sessions/{session_id}/reset"), 200, "reset")
         after_reset = require_status(
             client.post(
@@ -162,6 +173,7 @@ def test_container_app(origin: str, token: str) -> None:
             200,
             "chat after reset",
         )
+        require_live_model_response(after_reset, "chat after reset")
         print(
             "completed revision sequence:",
             first["revision"],

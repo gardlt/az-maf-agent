@@ -2,6 +2,17 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-17 — Foundry inference configuration
+
+- Added the complete, non-secret `config/foundry-stage1.json` configuration for the existing `gpt-5` deployment in the `aif-homelab-rv6t99la` account. It uses the supported Chat Completions API surface, a 400,000-token model window, and the existing Stage 1 admission, time, token, and cost limits.
+- Set the configuration's cost accounting to the published East US 2 Global Standard retail rates observed on 2026-10-17: $1.25 per million input tokens and $10.00 per million output tokens. These values reserve the configured maximum before each call and are not a replacement for Azure billing analysis.
+- Made the Container App deployment template accept an explicit approved configuration path. It still defaults to deterministic offline mode until the live image and workload identity assignment are deployed.
+- Re-pinned the Linux/amd64 Python 3.12.12 slim base image and uv build-tool image to their current manifests after their retired prior digests blocked the managed registry build.
+- Corrected the image's virtual-environment build path so its executable entry points remain valid after the multi-stage image copy.
+- Copied the application source into the runtime image and set its source path because the installed package uses an editable source reference during the bounded build.
+- Assigned the Container App system identity the built-in `Cognitive Services OpenAI User` role at the existing Foundry account scope, then deployed image digest `sha256:731d2bac351d6f723f101e2fdb46ec0fa85e8d48986bf5c806f84b1d1767edcb` to live revision `ca-az-maf-stage1--0000004` with `AGENT_CONFIG=/app/config/foundry-stage1.json`. Both containers reached ready state with zero restarts.
+- Updated the hosted acceptance script to reject deterministic offline replies while keeping model text out of the terminal output.
+
 ## 2026-10-17 — Azure AI Foundry project
 
 - Created the `az-maf-agent-stage1` project under the existing `aif-homelab-rv6t99la` Azure AI Services account in `rg-homelab-foundry`, East US 2.

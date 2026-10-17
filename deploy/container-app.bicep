@@ -15,6 +15,8 @@ param cliClientId string
 param authClientSecret string
 @description('Enable public HTTPS ingress only after private validation.')
 param externalIngress bool = false
+@description('Absolute path to an approved configuration file included in the container image.')
+param agentConfigPath string = '/app/config/offline.json'
 param location string = resourceGroup().location
 
 var entraBase = environment().authentication.loginEndpoint
@@ -37,7 +39,7 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
         name: 'agent-api'
         image: image
         env: [
-          { name: 'AGENT_CONFIG', value: '/app/config/offline.json' }
+          { name: 'AGENT_CONFIG', value: agentConfigPath }
           { name: 'ENTRA_TENANT_ID', value: tenantId }
           { name: 'ENTRA_AUDIENCE', value: audience }
           { name: 'ENTRA_ALLOWED_USERS', value: allowedUsers }
