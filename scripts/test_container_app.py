@@ -89,6 +89,25 @@ def show_safe_claims(token: str) -> None:
     )
 
 
+def validate_stage1_claims(token: str) -> None:
+    claims = unverified_claims(token)
+    if claims.get("aud") != f"api://{API_APP_ID}":
+        raise RuntimeError("token audience is not the Stage 1 API")
+    if claims.get("tid") != TENANT_ID:
+        raise RuntimeError("token tenant is not the Stage 1 tenant")
+    if "Chat.Access" not in str(claims.get("scp", "")).split():
+        raise RuntimeError("token does not include the Chat.Access scope")
+    caller = claims.get("azp") or claims.get("appid")
+    if caller != CLI_APP_ID:
+        raise RuntimeError(
+            "token was minted for a different client application; unset AGENT_ACCESS_TOKEN "
+            "and rerun this script to use the dedicated Stage 1 device-code client"
+        )
+    expires = claims.get("exp")
+    if not isinstance(expires, int) or expires <= datetime.now(timezone.utc).timestamp():
+        raise RuntimeError("token is expired")
+
+
 def require_status(response: httpx.Response, expected: int, label: str) -> dict[str, object]:
     print(f"{label}: HTTP {response.status_code}")
     if response.status_code != expected:
@@ -154,6 +173,7 @@ def main() -> int:
         origin = validate_origin(args.api)
         token = acquire_token(args.token_env)
         show_safe_claims(token)
+        validate_stage1_claims(token)
         test_container_app(origin, token)
     except (RuntimeError, ValueError, httpx.HTTPError, KeyError) as exc:
         print(f"Container App test failed: {exc}", file=sys.stderr)
