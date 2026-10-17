@@ -12,6 +12,8 @@ The Container App was then deployed with one replica, digest-pinned image pull, 
 
 On 2026-10-17, signed-in testing initially returned 403 because the API registration's access-token version was unset, causing Entra to issue a v1 token. The registration was corrected to `requestedAccessTokenVersion: 2`. The corresponding v2 access token uses the API application ID as its audience, so Easy Auth and the application must be configured with that exact value; acquire a fresh token before rerunning the acceptance script.
 
+On 2026-10-17, the `az-maf-agent-stage1` Azure AI Foundry project was created under the existing `aif-homelab-rv6t99la` AI Services account in East US 2. This records project setup only: no model deployment was selected, no inference RBAC was assigned to the Container App, and the hosted API remains in fake-model mode.
+
 ## Local checks
 
 Run from the repository root:

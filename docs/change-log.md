@@ -2,6 +2,12 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-17 — Azure AI Foundry project
+
+- Created the `az-maf-agent-stage1` project under the existing `aif-homelab-rv6t99la` Azure AI Services account in `rg-homelab-foundry`, East US 2.
+- The project has a separate system-assigned identity and its own Foundry project endpoint.
+- No model deployment, model-inference role assignment, or Container App inference configuration was added. The deployed Container App remains in deterministic fake-model mode.
+
 ## 2026-10-17 — Hosted Container App acceptance
 
 - Corrected the API registration to request Entra v2 access tokens (`requestedAccessTokenVersion: 2`).
