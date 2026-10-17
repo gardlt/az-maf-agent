@@ -1,0 +1,185 @@
+"""Text-only clients: no function invocation wrapper and no tool registration."""
+
+import asyncio
+import json
+import random
+from contextvars import ContextVar
+from dataclasses import dataclass
+from decimal import Decimal
+
+import httpx
+from agent_framework import BaseChatClient, ChatResponse, Message
+from azure.identity.aio import ManagedIdentityCredential
+
+from .config import Settings
+
+
+class Denied(Exception):
+    def __init__(self, code: str):
+        self.code = code
+        super().__init__(code)
+
+
+class Transient(Exception):
+    pass
+
+
+def tokens(text: str) -> int:
+    # Conservative UTF-8 byte bound for supported text/BPE models, not exact billing.
+    try:
+        return len(text.encode("utf-8"))
+    except UnicodeEncodeError:
+        raise Denied("invalid_encoding") from None
+
+
+def message_tokens(messages) -> int:
+    return 512 + sum(tokens(m.text) + 16 for m in messages)
+
+
+@dataclass
+class Ledger:
+    settings: Settings
+    reserve_daily: object
+    calls: int = 0
+    reserved_tokens: int = 0
+    reserved_usd: Decimal = Decimal(0)
+    actual_tokens: int = 0
+
+    def reserve(self, count: int):
+        s, lim = self.settings, self.settings.limits
+        total = count + lim.output_tokens
+        cost = (
+            Decimal(str(s.input_usd_per_million or 0)) * count
+            + Decimal(str(s.output_usd_per_million or 0)) * lim.output_tokens
+        ) / 1_000_000
+        if (
+            self.calls >= lim.turns
+            or self.reserved_tokens + total > lim.run_tokens
+            or self.reserved_usd + cost > Decimal(str(lim.run_usd))
+        ):
+            raise Denied("run_budget")
+        self.reserve_daily(cost)
+        self.calls += 1
+        self.reserved_tokens += total
+        self.reserved_usd += cost
+        # Reservations are never refunded: failed/ambiguous requests may be billed.
+
+
+CURRENT_LEDGER: ContextVar[Ledger] = ContextVar("ledger")
+
+
+class FakeTransport:
+    async def complete(self, messages, settings):
+        turns = sum(m.role == "user" for m in messages)
+        return f"Offline reply: {turns} user message(s) in bounded context. No tools available.", 0
+
+    async def close(self):
+        pass
+
+
+class AzureTransport:
+    def __init__(self, settings: Settings):
+        self.credential = ManagedIdentityCredential(client_id=settings.managed_identity_client_id)
+        self.http = httpx.AsyncClient(follow_redirects=False, timeout=settings.limits.call_seconds)
+
+    async def complete(self, messages, settings):
+        try:
+            token = await self.credential.get_token("https://cognitiveservices.azure.com/.default")
+            url = (
+                settings.endpoint.rstrip("/")
+                + "/openai/deployments/"
+                + settings.deployment
+                + "/chat/completions"
+            )
+            payload = {
+                "messages": [{"role": m.role, "content": m.text} for m in messages],
+                "max_completion_tokens": settings.limits.output_tokens,
+                "store": False,
+            }
+            async with self.http.stream(
+                "POST",
+                url,
+                params={"api-version": settings.api_version},
+                headers={"Authorization": "Bearer " + token.token},
+                json=payload,
+            ) as response:
+                if response.status_code in (429, 500, 502, 503, 504):
+                    raise Transient()
+                if response.status_code != 200:
+                    raise Denied("provider_failure")
+                data = bytearray()
+                async for chunk in response.aiter_bytes():
+                    data.extend(chunk)
+                    if len(data) > 65536:
+                        raise Denied("provider_size")
+            obj = json.loads(data)
+            choice = obj["choices"][0]
+            message = choice["message"]
+            if (
+                message.get("tool_calls")
+                or message.get("function_call")
+                or choice.get("finish_reason") in ("tool_calls", "function_call")
+            ):
+                raise Denied("tools_disabled")
+            if message.get("role") != "assistant":
+                raise Denied("tools_disabled")
+            usage = obj["usage"]
+            total, output = usage["total_tokens"], usage["completion_tokens"]
+            if (
+                type(total) is not int
+                or type(output) is not int
+                or total < output
+                or output < 0
+                or output > settings.limits.output_tokens
+            ):
+                raise Denied("provider_usage")
+            return message["content"], total
+        except (httpx.TimeoutException, httpx.NetworkError) as exc:
+            raise Transient() from exc
+        except (KeyError, IndexError, TypeError, ValueError) as exc:
+            raise Denied("provider_shape") from exc
+
+    async def close(self):
+        await self.http.aclose()
+        await self.credential.close()
+
+
+class GuardedClient(BaseChatClient):
+    def __init__(self, settings, transport):
+        super().__init__()
+        self.settings, self.transport = settings, transport
+
+    async def _inner_get_response(self, *, messages, stream, options, **kwargs):
+        if stream or options.get("tools"):
+            raise Denied("tools_or_streaming_disabled")
+        messages = list(messages)
+        if options.get("instructions"):
+            messages.insert(0, Message("system", [options["instructions"]]))
+        if any(
+            m.role not in ("system", "user", "assistant")
+            or any(c.type != "text" for c in m.contents)
+            for m in messages
+        ):
+            raise Denied("non_text_message")
+        count = message_tokens(messages)
+        lim = self.settings.limits
+        if count > lim.context_tokens:
+            raise Denied("context_limit")
+        ledger = CURRENT_LEDGER.get()
+        for attempt in range(lim.retries + 1):
+            ledger.reserve(count)
+            try:
+                async with asyncio.timeout(lim.call_seconds):
+                    text, actual = await self.transport.complete(messages, self.settings)
+                if not isinstance(text, str) or not text or tokens(text) > lim.output_tokens:
+                    raise Denied("output_limit")
+                if type(actual) is not int or actual < 0 or actual > count + lim.output_tokens:
+                    raise Denied("provider_usage")
+                ledger.actual_tokens += actual
+                return ChatResponse(messages=[Message("assistant", [text])])
+            except Transient:
+                if attempt == lim.retries:
+                    raise Denied("retry_exhausted") from None
+                await asyncio.sleep(random.uniform(0, min(0.1 * 2**attempt, 1.0)))
+            except TimeoutError:
+                raise Denied("call_timeout") from None

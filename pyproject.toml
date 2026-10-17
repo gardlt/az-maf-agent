@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "az-maf-agent"
+version = "0.1.0"
+description = "Stage 1 bounded chat teaching skeleton"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "agent-framework-core==1.22.0",
+  "azure-identity==1.26.0",
+  "fastapi==0.143.2",
+  "httpx==0.28.1",
+  "PyJWT[crypto]==2.15.1",
+  "cryptography==50.0.2",
+  "uvicorn==0.54.0",
+  "aiohttp>=3.12,<4",
+]
+
+[project.scripts]
+agent-chat = "az_maf_agent.cli:main"
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "pytest-asyncio==1.4.0", "ruff>=0.12,<1", "pip-audit>=2.9,<3"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

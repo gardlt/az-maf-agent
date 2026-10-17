@@ -1,0 +1,23 @@
+{
+  "policy_version": "stage-1-v1",
+  "mode": "fake",
+  "limits": {
+    "input_bytes": 16384,
+    "context_tokens": 16000,
+    "output_tokens": 2000,
+    "run_tokens": 24000,
+    "turns": 8,
+    "retries": 2,
+    "run_seconds": 120.0,
+    "call_seconds": 30.0,
+    "history_bytes": 32768,
+    "history_tokens": 8000,
+    "idle_seconds": 1800.0,
+    "lifetime_seconds": 14400.0,
+    "run_usd": 0.25,
+    "daily_usd": 5.0,
+    "per_user_parallel": 2,
+    "parallel": 10,
+    "max_sessions": 1000
+  }
+}

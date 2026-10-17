@@ -1,0 +1,20 @@
+{
+  "properties": {
+    "platform": {"enabled": true},
+    "globalValidation": {
+      "unauthenticatedClientAction": "Return401"
+    },
+    "identityProviders": {
+      "azureActiveDirectory": {
+        "enabled": true,
+        "registration": {
+          "clientId": "<API_APPLICATION_CLIENT_ID>",
+          "openIdIssuer": "https://login.microsoftonline.com/<TENANT_ID>/v2.0"
+        },
+        "validation": {
+          "allowedAudiences": ["<API_TOKEN_AUDIENCE>"]
+        }
+      }
+    }
+  }
+}
