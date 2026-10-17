@@ -95,6 +95,9 @@ def validate_stage1_claims(token: str) -> None:
         raise RuntimeError("token audience is not the Stage 1 API")
     if claims.get("tid") != TENANT_ID:
         raise RuntimeError("token tenant is not the Stage 1 tenant")
+    expected_issuer = f"https://login.microsoftonline.com/{TENANT_ID}/v2.0"
+    if claims.get("iss") != expected_issuer:
+        raise RuntimeError("token issuer is not the Entra v2 issuer; acquire a fresh token")
     if "Chat.Access" not in str(claims.get("scp", "")).split():
         raise RuntimeError("token does not include the Chat.Access scope")
     caller = claims.get("azp") or claims.get("appid")
