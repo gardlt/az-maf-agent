@@ -33,7 +33,7 @@ Local deterministic fake-model mode, a configured Azure AI Foundry live-model ad
 - [x] Session/user isolation, reset, TTL expiry, context reduction, and poisoned summaries pass. A controlled hosted revision restart was verified to discard the created session (`404` on the next chat) under the selected single-process contract.
 - [ ] Shared/resumable session tests cover duplicate requests, concurrent writes, replica changes, and reset races; no leakage, history resurrection, or aggregate counter reset occurs.
 - [ ] Hosted authorized caller succeeds; missing and wrong-audience tokens plus spoofed identity headers fail, and authenticated forbidden actions return 403. Encrypted CLI cache refresh was verified without a second device prompt. Expired-token rejection through the deployed ingress remains to be recorded. No public alternate API route bypasses authentication.
-- [x] Tools, skill execution, and durable memory are disabled; chat content is not persisted by default, including logs. Any selected TTL persistence is explicit and governed.
+- [x] The Stage 1 text-only path has no tools, skill execution, or durable memory; chat content is not persisted by default, including logs. Stage 2 adds a separately enabled, bounded movie-read path. Any selected TTL persistence is explicit and governed.
 
 ## Security and negative scenarios
 

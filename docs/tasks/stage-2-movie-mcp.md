@@ -19,7 +19,7 @@ Current implementation status: the versioned catalog, strict read-only dispatche
 | Ingress and unauthenticated caller | Passed | Public request to the internal MCP hostname returned `404`; a no-token request from inside the agent container returned `401`. |
 | Agent write proposal | Passed at agent boundary | Hosted `put_movie` proposal returned `403` before MCP dispatch. This does **not** prove a direct PUT to a deployed catalog service is denied. |
 | Stage 1 regression | Passed | Live Foundry chats, stale-revision rejection, reset, and unauthenticated ingress behaved as before. |
-| Model-selected tool invocation | Passed for one hosted lookup | Revision `ca-az-maf-stage1--0000010` returned a live answer after exactly one managed-identity-backed MCP read of `movie_000103`. The loop permits only two sequential read attempts per run. |
+| Model-selected tool invocation | Passed for one hosted lookup | Revision `ca-az-maf-stage1--0000010` returned a live answer after exactly one managed-identity-backed MCP read of `movie_000103`. The loop permits only two sequential read attempts per run; broader quality and adversarial evaluation remains open. |
 | Deployed admin and direct-identity PUT | Pending | The separate admin PUT adapter has local authorization tests but is not deployed with independent authentication. |
 | Controlled outbound network | Pending | The existing environment has no VNet or workload profiles, so an egress-rule block cannot be demonstrated there. |
 
@@ -40,7 +40,7 @@ The next implementation work is to deploy the admin test surface with separate a
 5. [ ] Implement `PUT /movies/{catalog_id}` only for authorized test/admin replacement of existing synthetic records. Validate matching path/body IDs and full schema before mutation. Downstream service denies agent and MCP identities, including direct calls; discovery visibility is not authorization.
 6. [ ] Add malicious synopsis, malformed/oversized result, forged identity, and mock write-proposal fixtures. No generic HTTP/shell tool or dynamic write registration may bypass the dispatcher.
 7. [ ] Configure and execute all five deployed network checks below from actual runtime contexts. Approved reads and private ingress/authentication have passed; outbound blocking, direct downstream PUT, and hosted redirect escape remain open. Inventory allowed model, identity, DNS, configuration, secrets, telemetry, registry/platform, and catalog dependencies.
-8. [ ] Document layered evidence and pass retained Stage 1 regressions. Stage 1 regression passed on the updated agent; finish the remaining Stage 2 evidence before closing this item.
+8. [ ] Document layered evidence and pass retained Stage 1 regressions. Stage 1 regression passed on revision `ca-az-maf-stage1--0000010`; finish the remaining Stage 2 evidence before closing this item.
 
 ## Acceptance criteria
 
