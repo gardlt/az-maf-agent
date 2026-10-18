@@ -2,6 +2,7 @@ import pytest
 
 from movie_catalog_mcp.catalog import CATALOG_VERSION, Catalog, CatalogAdminService, MovieDispatcher
 from movie_catalog_mcp.contracts import Denied, WorkloadIdentity
+from movie_catalog_mcp.server import get_movie, mcp, search_movies
 
 AGENT = WorkloadIdentity("agent-test", "catalog-reader")
 
@@ -25,6 +26,12 @@ def test_search_and_get_are_deterministic_and_bounded():
         "not_found": True,
         "catalog_id": "movie_999999",
     }
+
+
+async def test_fastmcp_tools_only_expose_pinned_read_contracts():
+    assert {tool.name for tool in await mcp.list_tools()} == {"get_movie", "search_movies"}
+    assert search_movies("lantern")["movies"][0]["id"] == "movie_000103"
+    assert get_movie("movie_000104")["movie"]["genre"] == "family"
 
 
 @pytest.mark.parametrize(

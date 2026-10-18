@@ -60,7 +60,9 @@ API routes: `POST /sessions`, `POST /sessions/{id}/chat` with `{"text":"hello","
 
 The local exercise also includes a separate `PUT /movies/{catalog_id}` adapter backed by an injected, service-specific verified-principal dependency. Only its configured test/admin principal can replace an existing complete synthetic record with a matching ID; the local agent/MCP reader identity receives `403`, including on a direct request, and denied writes leave the catalog revision unchanged. This adapter is not configured for deployment authentication or public ingress.
 
-This is a local contract foundation, not a deployed MCP service. Agent Framework tool registration, service authentication/identities, workload networking, and the five deployed network checks remain required before Stage 2 can be accepted.
+`movie-catalog-mcp` now exposes these two read operations through a FastMCP server over its standard stdio transport. Run it locally with `uv run --locked movie-catalog-mcp`. The separate admin PUT adapter is not registered with FastMCP.
+
+This is a local FastMCP service, not a deployed MCP integration. Agent Framework tool registration, service authentication/identities, workload networking, and the five deployed network checks remain required before Stage 2 can be accepted.
 
 To exercise the deployed app, run `uv run --locked python scripts/test_container_app.py`. It starts a device-code flow only when the encrypted Stage 1 cache cannot refresh a token or `AGENT_ACCESS_TOKEN` is unset, prints only selected token claims, and checks unauthenticated rejection, session creation, chat, stale revision denial, and reset. It neither logs nor writes the bearer token.
 

@@ -8,7 +8,7 @@ Extend [Stage 1](stage-1-chat.md) with approved read-only movie tools and demons
 
 A small bundled synthetic IMDb-style catalog, guarded MCP dispatcher, and admin-only HTTP PUT exercise. There is no IMDb affiliation, scraping, account, or API integration.
 
-Current implementation status: the versioned local catalog, strict read-only dispatcher, and separate local admin-only PUT adapter are in the `movie-catalog-mcp` workspace package, independent of the `agent` package. Agent tool registration, an MCP transport, deployment service authentication/identities, and deployed network evidence remain pending.
+Current implementation status: the versioned local catalog, strict read-only dispatcher, FastMCP stdio server, and separate local admin-only PUT adapter are in the `movie-catalog-mcp` workspace package, independent of the `agent` package. Agent tool registration, deployed service authentication/identities, and deployed network evidence remain pending.
 
 ## Prerequisites and dependencies
 
