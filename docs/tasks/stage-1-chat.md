@@ -6,34 +6,34 @@ Deliver the first runnable slice of the [specification](../secure-agent-teaching
 
 ## Scope
 
-Local deterministic fake-model mode, configured live-model adapter, bounded sessions, and the Container Apps/Easy Auth hosted API. Session history starts here; durable user memory does not.
+Local deterministic fake-model mode, a configured Azure AI Foundry live-model adapter, bounded sessions, and the Container Apps/Easy Auth hosted API. Session history starts here; durable user memory does not.
 
 ## Prerequisites and dependencies
 
 - No preceding stage. Local work requires no cloud credentials.
 - Select and pin supported Python/Agent Framework versions and an API framework; document compatibility.
-- Choose the actual approved model deployment only before live tests; resolve it through configuration, never source-code constants.
+- The approved live deployment is the existing `gpt-5` deployment on `aif-homelab-rv6t99la`, resolved through `config/foundry-stage1.json`, never source-code constants.
 - Decide session resumption/backend behavior before hosted session acceptance. RAM is adequate for an offline single process; shared TTL storage or validated rehydration needs a separate decision for replicas.
 
 ## Ordered work checklist
 
-1. [ ] Establish one installable package, CLI, core/model adapters, validated configuration, credential-free examples, dependency lock/integrity checks, and test fixtures with injectable clock and deterministic fake model.
-2. [ ] Implement run identity/scope, policy version, budget ledger, cancellation, safe output rendering, stable errors, and redacted audit. Adopt all applicable finite limits from the spec; missing policy or required limits denies admission.
-3. [ ] Implement explicit Python `AgentSession`/history-provider configuration. Enforce authenticated tenant/user/session ownership on creation, load, update, reset, and resume.
-4. [ ] Bound history bytes/tokens, idle TTL, maximum lifetime, and processing deadlines. Add reset/expiry and prevent late writes from resurrecting cleared history. Trim/summarize within the same budgets, preserving tool-message structure for later stages.
-5. [ ] Keep summaries untrusted and minimize sensitive content. Store authoritative permissions, approvals, cancellation, and counters outside history; reset/compaction cannot reset aggregate security limits or promote content into durable memory.
-6. [ ] Add HTTPS Python API and Container Apps deployment instructions/configuration with Entra Easy Auth, authenticated-only ingress, HTTPS enforcement, API 401 responses, and application 403 permission checks. Protect trusted identity headers from alternate ingress paths.
-7. [ ] Separate caller auth from dedicated workload identity/RBAC; use approved secret resolution without exposing credentials to CLI prompts/logs. Validate session concurrency/resumption across replicas if enabled; never rely on sticky routing for correctness.
-8. [ ] Run local and hosted checks separately and produce learner material and decision evidence.
+1. [x] Establish one installable package, CLI, core/model adapters, validated configuration, credential-free examples, dependency lock/integrity checks, and test fixtures with injectable clock and deterministic fake model.
+2. [x] Implement run identity/scope, policy version, budget ledger, cancellation, safe output rendering, stable errors, and redacted audit. Adopt all applicable finite limits from the spec; missing policy or required limits denies admission.
+3. [x] Implement explicit Python `AgentSession`/history-provider configuration. Enforce authenticated tenant/user/session ownership on creation, load, update, reset, and resume.
+4. [x] Bound history bytes/tokens, idle TTL, maximum lifetime, and processing deadlines. Add reset/expiry and prevent late writes from resurrecting cleared history. Trim within the same budgets and prevent late writes from resurrecting cleared history.
+5. [x] Keep summaries untrusted and minimize sensitive content. Store authoritative permissions, approvals, cancellation, and counters outside history; reset/compaction cannot reset aggregate security limits or promote content into durable memory.
+6. [x] Add HTTPS Python API and Container Apps deployment instructions/configuration with Entra Easy Auth, authenticated-only ingress, HTTPS enforcement, API 401 responses, and application 403 permission checks. Protect trusted identity headers from alternate ingress paths.
+7. [x] Separate caller auth from dedicated workload identity/RBAC; use approved secret resolution without exposing credentials to CLI prompts/logs. The live app uses one replica and does not claim sticky-routing or cross-replica correctness.
+8. [x] Run local and hosted checks separately and produce learner material and decision evidence.
 
 ## Acceptance criteria
 
-- [ ] Local multi-turn chat runs with the built-in fake model and no Azure credentials; only one approved configured model is used in live mode.
-- [ ] Oversized input, missing limits, context overflow, retry exhaustion, timeout, token/spend exhaustion, and cancellation stop at the prescribed bounds without bypasses.
-- [ ] Session/user isolation, reset, TTL expiry, context reduction, and poisoned summaries pass. Restart either loses context explicitly or resumes it correctly under the chosen contract.
+- [x] Local multi-turn chat runs with the built-in fake model and no Azure credentials; one approved configured `gpt-5` model is used in live mode.
+- [x] Oversized input, missing limits, context overflow, retry exhaustion, timeout, token/spend exhaustion, and cancellation stop at the prescribed bounds without bypasses.
+- [x] Session/user isolation, reset, TTL expiry, context reduction, and poisoned summaries pass. Restart explicitly loses in-memory context under the selected single-process contract.
 - [ ] Shared/resumable session tests cover duplicate requests, concurrent writes, replica changes, and reset races; no leakage, history resurrection, or aggregate counter reset occurs.
-- [ ] Hosted authorized caller succeeds; missing/expired/wrong-issuer/wrong-audience tokens and spoofed identity headers fail. Authenticated forbidden actions return 403. No public alternate API route bypasses authentication.
-- [ ] Tools, skill execution, and durable memory are disabled; chat content is not persisted by default, including logs. Any selected TTL persistence is explicit and governed.
+- [ ] Hosted authorized caller succeeds; missing/wrong-audience tokens and spoofed identity headers fail, and authenticated forbidden actions return 403. Expired-token rejection through the deployed ingress remains to be recorded. No public alternate API route bypasses authentication.
+- [x] Tools, skill execution, and durable memory are disabled; chat content is not persisted by default, including logs. Any selected TTL persistence is explicit and governed.
 
 ## Security and negative scenarios
 
@@ -47,4 +47,4 @@ Inject instructions to reveal seeded fake secrets, change identity/policy, or in
 
 ## Out of scope
 
-Durable memory, MCP execution, skills, web UI, multi-model routing, Foundry hosting, API Management, and claims of production readiness. These tasks do not select a model or session-store product on the user's behalf.
+Durable memory, MCP execution, skills, web UI, multi-model routing, Foundry-hosted agents and project capabilities beyond model inference, API Management, and claims of production readiness. The selected model is limited to the Stage 1 Foundry inference path; no session-store product has been chosen.
