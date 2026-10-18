@@ -83,6 +83,64 @@ class AzureTransport:
         self.http = httpx.AsyncClient(follow_redirects=False, timeout=settings.limits.call_seconds)
 
     async def complete(self, messages, settings):
+        payload = {
+            "messages": [{"role": m.role, "content": m.text} for m in messages],
+            "max_completion_tokens": settings.limits.output_tokens,
+            "store": False,
+        }
+        obj = await self._request(payload, settings)
+        try:
+            choice = obj["choices"][0]
+            message = choice["message"]
+            if (
+                message.get("tool_calls")
+                or message.get("function_call")
+                or choice.get("finish_reason") in ("tool_calls", "function_call")
+            ):
+                raise Denied("tools_disabled")
+            if message.get("role") != "assistant":
+                raise Denied("tools_disabled")
+            return message["content"], self._usage(obj, settings)
+        except (KeyError, IndexError, TypeError, ValueError) as exc:
+            raise Denied("provider_shape") from exc
+
+    async def complete_tool_turn(self, messages, settings):
+        """Return one raw tool-capable turn; the application validates its actions."""
+        from .movie_mcp import CONTRACT
+
+        payload = {
+            "messages": messages,
+            "tools": [
+                {"type": "function", "function": {"name": name, "parameters": schema}}
+                for name, schema in CONTRACT.items()
+            ],
+            "tool_choice": "auto",
+            "parallel_tool_calls": False,
+            "max_completion_tokens": settings.limits.output_tokens,
+            "store": False,
+        }
+        obj = await self._request(payload, settings)
+        try:
+            choice = obj["choices"][0]
+            return choice["message"], choice.get("finish_reason"), self._usage(obj, settings)
+        except (KeyError, IndexError, TypeError, ValueError) as exc:
+            raise Denied("provider_shape") from exc
+
+    @staticmethod
+    def _usage(obj, settings):
+        usage = obj["usage"]
+        total, output = usage["total_tokens"], usage["completion_tokens"]
+        if (
+            type(total) is not int
+            or type(output) is not int
+            or total < output
+            or output < 0
+            or output > settings.limits.output_tokens
+        ):
+            raise Denied("provider_usage")
+        return total
+
+    async def _request(self, payload, settings):
         try:
             token = await self.credential.get_token("https://cognitiveservices.azure.com/.default")
             url = (
@@ -91,11 +149,6 @@ class AzureTransport:
                 + settings.deployment
                 + "/chat/completions"
             )
-            payload = {
-                "messages": [{"role": m.role, "content": m.text} for m in messages],
-                "max_completion_tokens": settings.limits.output_tokens,
-                "store": False,
-            }
             async with self.http.stream(
                 "POST",
                 url,
@@ -113,27 +166,7 @@ class AzureTransport:
                     if len(data) > 65536:
                         raise Denied("provider_size")
             obj = json.loads(data)
-            choice = obj["choices"][0]
-            message = choice["message"]
-            if (
-                message.get("tool_calls")
-                or message.get("function_call")
-                or choice.get("finish_reason") in ("tool_calls", "function_call")
-            ):
-                raise Denied("tools_disabled")
-            if message.get("role") != "assistant":
-                raise Denied("tools_disabled")
-            usage = obj["usage"]
-            total, output = usage["total_tokens"], usage["completion_tokens"]
-            if (
-                type(total) is not int
-                or type(output) is not int
-                or total < output
-                or output < 0
-                or output > settings.limits.output_tokens
-            ):
-                raise Denied("provider_usage")
-            return message["content"], total
+            return obj
         except (httpx.TimeoutException, httpx.NetworkError) as exc:
             raise Transient() from exc
         except (KeyError, IndexError, TypeError, ValueError) as exc:

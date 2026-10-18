@@ -165,6 +165,9 @@ def from_env():
     logging.getLogger("agent_framework").setLevel(logging.CRITICAL)
     logging.getLogger("azure").setLevel(logging.CRITICAL)
     settings = load_settings(os.environ["AGENT_CONFIG"])
+    movie_model_tools = os.environ.get("ENABLE_MOVIE_MODEL_TOOLS") == "true"
+    if movie_model_tools and settings.mode != "azure":
+        raise ValueError("model-selected movie tools require live model mode")
     verifier = EntraVerifier(
         os.environ["ENTRA_TENANT_ID"],
         os.environ["ENTRA_AUDIENCE"],
@@ -181,5 +184,6 @@ def from_env():
         settings,
         AzureTransport(settings) if settings.mode == "azure" else None,
         movie_client=movie_client,
+        movie_model_tools=movie_model_tools,
     )
     return create_app(service, verifier)

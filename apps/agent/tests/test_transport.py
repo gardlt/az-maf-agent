@@ -59,6 +59,37 @@ async def test_live_request_no_tools_or_unconfigured_destination(configured):
     await t.close()
 
 
+async def test_live_tool_request_advertises_only_pinned_reads(configured):
+    def handler(request):
+        payload = json.loads(request.content)
+        assert payload["parallel_tool_calls"] is False
+        assert payload["store"] is False
+        assert {tool["function"]["name"] for tool in payload["tools"]} == {
+            "search_movies",
+            "get_movie",
+        }
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {"role": "assistant", "content": "A synthetic movie."},
+                        "finish_reason": "stop",
+                    }
+                ],
+                "usage": {"total_tokens": 100, "completion_tokens": 10},
+            },
+        )
+
+    cfg, t = await transport(configured, handler)
+    assert await t.complete_tool_turn([{"role": "user", "content": "movie"}], cfg) == (
+        {"role": "assistant", "content": "A synthetic movie."},
+        "stop",
+        100,
+    )
+    await t.close()
+
+
 @pytest.mark.parametrize(
     "kind,code",
     [

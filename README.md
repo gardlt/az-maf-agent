@@ -2,7 +2,7 @@
 
 A Python CLI and Microsoft Agent Framework chat core with bounded, process-local session history. The deterministic offline default requires **no Azure account or credentials** after dependencies are installed. Stage 2 includes a separate FastMCP movie catalog and an explicit agent-side read path. Model-generated tool calls, skills, durable memory, command execution, and agent catalog writes remain disabled.
 
-This is a teaching implementation plus a single-replica authenticated API test deployment, **not a production-ready service**. The [specification](docs/secure-agent-teaching-spec.md) and [stage tasks](docs/tasks/README.md) remain authoritative. The private registry images, infrastructure templates, and hosted evidence are documented in [the hosted runbook](docs/stage-1-hosted.md) and [Stage 2 validation](docs/stage-2-validation.md). Signed-in Stage 1 live-model and Stage 2 MCP reads have passed; controlled-egress and model-selected tool acceptance remain pending.
+This is a teaching implementation plus a single-replica authenticated API test deployment, **not a production-ready service**. The [specification](docs/secure-agent-teaching-spec.md) and [stage tasks](docs/tasks/README.md) remain authoritative. The private registry images, infrastructure templates, and hosted evidence are documented in [the hosted runbook](docs/stage-1-hosted.md) and [Stage 2 validation](docs/stage-2-validation.md). Signed-in Stage 1 live-model chat and Stage 2 model-selected MCP reads have passed; deployed admin authorization and controlled-egress acceptance remain pending.
 
 ## Run locally
 
@@ -62,7 +62,7 @@ The local exercise also includes a separate `PUT /movies/{catalog_id}` adapter b
 
 `movie-catalog-mcp` now exposes these two read operations through a FastMCP server over its standard stdio transport. Run it locally with `uv run --locked movie-catalog-mcp`. The separate admin PUT adapter is not registered with FastMCP.
 
-Run `uv run --locked agent-chat --movies` to use `/search QUERY` and `/movie movie_######` through the agent's pinned FastMCP client. The authenticated `POST /sessions/{id}/movies/{tool_name}` API path is enabled in the hosted agent. The agent validates the advertised tool contract and each result, checks session ownership and a per-session read limit, and can revoke a tool before dispatch. The local MCP subprocess receives a minimal environment. The model does not select or invoke tools yet.
+Run `uv run --locked agent-chat --movies` to use `/search QUERY` and `/movie movie_######` through the agent's pinned FastMCP client. The authenticated `POST /sessions/{id}/movies/{tool_name}` API path is enabled in the hosted agent. The agent validates the advertised tool contract and each result, checks session ownership and a per-session read limit, and can revoke a tool before dispatch. The local MCP subprocess receives a minimal environment. The hosted agent also enables an opt-in, bounded model tool loop for these two reads; `uv run --locked python scripts/test_movie_model_tools.py` verifies a live model-selected MCP lookup without printing model text or tokens.
 
 The internal FastMCP app runs in the existing Container Apps environment with separate identity and Entra application-role authentication. An approved hosted read passed, as did unauthenticated caller and write-proposal denials. Outbound network enforcement and the remaining deployed network checks are still required before Stage 2 can be accepted. See [Stage 2 validation](docs/stage-2-validation.md).
 
@@ -74,7 +74,7 @@ Validate live tokens, real Easy Auth behavior, workload RBAC, endpoint compatibi
 
 ## Architecture decisions and remaining work
 
-- Python 3.12, Agent Framework core 1.22.0, FastAPI and a minimal text-only `BaseChatClient` are the tested foundation. This client does not implement function invocation; the framework warning about unavailable function invocation is expected. An SDK provider client is an alternative if its automatic retries, history, tools, and telemetry can be bounded equivalently.
+- Python 3.12, Agent Framework core 1.22.0, FastAPI and a minimal text-only `BaseChatClient` are the Stage 1 foundation. Stage 2 model-selected reads use a separate application-owned Chat Completions loop with explicit tool validation and the same service budgets. An SDK provider client is an alternative if its automatic retries, history, tools, and telemetry can be bounded equivalently.
 - RAM history and trimming keep the local lesson small. Reconsider shared TTL storage for multiple replicas/resumption; reconsider summarization only after testing poisoning and budgets. Durable memory remains Stage 4.
 - JWT verification supplements Easy Auth to avoid relying on spoofable headers during local API tests or accidental alternate ingress. It adds a JWKS dependency; review a platform-only trust adapter only when its network boundary is demonstrably enforced.
 - A single configured Azure deployment is supported; model choice, API deployment/version, pricing, session backend, and distributed control product remain open. Foundry hosting, API Management, and runtime model routing remain future options.

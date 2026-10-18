@@ -2,6 +2,13 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-18 — Model-selected Stage 2 reads
+
+- Added an opt-in, application-owned model tool loop that advertises only the two pinned read functions, validates proposed calls and results, limits a run to two sequential MCP read attempts, and charges model calls/retries to the existing budget ledger. Session history retains only the final text pair. Local tests cover forbidden calls, duplicate arguments, loop limits, injected tool text, and reset cancellation.
+- Deployed agent image digest `sha256:809c1982ff0e342e290274a786f92716eb9f46be1bf3a98fe2138fcc568bb211` as revision `ca-az-maf-stage1--0000010` with `ENABLE_MOVIE_MODEL_TOOLS=true`.
+- Verified a signed-in live model response after exactly one MCP read of `movie_000103`. The Stage 1 live-chat acceptance and explicit movie-read/denial checks also passed after rollout. The complete local suite passed 51 tests.
+- Deployed admin PUT authorization and controlled-egress network checks remain open; Stage 2 is not accepted yet.
+
 ## 2026-10-18 — Hosted Stage 2 MCP read path
 
 - Deployed `ca-az-maf-movie-mcp` as an internal second app in the existing Stage 1 Container Apps environment. Its image digest is `sha256:dd2db134a9031138fc65c24e96c921078944e0fcdabf0ecff98d8e0133996b77`; the app has its own system-assigned identity.
