@@ -45,6 +45,7 @@ class Session:
     touched: float
     revision: int = 0
     active: asyncio.Task | None = None
+    movie_reads: int = 0
 
 
 class History(InMemoryHistoryProvider):
@@ -82,6 +83,7 @@ class Service:
         clock=time.monotonic,
         day=lambda: int(time.time() // 86400),
         audit=None,
+        movie_client=None,
     ):
         if (
             os.environ.get("OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", "false").lower()
@@ -89,6 +91,7 @@ class Service:
         ):
             raise ValueError("message-content tracing is disabled in Stage 1")
         self.settings, self.clock, self.day = settings, clock, day
+        self.movie_client = movie_client
         if transport is None:
             if settings.mode != "fake":
                 raise ValueError("live transport must be explicitly configured")
@@ -194,6 +197,39 @@ class Service:
         self.emit("cancel_requested", principal=principal, sid=sid)
         return {"session_id": sid, "revision": session.revision}
 
+    async def movie_read(self, principal, sid, name, arguments):
+        """A session-scoped, budgeted read through the pinned MCP adapter."""
+        session = self.owned(principal, sid)
+        if self.movie_client is None:
+            raise Denied("tool_not_enabled")
+        if session.active:
+            raise Denied("busy")
+        if session.movie_reads >= self.settings.limits.turns:
+            raise Denied("tool_budget")
+        from .movie_mcp import validate_arguments
+
+        args = validate_arguments(name, arguments)
+        session.movie_reads += 1  # Ambiguous downstream completion remains charged.
+        revision = session.revision
+        self.emit("tool_read_started", principal=principal, sid=sid)
+        session.active = asyncio.current_task()
+        try:
+            async with asyncio.timeout(self.settings.limits.call_seconds):
+                result = await self.movie_client.read(name, args)
+            if (
+                self.expired(session)
+                or self.sessions.get(sid) is not session
+                or session.revision != revision
+            ):
+                raise Denied("session_changed")
+            self.emit("tool_read_completed", principal=principal, sid=sid)
+            return result
+        except TimeoutError:
+            self.emit("tool_timeout", principal=principal, sid=sid)
+            raise Denied("tool_timeout") from None
+        finally:
+            session.active = None
+
     async def chat(self, principal, sid, text, revision):
         session = self.owned(principal, sid)
         lim = self.settings.limits
@@ -275,3 +311,5 @@ class Service:
             if session.active:
                 session.active.cancel()
         await self.transport.close()
+        if self.movie_client is not None:
+            await self.movie_client.close()

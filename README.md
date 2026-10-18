@@ -1,8 +1,8 @@
 # az-maf-agent — Stage 1 and Stage 2 foundation
 
-A Python CLI and Microsoft Agent Framework chat core with bounded, process-local session history. The deterministic offline default requires **no Azure account or credentials** after dependencies are installed. Stage 2 currently includes a local, versioned synthetic movie catalog and a strict read-only dispatcher; it is not yet registered as an Agent Framework tool or exposed through an MCP/network transport. Skills, durable memory, command execution, and all catalog writes remain unimplemented.
+A Python CLI and Microsoft Agent Framework chat core with bounded, process-local session history. The deterministic offline default requires **no Azure account or credentials** after dependencies are installed. Stage 2 includes a separate FastMCP movie catalog and an explicit agent-side read path. Model-generated tool calls, skills, durable memory, command execution, and agent catalog writes remain disabled.
 
-This is a teaching implementation plus a single-replica authenticated API test deployment, **not a production-ready service**. The [specification](docs/secure-agent-teaching-spec.md) and [stage tasks](docs/tasks/README.md) remain authoritative. The private registry image, infrastructure templates, and hosted evidence are documented in [the hosted runbook](docs/stage-1-hosted.md); signed-in acceptance and live-model evaluation are still pending.
+This is a teaching implementation plus a single-replica authenticated API test deployment, **not a production-ready service**. The [specification](docs/secure-agent-teaching-spec.md) and [stage tasks](docs/tasks/README.md) remain authoritative. The private registry images, infrastructure templates, and hosted evidence are documented in [the hosted runbook](docs/stage-1-hosted.md) and [Stage 2 validation](docs/stage-2-validation.md). Signed-in Stage 1 live-model and Stage 2 MCP reads have passed; controlled-egress and model-selected tool acceptance remain pending.
 
 ## Run locally
 
@@ -52,7 +52,7 @@ Configure before hosted testing:
 5. Assign a dedicated Container Apps managed identity with least-privilege model inference access; optionally configure its client ID. No local CLI identity or user token is forwarded to the model. Key Vault-backed references are required if a future dependency needs a secret. This implementation uses managed identity and contains no downstream key fallback.
 6. Copy the complete offline configuration to a private client configuration file and run `agent-chat --config PATH --api https://YOUR_APPROVED_API`. The first hosted use opens the Stage 1 device-code flow; later runs silently refresh the encrypted, OS-user-scoped token cache using a local account selector. `AGENT_ACCESS_TOKEN` remains an optional automation override and must never be passed on the command line or committed. The client distinguishes 401 reauthentication from 403 denial. Ctrl-C requests server cancellation; an unconfirmed cancellation is reported and server deadlines remain in effect.
 
-API routes: `POST /sessions`, `POST /sessions/{id}/chat` with `{"text":"hello","revision":0}`, and `POST /sessions/{id}/reset` or `/cancel`. There are no tool, operator, file, or memory routes. Request bodies and ingestion time are bounded. OpenAPI/docs routes are disabled. All functional routes require authentication; errors omit raw invalid input/provider payloads.
+API routes: `POST /sessions`, `POST /sessions/{id}/chat` with `{"text":"hello","revision":0}`, and `POST /sessions/{id}/reset` or `/cancel`. With Stage 2 enabled, `POST /sessions/{id}/movies/{tool_name}` adds only the pinned catalog reads. There are no operator, file, or memory routes. Request bodies and ingestion time are bounded. OpenAPI/docs routes are disabled. All functional routes require authentication; errors omit raw invalid input/provider payloads.
 
 ## Stage 2 local catalog foundation
 
@@ -62,9 +62,13 @@ The local exercise also includes a separate `PUT /movies/{catalog_id}` adapter b
 
 `movie-catalog-mcp` now exposes these two read operations through a FastMCP server over its standard stdio transport. Run it locally with `uv run --locked movie-catalog-mcp`. The separate admin PUT adapter is not registered with FastMCP.
 
-This is a local FastMCP service, not a deployed MCP integration. Agent Framework tool registration, service authentication/identities, workload networking, and the five deployed network checks remain required before Stage 2 can be accepted.
+Run `uv run --locked agent-chat --movies` to use `/search QUERY` and `/movie movie_######` through the agent's pinned FastMCP client. The authenticated `POST /sessions/{id}/movies/{tool_name}` API path is enabled in the hosted agent. The agent validates the advertised tool contract and each result, checks session ownership and a per-session read limit, and can revoke a tool before dispatch. The local MCP subprocess receives a minimal environment. The model does not select or invoke tools yet.
+
+The internal FastMCP app runs in the existing Container Apps environment with separate identity and Entra application-role authentication. An approved hosted read passed, as did unauthenticated caller and write-proposal denials. Outbound network enforcement and the remaining deployed network checks are still required before Stage 2 can be accepted. See [Stage 2 validation](docs/stage-2-validation.md).
 
 To exercise the deployed app, run `uv run --locked python scripts/test_container_app.py`. It starts a device-code flow only when the encrypted Stage 1 cache cannot refresh a token or `AGENT_ACCESS_TOKEN` is unset, prints only selected token claims, and checks unauthenticated rejection, session creation, chat, stale revision denial, and reset. It neither logs nor writes the bearer token.
+
+Run `uv run --locked python scripts/test_movie_container_app.py` to check the deployed movie read and denial path with the same cached sign-in.
 
 Validate live tokens, real Easy Auth behavior, workload RBAC, endpoint compatibility, exported telemetry, and ingress restrictions in Azure before marking hosted acceptance passed. The local RSA-signed token tests prove application checks, not an Azure deployment. SDK/platform tracing must stay disabled or undergo the spec's sensitive-content review. Do not enable content capture. Library logging is suppressed by both entry points. Startup rejects explicit message-content capture; keep hosted diagnostic levels and platform trace settings under review.
 

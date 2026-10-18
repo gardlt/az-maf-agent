@@ -121,7 +121,15 @@ def create_app(service: Service, verifier: EntraVerifier):
 
     @app.exception_handler(Denied)
     async def denied(request, exc):
-        status = 404 if exc.code == "session_not_found" else 409
+        status = {
+            "session_not_found": 404,
+            "tool_not_allowed": 403,
+            "tool_not_enabled": 403,
+            "invalid_tool_arguments": 422,
+            "invalid_tool_result": 502,
+            "tool_service_unavailable": 502,
+            "tool_service_error": 502,
+        }.get(exc.code, 409)
         return JSONResponse({"error": exc.code}, status)
 
     @app.post("/sessions")
@@ -143,6 +151,13 @@ def create_app(service: Service, verifier: EntraVerifier):
     async def cancel(sid: str, who=Depends(principal)):
         return service.cancel(who, sid)
 
+    @app.post("/sessions/{sid}/movies/{tool_name}")
+    async def movie_read(sid: str, tool_name: str, body: dict, who=Depends(principal)):
+        try:
+            return await service.movie_read(who, sid, tool_name, body)
+        except asyncio.CancelledError:
+            return JSONResponse({"error": "run_cancelled"}, 409)
+
     return app
 
 
@@ -155,5 +170,16 @@ def from_env():
         os.environ["ENTRA_AUDIENCE"],
         set(os.environ["ENTRA_ALLOWED_USERS"].split(",")),
     )
-    service = Service(settings, AzureTransport(settings) if settings.mode == "azure" else None)
+    movie_client = None
+    if os.environ.get("ENABLE_MOVIE_MCP") == "true":
+        from .movie_mcp import MovieMCPClient
+
+        movie_client = MovieMCPClient(
+            endpoint=os.environ["MCP_ENDPOINT"], audience=os.environ["MCP_AUDIENCE"]
+        )
+    service = Service(
+        settings,
+        AzureTransport(settings) if settings.mode == "azure" else None,
+        movie_client=movie_client,
+    )
     return create_app(service, verifier)

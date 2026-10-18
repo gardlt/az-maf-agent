@@ -8,7 +8,7 @@ Extend [Stage 1](stage-1-chat.md) with approved read-only movie tools and demons
 
 A small bundled synthetic IMDb-style catalog, guarded MCP dispatcher, and admin-only HTTP PUT exercise. There is no IMDb affiliation, scraping, account, or API integration.
 
-Current implementation status: the versioned local catalog, strict read-only dispatcher, FastMCP stdio server, and separate local admin-only PUT adapter are in the `movie-catalog-mcp` workspace package, independent of the `agent` package. Agent tool registration, deployed service authentication/identities, and deployed network evidence remain pending.
+Current implementation status: the versioned catalog, strict read-only dispatcher, FastMCP stdio and hosted HTTP server, and separate local admin-only PUT adapter are in the `movie-catalog-mcp` workspace package. The agent calls the pinned read tools from explicit CLI commands or an authenticated API route. The MCP is deployed as an internal second app in the existing Container Apps environment with separate identity and Entra application-role authentication; the hosted read and write-proposal denial passed. Model-generated function calls, deployed admin authorization, and controlled-egress network evidence remain pending. See [Stage 2 validation](../stage-2-validation.md).
 
 ## Prerequisites and dependencies
 
@@ -18,9 +18,9 @@ Current implementation status: the versioned local catalog, strict read-only dis
 
 ## Ordered work checklist
 
-1. [ ] Bundle versioned invented records with stable IDs, title, year, genre, short synopsis, and clearly labeled synthetic rating. Keep a reproducible baseline and isolated writable test copy.
-2. [ ] Implement only `search_movies(query, limit)` and `get_movie(catalog_id)` as agent tools. Enforce spec schemas: trimmed query 1–120 characters, limit 1–10/default 5, and `movie_` plus six digits. Reject pagination/extra arguments. No arbitrary SQL, URL, filesystem path, or credential selector.
-3. [ ] Validate outputs: title 1–200 characters, year 1888–2100, fixed genre enum, synopsis at most 1,000 characters, rating 0–10, global byte cap, bounded not-found response, and deterministic search ordering/truncation flag.
+1. [x] Bundle versioned invented records with stable IDs, title, year, genre, short synopsis, and clearly labeled synthetic rating. Keep a reproducible baseline and isolated writable test copy.
+2. [x] Implement only `search_movies(query, limit)` and `get_movie(catalog_id)` as agent read operations. Enforce spec schemas: trimmed query 1–120 characters, limit 1–10/default 5, and `movie_` plus six digits. Reject pagination/extra arguments. No arbitrary SQL, URL, filesystem path, or credential selector.
+3. [x] Validate outputs: title 1–200 characters, year 1888–2100, fixed genre enum, synopsis at most 1,000 characters, rating 0–10, global byte cap, bounded not-found response, and deterministic search ordering/truncation flag.
 4. [ ] Gate every dispatch on approved server/tool/version, strict schema and semantic validation, caller permission, current revocation, and remaining budgets. Authenticate services, constrain credentials/egress, and reject contract drift.
 5. [ ] Implement `PUT /movies/{catalog_id}` only for authorized test/admin replacement of existing synthetic records. Validate matching path/body IDs and full schema before mutation. Downstream service denies agent and MCP identities, including direct calls; discovery visibility is not authorization.
 6. [ ] Add malicious synopsis, malformed/oversized result, forged identity, and mock write-proposal fixtures. No generic HTTP/shell tool or dynamic write registration may bypass the dispatcher.
