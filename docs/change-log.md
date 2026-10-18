@@ -24,7 +24,7 @@ This log records material implementation, deployment, authentication, and hosted
 - An approved user received non-offline model text for the first chat, second chat, and chat after reset. The test intentionally records only response lengths, not model text.
 - Public unauthenticated session creation remained `401`; replaying an old revision remained `409`; the successful revision sequence was `1`, `2`, and `4`.
 - Verified that a valid Azure management token, whose audience is not the Stage 1 API, is rejected with `401` at the public ingress.
-- Added `--expect-forbidden` to the hosted acceptance script for a controlled allowed-user denial check. The first attempt timed out during device-code sign-in, and the approved-user allowlist was restored immediately.
+- Added `--expect-forbidden` to the hosted acceptance script for a controlled allowed-user denial check. An initial device-code attempt timed out, then a valid approved-user token was acquired before the allowlist was temporarily replaced. The app returned `403`; the original allowlist was restored on healthy revision `ca-az-maf-stage1--0000008`.
 
 ## 2026-10-17 — Azure AI Foundry project
 

@@ -6,6 +6,7 @@ import base64
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
@@ -32,6 +33,14 @@ def parse_args() -> argparse.Namespace:
         "--expect-forbidden",
         action="store_true",
         help="expect the approved test token to be denied with HTTP 403",
+    )
+    parser.add_argument(
+        "--wait-before-create",
+        type=int,
+        default=0,
+        choices=range(0, 121),
+        metavar="SECONDS",
+        help="wait after token validation before creating a session",
     )
     return parser.parse_args()
 
@@ -132,7 +141,9 @@ def require_live_model_response(result: dict[str, object], label: str) -> None:
     print(f"{label} live model response: {len(text)} characters")
 
 
-def test_container_app(origin: str, token: str, expect_forbidden: bool = False) -> None:
+def test_container_app(
+    origin: str, token: str, expect_forbidden: bool = False, wait_before_create: int = 0
+) -> None:
     with httpx.Client(timeout=30, follow_redirects=False) as public_client:
         unauthenticated = public_client.post(f"{origin}/sessions")
         require_status(unauthenticated, 401, "unauthenticated create")
@@ -143,6 +154,9 @@ def test_container_app(origin: str, token: str, expect_forbidden: bool = False) 
         follow_redirects=False,
         headers={"Authorization": f"Bearer {token}"},
     ) as client:
+        if wait_before_create:
+            print(f"waiting {wait_before_create} seconds before authenticated create")
+            time.sleep(wait_before_create)
         session = require_status(
             client.post("/sessions"), 403 if expect_forbidden else 200, "authenticated create"
         )
@@ -198,7 +212,7 @@ def main() -> int:
         token = acquire_token(args.token_env)
         show_safe_claims(token)
         validate_stage1_claims(token)
-        test_container_app(origin, token, args.expect_forbidden)
+        test_container_app(origin, token, args.expect_forbidden, args.wait_before_create)
     except (RuntimeError, ValueError, httpx.HTTPError, KeyError) as exc:
         print(f"Container App test failed: {exc}", file=sys.stderr)
         return 1
