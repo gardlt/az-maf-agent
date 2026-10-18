@@ -28,6 +28,11 @@ def parse_args() -> argparse.Namespace:
         default="AGENT_ACCESS_TOKEN",
         help="environment variable containing an already-acquired token",
     )
+    parser.add_argument(
+        "--expect-forbidden",
+        action="store_true",
+        help="expect the approved test token to be denied with HTTP 403",
+    )
     return parser.parse_args()
 
 
@@ -127,7 +132,7 @@ def require_live_model_response(result: dict[str, object], label: str) -> None:
     print(f"{label} live model response: {len(text)} characters")
 
 
-def test_container_app(origin: str, token: str) -> None:
+def test_container_app(origin: str, token: str, expect_forbidden: bool = False) -> None:
     with httpx.Client(timeout=30, follow_redirects=False) as public_client:
         unauthenticated = public_client.post(f"{origin}/sessions")
         require_status(unauthenticated, 401, "unauthenticated create")
@@ -138,7 +143,11 @@ def test_container_app(origin: str, token: str) -> None:
         follow_redirects=False,
         headers={"Authorization": f"Bearer {token}"},
     ) as client:
-        session = require_status(client.post("/sessions"), 200, "authenticated create")
+        session = require_status(
+            client.post("/sessions"), 403 if expect_forbidden else 200, "authenticated create"
+        )
+        if expect_forbidden:
+            return
         session_id = session["session_id"]
         revision = session["revision"]
 
@@ -189,7 +198,7 @@ def main() -> int:
         token = acquire_token(args.token_env)
         show_safe_claims(token)
         validate_stage1_claims(token)
-        test_container_app(origin, token)
+        test_container_app(origin, token, args.expect_forbidden)
     except (RuntimeError, ValueError, httpx.HTTPError, KeyError) as exc:
         print(f"Container App test failed: {exc}", file=sys.stderr)
         return 1

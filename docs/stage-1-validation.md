@@ -16,6 +16,8 @@ On 2026-10-17, the `az-maf-agent-stage1` Azure AI Foundry project was created un
 
 On 2026-10-17, the authenticated hosted acceptance script completed against the live Foundry configuration. It confirmed a protected user receives non-offline model text for the first chat, second chat, and chat after reset. It also confirmed unauthenticated session creation remains `401` and stale revision replay remains `409`; successful revisions were `1`, `2`, and `4`. The test does not print or retain prompts, bearer tokens, or model text.
 
+On 2026-10-17, a valid Azure management access token was sent to the Container App and rejected with `401`, confirming ingress rejects a valid wrong-audience token. The controlled forbidden-user test was prepared by temporarily replacing the user allowlist and adding `--expect-forbidden` to the acceptance script, but its device-code sign-in timed out before an HTTP request. The original allowlist was restored and revision `ca-az-maf-stage1--0000006` is healthy. A completed authenticated `403` check remains pending.
+
 ## Local checks
 
 Run from the repository root:
