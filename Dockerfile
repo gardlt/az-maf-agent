@@ -3,16 +3,18 @@ COPY --from=ghcr.io/astral-sh/uv:0.9.2@sha256:0178fbb205ada6c94ddbd45828f770a2d6
 WORKDIR /build
 ENV UV_PROJECT_ENVIRONMENT=/app/.venv
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --no-install-project
-COPY src ./src
+COPY apps/agent/pyproject.toml ./apps/agent/pyproject.toml
+COPY apps/movie-catalog-mcp/pyproject.toml ./apps/movie-catalog-mcp/pyproject.toml
+RUN uv sync --frozen --no-dev --package az-maf-agent --no-install-package az-maf-agent
+COPY apps/agent/src ./apps/agent/src
 COPY config ./config
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --package az-maf-agent
 
 FROM python:3.12.12-slim@sha256:42f1689d6d6b906c7e829f9d9ec38491550344ac9adc01e464ff9a08df1ffb48
 WORKDIR /app
 RUN useradd --uid 10001 --create-home appuser
 COPY --from=build --chown=10001:10001 /app/.venv /app/.venv
-COPY --from=build --chown=10001:10001 /build/src /app/src
+COPY --from=build --chown=10001:10001 /build/apps/agent/src /app/src
 COPY --from=build --chown=10001:10001 /build/config /app/config
 ENV PATH=/app/.venv/bin:$PATH PYTHONPATH=/app/src PYTHONUNBUFFERED=1
 USER 10001

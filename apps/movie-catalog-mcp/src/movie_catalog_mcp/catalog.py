@@ -14,8 +14,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, field_validator
 
-from .core import Principal
-from .model import Denied
+from .contracts import Denied, WorkloadIdentity
 
 CATALOG_VERSION = "synthetic-movies-v1"
 SERVER_ID = "synthetic-movie-catalog"
@@ -72,7 +71,7 @@ class Catalog:
 
     def __init__(self, records: list[dict] | None = None):
         if records is None:
-            raw = files("az_maf_agent").joinpath("data/catalog-v1.json").read_text()
+            raw = files("movie_catalog_mcp").joinpath("data/catalog-v1.json").read_text()
             records = json.loads(raw)["movies"]
         movies = [Movie.model_validate(record) for record in records]
         if not movies or len({movie.id for movie in movies}) != len(movies):
@@ -161,7 +160,7 @@ class Catalog:
 class MovieDispatcher:
     """Pinned allowlist for the only two Stage 2 read operations."""
 
-    def __init__(self, catalog: Catalog, readers: frozenset[Principal]):
+    def __init__(self, catalog: Catalog, readers: frozenset[WorkloadIdentity]):
         if not readers:
             raise ValueError("approved readers required")
         self.catalog = catalog
@@ -171,7 +170,7 @@ class MovieDispatcher:
     def revoke(self, tool_name: str) -> None:
         self.revoked.add((SERVER_ID, tool_name))
 
-    def dispatch(self, principal: Principal, tool_name: object, arguments: object) -> dict:
+    def dispatch(self, principal: WorkloadIdentity, tool_name: object, arguments: object) -> dict:
         if principal not in self.readers:
             raise Denied("tool_permission_denied")
         if not isinstance(tool_name, str) or (SERVER_ID, tool_name) in self.revoked:
@@ -186,13 +185,13 @@ class MovieDispatcher:
 class CatalogAdminService:
     """A separate service contract; agent/MCP reader identities cannot write."""
 
-    def __init__(self, catalog: Catalog, administrators: frozenset[Principal]):
+    def __init__(self, catalog: Catalog, administrators: frozenset[WorkloadIdentity]):
         if not administrators:
             raise ValueError("catalog administrators required")
         self.catalog = catalog
         self.administrators = administrators
 
-    def put(self, principal: Principal, catalog_id: object, body: object) -> dict:
+    def put(self, principal: WorkloadIdentity, catalog_id: object, body: object) -> dict:
         if principal not in self.administrators:
             raise Denied("catalog_write_denied")
         return self.catalog.replace(catalog_id, body)

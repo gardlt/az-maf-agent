@@ -6,10 +6,10 @@ This is a teaching implementation plus a single-replica authenticated API test d
 
 ## Run locally
 
-Use Python 3.12 and [uv](https://docs.astral.sh/uv/). Dependencies and hashes are recorded in `uv.lock`.
+Use Python 3.12 and [uv](https://docs.astral.sh/uv/). This is a workspace monorepo: `apps/agent` owns the agent and `apps/movie-catalog-mcp` owns the catalog service. Dependencies and hashes are recorded in `uv.lock`.
 
 ```sh
-uv sync --locked
+uv sync --locked --all-packages
 uv run --locked agent-chat
 ```
 
@@ -17,8 +17,8 @@ Enter `hello`, then another message: the fake client reports one, then two user 
 
 ```sh
 uv run --locked pytest -q
-uv run --locked ruff check src tests
-uv run --locked ruff format --check src tests
+uv run --locked ruff check apps
+uv run --locked ruff format --check apps
 ```
 
 Startup/configuration/authentication failures exit 2. A denied interactive request reports a stable code and leaves history unchanged. No prompt/response text is written to audit logs. Do not paste credentials or personal data into this teaching app: minimization is not a general-purpose data-loss prevention system.

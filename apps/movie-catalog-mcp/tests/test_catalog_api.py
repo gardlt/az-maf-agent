@@ -1,17 +1,17 @@
 import httpx
 
-from az_maf_agent.catalog import Catalog, CatalogAdminService
-from az_maf_agent.catalog_api import create_catalog_app
-from az_maf_agent.core import LOCAL, Principal
+from movie_catalog_mcp.api import create_catalog_app
+from movie_catalog_mcp.catalog import Catalog, CatalogAdminService
+from movie_catalog_mcp.contracts import WorkloadIdentity
 
 
 async def test_catalog_put_requires_separate_admin_identity():
-    admin = Principal("offline", "catalog-admin", "local-fake")
+    admin = WorkloadIdentity("catalog-admin", "catalog-admin")
     catalog = Catalog()
     service = CatalogAdminService(catalog, frozenset({admin}))
 
     async def agent_identity():
-        return LOCAL
+        return WorkloadIdentity("agent-test", "catalog-reader")
 
     app = create_catalog_app(service, agent_identity)
     original = catalog.get({"catalog_id": "movie_000101"})["movie"]

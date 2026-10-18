@@ -4,6 +4,7 @@ This log records material implementation, deployment, authentication, and hosted
 
 ## 2026-10-18 — Stage 2 local catalog foundation
 
+- Converted the repository to a uv workspace monorepo: `apps/agent` owns the CLI/chat API and `apps/movie-catalog-mcp` owns catalog contracts, data, and its HTTP adapter. The catalog package now owns its workload-identity and denial contracts, so it no longer imports agent implementation types.
 - Added the bundled, versioned `synthetic-movies-v1` fixture of invented movie records and verified it is included in the distributable wheel.
 - Added the pinned local dispatcher for only `search_movies` and `get_movie`, including strict schemas, deterministic ordering, a bounded not-found result, output revalidation, a serialized-result cap, explicit reader permissions, and current-tool revocation.
 - Added local contract tests for valid reads, invalid/extra arguments, unknown tools, unauthorized callers, revocation, and malformed catalog records. This does not add model tool registration, an MCP transport, deployed service identities, or deployed network acceptance.

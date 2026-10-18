@@ -11,10 +11,9 @@ from collections.abc import Awaitable, Callable
 from fastapi import Depends, FastAPI, HTTPException
 
 from .catalog import CatalogAdminService, Movie
-from .core import Principal
-from .model import Denied
+from .contracts import Denied, WorkloadIdentity
 
-Authenticate = Callable[[], Awaitable[Principal]]
+Authenticate = Callable[[], Awaitable[WorkloadIdentity]]
 
 
 def create_catalog_app(service: CatalogAdminService, authenticate: Authenticate) -> FastAPI:

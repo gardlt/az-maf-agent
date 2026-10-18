@@ -1,24 +1,25 @@
 import pytest
 
-from az_maf_agent.catalog import CATALOG_VERSION, Catalog, CatalogAdminService, MovieDispatcher
-from az_maf_agent.core import LOCAL, Principal
-from az_maf_agent.model import Denied
+from movie_catalog_mcp.catalog import CATALOG_VERSION, Catalog, CatalogAdminService, MovieDispatcher
+from movie_catalog_mcp.contracts import Denied, WorkloadIdentity
+
+AGENT = WorkloadIdentity("agent-test", "catalog-reader")
 
 
 def dispatcher():
-    return MovieDispatcher(Catalog(), frozenset({LOCAL}))
+    return MovieDispatcher(Catalog(), frozenset({AGENT}))
 
 
 def test_search_and_get_are_deterministic_and_bounded():
-    result = dispatcher().dispatch(LOCAL, "search_movies", {"query": "  a  ", "limit": 2})
+    result = dispatcher().dispatch(AGENT, "search_movies", {"query": "  a  ", "limit": 2})
     assert result["catalog_version"] == CATALOG_VERSION
     assert result["truncated"] is True
     assert [movie["id"] for movie in result["movies"]] == ["movie_000101", "movie_000102"]
     assert (
-        dispatcher().dispatch(LOCAL, "get_movie", {"catalog_id": "movie_000103"})["movie"]["genre"]
+        dispatcher().dispatch(AGENT, "get_movie", {"catalog_id": "movie_000103"})["movie"]["genre"]
         == "mystery"
     )
-    assert dispatcher().dispatch(LOCAL, "get_movie", {"catalog_id": "movie_999999"}) == {
+    assert dispatcher().dispatch(AGENT, "get_movie", {"catalog_id": "movie_999999"}) == {
         "catalog_version": CATALOG_VERSION,
         "catalog_revision": 0,
         "not_found": True,
@@ -39,18 +40,18 @@ def test_search_and_get_are_deterministic_and_bounded():
 )
 def test_invalid_arguments_and_unknown_tools_fail_closed(tool, arguments):
     with pytest.raises(Denied, match="tool_not_allowed|invalid_tool_arguments"):
-        dispatcher().dispatch(LOCAL, tool, arguments)
+        dispatcher().dispatch(AGENT, tool, arguments)
 
 
 def test_permission_and_revocation_precede_dispatch():
     tools = dispatcher()
     with pytest.raises(Denied, match="tool_permission_denied"):
         tools.dispatch(
-            Principal("offline", "other", "local-fake"), "get_movie", {"catalog_id": "movie_000101"}
+            WorkloadIdentity("other", "catalog-reader"), "get_movie", {"catalog_id": "movie_000101"}
         )
     tools.revoke("get_movie")
     with pytest.raises(Denied, match="tool_not_allowed"):
-        tools.dispatch(LOCAL, "get_movie", {"catalog_id": "movie_000101"})
+        tools.dispatch(AGENT, "get_movie", {"catalog_id": "movie_000101"})
 
 
 def test_malicious_or_malformed_baseline_is_rejected():
@@ -71,12 +72,12 @@ def test_malicious_or_malformed_baseline_is_rejected():
 
 def test_admin_only_replacement_does_not_grant_agent_write_access():
     catalog = Catalog()
-    admin = Principal("offline", "catalog-admin", "local-fake")
+    admin = WorkloadIdentity("catalog-admin", "catalog-admin")
     service = CatalogAdminService(catalog, frozenset({admin}))
     original = catalog.get({"catalog_id": "movie_000101"})
     replacement = original["movie"] | {"title": "Brass Comet: Revised"}
     with pytest.raises(Denied, match="catalog_write_denied"):
-        service.put(LOCAL, "movie_000101", replacement)
+        service.put(AGENT, "movie_000101", replacement)
     assert catalog.get({"catalog_id": "movie_000101"}) == original
     updated = service.put(admin, "movie_000101", replacement)
     assert updated["catalog_revision"] == 1
@@ -85,7 +86,7 @@ def test_admin_only_replacement_does_not_grant_agent_write_access():
 
 def test_admin_replacement_rejects_unknown_or_mismatched_ids_without_mutation():
     catalog = Catalog()
-    admin = Principal("offline", "catalog-admin", "local-fake")
+    admin = WorkloadIdentity("catalog-admin", "catalog-admin")
     service = CatalogAdminService(catalog, frozenset({admin}))
     replacement = catalog.get({"catalog_id": "movie_000101"})["movie"]
     with pytest.raises(Denied, match="catalog_write_denied"):
