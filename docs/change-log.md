@@ -6,6 +6,11 @@ This log records material implementation, deployment, authentication, and hosted
 
 - Changed `agent-chat` and the hosted acceptance script to share a named, encrypted OS-user-scoped Entra token cache plus a local non-secret account selector. Device-code sign-in is needed only when this state cannot silently refresh the user's authorization.
 - The cache contains refresh credentials protected by the platform; the account selector is stored with user-only file permissions. Neither stores command-line or repository bearer tokens, and plaintext cache fallback remains disabled.
+- Completed one device-code sign-in after the selector migration, then verified a separate process silently refreshed a Stage 1 API token without displaying a device code.
+
+## 2026-10-18 — Restart acceptance
+
+- Created an authenticated session on `ca-az-maf-stage1--0000008`, restarted that revision, and confirmed the next chat request returned `404`. This records the selected single-replica, in-memory session contract: restarts deliberately discard session state.
 
 ## 2026-10-17 — Foundry inference configuration
 

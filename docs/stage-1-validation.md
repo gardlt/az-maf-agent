@@ -18,6 +18,8 @@ On 2026-10-17, the authenticated hosted acceptance script completed against the 
 
 On 2026-10-17, a valid Azure management access token was sent to the Container App and rejected with `401`, confirming ingress rejects a valid wrong-audience token. The controlled forbidden-user test acquired a valid Stage 1 API token before replacing the user allowlist for one request. The application returned `403`, then the original allowlist was restored. Revision `ca-az-maf-stage1--0000008` is healthy.
 
+On 2026-10-18, a controlled restart acceptance test created an authenticated session on `ca-az-maf-stage1--0000008`, restarted that revision, and then received `404` when sending the next chat request. This confirms the documented single-replica, in-memory session contract: a revision restart discards its sessions. Also on 2026-10-18, the Stage 1 CLI completed one device-code sign-in after its account-selector migration; a separate process then silently refreshed the encrypted OS-user-scoped token cache without a device prompt.
+
 ## Local checks
 
 Run from the repository root:
@@ -44,7 +46,7 @@ The CLI smoke exercise returns context counts 1, 2, then 1 after reset. Expected
 ## Acceptance still requiring environment decisions/evidence
 
 - Select/evaluate an approved live model, endpoint/API version, prices and context/token-bound compatibility. Test managed identity RBAC and actual provider billing categories.
-- Complete the remaining hosted negative tests: expired-token rejection through the deployed ingress and restart behavior. The approved-user multi-turn/reset and replay-denial checks, wrong-audience rejection, and authenticated 403 for a disallowed user are recorded above.
+- Complete the remaining hosted negative test: expired-token rejection through the deployed ingress. The approved-user multi-turn/reset, replay-denial, controlled restart, wrong-audience rejection, and authenticated 403 for a disallowed user are recorded above.
 - Choose shared session and authoritative daily-ledger/control storage before replicas, cross-process resumption, or production use. RAM restart loses usage counters and sessions; no sticky-routing correctness claim is made.
 - Validate actual platform/SDK telemetry redaction, pinned non-root image build/provenance, workload identity/secret handling, network dependencies and later-stage containment controls.
 - Summary generation is not implemented; complete-pair trimming avoids generating a new source of asserted authority. Tests treat instruction-like recalled/output text as inert, not as permissions.
