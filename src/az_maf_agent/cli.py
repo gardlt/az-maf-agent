@@ -7,10 +7,20 @@ import os
 import sys
 
 import httpx
+from azure.core.exceptions import ClientAuthenticationError
 
+from .client_auth import acquire_stage1_token
 from .config import load_settings
 from .core import LOCAL, Service, safe_text
 from .model import Denied
+
+
+def device_code_prompt(verification_uri, user_code, expires_on):
+    print(f"Open {verification_uri} and enter code {user_code}.", file=sys.stderr)
+    print(
+        f"The code expires at {expires_on.astimezone().isoformat(timespec='minutes')}",
+        file=sys.stderr,
+    )
 
 
 async def run(args):
@@ -24,7 +34,7 @@ async def run(args):
     if args.api:
         token = os.environ.get("AGENT_ACCESS_TOKEN")
         if not token:
-            raise Denied("bearer_required")
+            token = acquire_stage1_token(device_code_prompt)
         client = httpx.AsyncClient(
             base_url=args.api,
             headers={"Authorization": "Bearer " + token},
@@ -93,7 +103,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config/offline.json")
     parser.add_argument(
-        "--api", help="Approved HTTPS API origin; token comes from AGENT_ACCESS_TOKEN"
+        "--api", help="Approved HTTPS API origin; uses an encrypted local Entra token cache"
     )
     args = parser.parse_args()
     # Do not allow third-party diagnostics to emit provider payloads.
@@ -104,7 +114,7 @@ def main():
     except KeyboardInterrupt:
         print("Cancelled.", file=sys.stderr)
         raise SystemExit(130)
-    except (Denied, OSError, ValueError, httpx.HTTPError):
+    except (ClientAuthenticationError, Denied, OSError, ValueError, httpx.HTTPError):
         print(
             "Unable to start/continue chat; check approved configuration and authentication.",
             file=sys.stderr,

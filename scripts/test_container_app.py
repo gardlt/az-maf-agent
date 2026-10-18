@@ -12,12 +12,9 @@ from urllib.parse import urlsplit
 
 import httpx
 from azure.core.exceptions import ClientAuthenticationError
-from azure.identity import DeviceCodeCredential
 
-TENANT_ID = "c57afb80-6b3d-4bae-a466-e4d217bcb4a2"
-API_APP_ID = "e7898571-069f-49c7-91b5-4b08a9edcb30"
-CLI_APP_ID = "df915b12-fb46-48d7-a80f-6f2e8e9ef487"
-SCOPE = f"api://{API_APP_ID}/Chat.Access"
+from az_maf_agent.client_auth import API_APP_ID, CLI_APP_ID, TENANT_ID, acquire_stage1_token
+
 DEFAULT_API = "https://ca-az-maf-stage1.purplehill-879f4f4f.eastus2.azurecontainerapps.io"
 
 
@@ -64,17 +61,10 @@ def acquire_token(environment_name: str) -> str:
     existing = os.environ.get(environment_name)
     if existing:
         return existing
-    credential = DeviceCodeCredential(
-        tenant_id=TENANT_ID,
-        client_id=CLI_APP_ID,
-        prompt_callback=device_code_prompt,
-    )
     try:
-        return credential.get_token(SCOPE).token
+        return acquire_stage1_token(device_code_prompt)
     except ClientAuthenticationError as exc:
         raise RuntimeError("Entra device-code sign-in did not complete") from exc
-    finally:
-        credential.close()
 
 
 def unverified_claims(token: str) -> dict[str, object]:
