@@ -13,6 +13,11 @@ This log records material implementation, deployment, authentication, and hosted
 - Assigned the Container App system identity the built-in `Cognitive Services OpenAI User` role at the existing Foundry account scope, then deployed image digest `sha256:731d2bac351d6f723f101e2fdb46ec0fa85e8d48986bf5c806f84b1d1767edcb` to live revision `ca-az-maf-stage1--0000004` with `AGENT_CONFIG=/app/config/foundry-stage1.json`. Both containers reached ready state with zero restarts.
 - Updated the hosted acceptance script to reject deterministic offline replies while keeping model text out of the terminal output.
 
+## 2026-10-17 — Foundry project access
+
+- Assigned the Container App system identity the built-in `Foundry User` role at the `az-maf-agent-stage1` Foundry project scope.
+- Retained its account-scoped `Cognitive Services OpenAI User` role because the selected `gpt-5` Chat Completions deployment is hosted on the parent Foundry account and requires that data-plane inference permission.
+
 ## 2026-10-17 — Azure AI Foundry project
 
 - Created the `az-maf-agent-stage1` project under the existing `aif-homelab-rv6t99la` Azure AI Services account in `rg-homelab-foundry`, East US 2.
