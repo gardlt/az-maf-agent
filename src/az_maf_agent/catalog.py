@@ -78,6 +78,7 @@ class Catalog:
         if not movies or len({movie.id for movie in movies}) != len(movies):
             raise ValueError("invalid catalog baseline")
         self._records = {movie.id: movie for movie in movies}
+        self.revision = 0
 
     def search(self, arguments: object) -> dict:
         try:
@@ -95,6 +96,7 @@ class Catalog:
         matches.sort(key=lambda movie: (movie.title.casefold(), movie.year, movie.id))
         result = {
             "catalog_version": CATALOG_VERSION,
+            "catalog_revision": self.revision,
             "movies": [movie.model_dump(mode="json") for movie in matches[: request.limit]],
             "truncated": len(matches) > request.limit,
         }
@@ -107,15 +109,33 @@ class Catalog:
             raise Denied("invalid_tool_arguments") from None
         movie = self._records.get(request.catalog_id)
         result = (
-            {"catalog_version": CATALOG_VERSION, "movie": movie.model_dump(mode="json")}
+            {
+                "catalog_version": CATALOG_VERSION,
+                "catalog_revision": self.revision,
+                "movie": movie.model_dump(mode="json"),
+            }
             if movie
             else {
                 "catalog_version": CATALOG_VERSION,
+                "catalog_revision": self.revision,
                 "not_found": True,
                 "catalog_id": request.catalog_id,
             }
         )
         return self._validated_result(result)
+
+    def replace(self, catalog_id: object, body: object) -> dict:
+        """Replace exactly one existing synthetic record after service authorization."""
+        try:
+            path = GetArguments.model_validate({"catalog_id": catalog_id})
+            movie = Movie.model_validate(body)
+        except Exception:
+            raise Denied("invalid_catalog_write") from None
+        if path.catalog_id != movie.id or movie.id not in self._records:
+            raise Denied("catalog_write_denied")
+        self._records[movie.id] = movie
+        self.revision += 1
+        return self.get({"catalog_id": movie.id})
 
     @staticmethod
     def _validated_result(result: dict) -> dict:
@@ -161,3 +181,18 @@ class MovieDispatcher:
         if tool_name == "get_movie":
             return self.catalog.get(arguments)
         raise Denied("tool_not_allowed")
+
+
+class CatalogAdminService:
+    """A separate service contract; agent/MCP reader identities cannot write."""
+
+    def __init__(self, catalog: Catalog, administrators: frozenset[Principal]):
+        if not administrators:
+            raise ValueError("catalog administrators required")
+        self.catalog = catalog
+        self.administrators = administrators
+
+    def put(self, principal: Principal, catalog_id: object, body: object) -> dict:
+        if principal not in self.administrators:
+            raise Denied("catalog_write_denied")
+        return self.catalog.replace(catalog_id, body)

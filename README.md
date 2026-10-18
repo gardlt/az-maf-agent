@@ -58,7 +58,9 @@ API routes: `POST /sessions`, `POST /sessions/{id}/chat` with `{"text":"hello","
 
 `az_maf_agent.catalog` packages `synthetic-movies-v1`, a small invented catalog with stable `movie_` IDs and clearly labeled `synthetic_rating` values. The pinned dispatcher permits only `search_movies(query, limit)` and `get_movie(catalog_id)` for explicitly approved principals. It rejects unknown tools and arguments, pagination, URLs, paths, credential selectors, malformed records, and revoked tools before any catalog result is returned. Results have validated record fields, deterministic ordering, a truncation flag, and an 8 KiB serialized-result cap.
 
-This is a local contract foundation, not a deployed MCP service. Agent Framework tool registration, a separately authenticated catalog service, the admin-only PUT exercise, workload identities, and the five deployed network checks remain required before Stage 2 can be accepted.
+The local exercise also includes a separate `PUT /movies/{catalog_id}` adapter backed by an injected, service-specific verified-principal dependency. Only its configured test/admin principal can replace an existing complete synthetic record with a matching ID; the local agent/MCP reader identity receives `403`, including on a direct request, and denied writes leave the catalog revision unchanged. This adapter is not configured for deployment authentication or public ingress.
+
+This is a local contract foundation, not a deployed MCP service. Agent Framework tool registration, service authentication/identities, workload networking, and the five deployed network checks remain required before Stage 2 can be accepted.
 
 To exercise the deployed app, run `uv run --locked python scripts/test_container_app.py`. It starts a device-code flow only when the encrypted Stage 1 cache cannot refresh a token or `AGENT_ACCESS_TOKEN` is unset, prints only selected token claims, and checks unauthenticated rejection, session creation, chat, stale revision denial, and reset. It neither logs nor writes the bearer token.
 

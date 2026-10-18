@@ -6,7 +6,8 @@ This log records material implementation, deployment, authentication, and hosted
 
 - Added the bundled, versioned `synthetic-movies-v1` fixture of invented movie records and verified it is included in the distributable wheel.
 - Added the pinned local dispatcher for only `search_movies` and `get_movie`, including strict schemas, deterministic ordering, a bounded not-found result, output revalidation, a serialized-result cap, explicit reader permissions, and current-tool revocation.
-- Added local contract tests for valid reads, invalid/extra arguments, unknown tools, unauthorized callers, revocation, and malformed catalog records. This does not add model tool registration, an MCP transport, an admin write endpoint, service identities, or deployed network acceptance.
+- Added local contract tests for valid reads, invalid/extra arguments, unknown tools, unauthorized callers, revocation, and malformed catalog records. This does not add model tool registration, an MCP transport, deployed service identities, or deployed network acceptance.
+- Added the local `PUT /movies/{catalog_id}` adapter and separate catalog-admin contract. It accepts complete, schema-valid replacement records only when the path/body IDs match an existing record. Direct agent-identity PUT receives `403` and preserves catalog revision/state; deployment authentication and ingress are intentionally not configured yet.
 
 ## 2026-10-18 — Persistent CLI sign-in
 

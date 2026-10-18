@@ -1,6 +1,6 @@
 import pytest
 
-from az_maf_agent.catalog import CATALOG_VERSION, Catalog, MovieDispatcher
+from az_maf_agent.catalog import CATALOG_VERSION, Catalog, CatalogAdminService, MovieDispatcher
 from az_maf_agent.core import LOCAL, Principal
 from az_maf_agent.model import Denied
 
@@ -20,6 +20,7 @@ def test_search_and_get_are_deterministic_and_bounded():
     )
     assert dispatcher().dispatch(LOCAL, "get_movie", {"catalog_id": "movie_999999"}) == {
         "catalog_version": CATALOG_VERSION,
+        "catalog_revision": 0,
         "not_found": True,
         "catalog_id": "movie_999999",
     }
@@ -66,3 +67,29 @@ def test_malicious_or_malformed_baseline_is_rejected():
                 }
             ]
         )
+
+
+def test_admin_only_replacement_does_not_grant_agent_write_access():
+    catalog = Catalog()
+    admin = Principal("offline", "catalog-admin", "local-fake")
+    service = CatalogAdminService(catalog, frozenset({admin}))
+    original = catalog.get({"catalog_id": "movie_000101"})
+    replacement = original["movie"] | {"title": "Brass Comet: Revised"}
+    with pytest.raises(Denied, match="catalog_write_denied"):
+        service.put(LOCAL, "movie_000101", replacement)
+    assert catalog.get({"catalog_id": "movie_000101"}) == original
+    updated = service.put(admin, "movie_000101", replacement)
+    assert updated["catalog_revision"] == 1
+    assert updated["movie"]["title"] == "Brass Comet: Revised"
+
+
+def test_admin_replacement_rejects_unknown_or_mismatched_ids_without_mutation():
+    catalog = Catalog()
+    admin = Principal("offline", "catalog-admin", "local-fake")
+    service = CatalogAdminService(catalog, frozenset({admin}))
+    replacement = catalog.get({"catalog_id": "movie_000101"})["movie"]
+    with pytest.raises(Denied, match="catalog_write_denied"):
+        service.put(admin, "movie_999999", replacement)
+    with pytest.raises(Denied, match="catalog_write_denied"):
+        service.put(admin, "movie_000102", replacement)
+    assert catalog.revision == 0
