@@ -23,16 +23,16 @@ Local deterministic fake-model mode, a configured Azure AI Foundry live-model ad
 4. [x] Bound history bytes/tokens, idle TTL, maximum lifetime, and processing deadlines. Add reset/expiry and prevent late writes from resurrecting cleared history. Trim within the same budgets and prevent late writes from resurrecting cleared history.
 5. [x] Keep summaries untrusted and minimize sensitive content. Store authoritative permissions, approvals, cancellation, and counters outside history; reset/compaction cannot reset aggregate security limits or promote content into durable memory.
 6. [x] Add HTTPS Python API and Container Apps deployment instructions/configuration with Entra Easy Auth, authenticated-only ingress, HTTPS enforcement, API 401 responses, and application 403 permission checks. Protect trusted identity headers from alternate ingress paths.
-7. [x] Separate caller auth from dedicated workload identity/RBAC; use approved secret resolution without exposing credentials to CLI prompts/logs. The live app uses one replica and does not claim sticky-routing or cross-replica correctness.
+7. [x] Separate caller auth from dedicated workload identity/RBAC; use approved secret resolution without exposing credentials to CLI prompts/logs. The CLI uses an encrypted OS-user-scoped Entra token cache and a non-secret account selector, so device-code sign-in is required only when Azure cannot silently refresh authorization. The live app uses one replica and does not claim sticky-routing or cross-replica correctness.
 8. [x] Run local and hosted checks separately and produce learner material and decision evidence.
 
 ## Acceptance criteria
 
 - [x] Local multi-turn chat runs with the built-in fake model and no Azure credentials; one approved configured `gpt-5` model is used in live mode.
 - [x] Oversized input, missing limits, context overflow, retry exhaustion, timeout, token/spend exhaustion, and cancellation stop at the prescribed bounds without bypasses.
-- [x] Session/user isolation, reset, TTL expiry, context reduction, and poisoned summaries pass. Restart explicitly loses in-memory context under the selected single-process contract.
+- [x] Session/user isolation, reset, TTL expiry, context reduction, and poisoned summaries pass. A controlled hosted revision restart was verified to discard the created session (`404` on the next chat) under the selected single-process contract.
 - [ ] Shared/resumable session tests cover duplicate requests, concurrent writes, replica changes, and reset races; no leakage, history resurrection, or aggregate counter reset occurs.
-- [ ] Hosted authorized caller succeeds; missing/wrong-audience tokens and spoofed identity headers fail, and authenticated forbidden actions return 403. Expired-token rejection through the deployed ingress remains to be recorded. No public alternate API route bypasses authentication.
+- [ ] Hosted authorized caller succeeds; missing and wrong-audience tokens plus spoofed identity headers fail, and authenticated forbidden actions return 403. Encrypted CLI cache refresh was verified without a second device prompt. Expired-token rejection through the deployed ingress remains to be recorded. No public alternate API route bypasses authentication.
 - [x] Tools, skill execution, and durable memory are disabled; chat content is not persisted by default, including logs. Any selected TTL persistence is explicit and governed.
 
 ## Security and negative scenarios
@@ -41,7 +41,7 @@ Inject instructions to reveal seeded fake secrets, change identity/policy, or in
 
 ## Documentation and evidence to produce
 
-- Local/hosted setup, normal chat, cancellation/reset walkthrough, expected failures, and restart limitations.
+- Local/hosted setup, normal chat, cancellation/reset walkthrough, cached sign-in behavior, expected failures, and restart limitations.
 - Version/configuration manifest, auth boundary review, model/session decisions with alternatives, and redacted test/audit results.
 - Dependency/secret scan evidence and reusable fixtures for [Stage 2](stage-2-movie-mcp.md).
 
