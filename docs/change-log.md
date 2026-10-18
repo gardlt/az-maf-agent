@@ -7,9 +7,9 @@ This log records material implementation, deployment, authentication, and hosted
 - Deployed `ca-az-maf-movie-mcp` as an internal second app in the existing Stage 1 Container Apps environment. Its image digest is `sha256:dd2db134a9031138fc65c24e96c921078944e0fcdabf0ecff98d8e0133996b77`; the app has its own system-assigned identity.
 - Registered a separate Entra v2 MCP API (`ddf8d97d-9b4a-4ce8-9fd2-a7293ad909cb`) with only the `Catalog.Read` application role and assigned it to the existing agent system identity. The MCP verifies issuer, audience, signature, tenant, agent object ID, and role; the agent obtains a managed-identity token for this audience.
 - Updated the existing agent to image digest `sha256:349926fdc0ddc20e226bb0df36eaed86315b1b7067e55f88db16be8b23ff2b85` and configured its private MCP endpoint. Revision `ca-az-maf-stage1--0000009` became healthy at 100% traffic.
-- Added `scripts/test_movie_container_app.py`. The signed-in hosted exercise recorded session creation `200`, unauthenticated movie read `401`, managed-identity-backed MCP read `200`, and denied write proposal `403`. The internal MCP hostname returned `404` from outside the environment.
+- Added `scripts/test_movie_container_app.py`. The signed-in hosted exercise recorded session creation `200`, unauthenticated movie read `401`, managed-identity-backed MCP read `200`, and denied write proposal `403`. The internal MCP hostname returned `404` from outside the environment and `401` for a no-token request from inside the agent container.
 - Re-ran the Stage 1 hosted acceptance on the new revision: unauthenticated create `401`; approved create, two live-model chats, reset, and chat after reset `200`; stale replay `409`; revision sequence `1`, `2`, `4`.
-- The current environment has no VNet or workload profiles; outbound destination blocking, internal unauthenticated-call denial, and the other specified deployed network exercises are not yet evidenced. Model-selected tool calls and deployed admin PUT authorization also remain open.
+- The current environment has no VNet or workload profiles; outbound destination blocking and the other specified deployed network exercises are not yet evidenced. Model-selected tool calls and deployed admin PUT authorization also remain open.
 
 ## 2026-10-18 — Stage 2 local catalog foundation
 
