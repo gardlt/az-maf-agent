@@ -2,6 +2,12 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-18 — Stage 2 local catalog foundation
+
+- Added the bundled, versioned `synthetic-movies-v1` fixture of invented movie records and verified it is included in the distributable wheel.
+- Added the pinned local dispatcher for only `search_movies` and `get_movie`, including strict schemas, deterministic ordering, a bounded not-found result, output revalidation, a serialized-result cap, explicit reader permissions, and current-tool revocation.
+- Added local contract tests for valid reads, invalid/extra arguments, unknown tools, unauthorized callers, revocation, and malformed catalog records. This does not add model tool registration, an MCP transport, an admin write endpoint, service identities, or deployed network acceptance.
+
 ## 2026-10-18 — Persistent CLI sign-in
 
 - Changed `agent-chat` and the hosted acceptance script to share a named, encrypted OS-user-scoped Entra token cache plus a local non-secret account selector. Device-code sign-in is needed only when this state cannot silently refresh the user's authorization.

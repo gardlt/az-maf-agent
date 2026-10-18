@@ -1,6 +1,6 @@
-# az-maf-agent — Stage 1
+# az-maf-agent — Stage 1 and Stage 2 foundation
 
-A text-only Python CLI and Microsoft Agent Framework chat core with bounded, process-local session history. The deterministic offline default requires **no Azure account or credentials** after dependencies are installed. No tools, MCP, skills, durable memory, or command execution are implemented.
+A Python CLI and Microsoft Agent Framework chat core with bounded, process-local session history. The deterministic offline default requires **no Azure account or credentials** after dependencies are installed. Stage 2 currently includes a local, versioned synthetic movie catalog and a strict read-only dispatcher; it is not yet registered as an Agent Framework tool or exposed through an MCP/network transport. Skills, durable memory, command execution, and all catalog writes remain unimplemented.
 
 This is a teaching implementation plus a single-replica authenticated API test deployment, **not a production-ready service**. The [specification](docs/secure-agent-teaching-spec.md) and [stage tasks](docs/tasks/README.md) remain authoritative. The private registry image, infrastructure templates, and hosted evidence are documented in [the hosted runbook](docs/stage-1-hosted.md); signed-in acceptance and live-model evaluation are still pending.
 
@@ -53,6 +53,12 @@ Configure before hosted testing:
 6. Copy the complete offline configuration to a private client configuration file and run `agent-chat --config PATH --api https://YOUR_APPROVED_API`. The first hosted use opens the Stage 1 device-code flow; later runs silently refresh the encrypted, OS-user-scoped token cache using a local account selector. `AGENT_ACCESS_TOKEN` remains an optional automation override and must never be passed on the command line or committed. The client distinguishes 401 reauthentication from 403 denial. Ctrl-C requests server cancellation; an unconfirmed cancellation is reported and server deadlines remain in effect.
 
 API routes: `POST /sessions`, `POST /sessions/{id}/chat` with `{"text":"hello","revision":0}`, and `POST /sessions/{id}/reset` or `/cancel`. There are no tool, operator, file, or memory routes. Request bodies and ingestion time are bounded. OpenAPI/docs routes are disabled. All functional routes require authentication; errors omit raw invalid input/provider payloads.
+
+## Stage 2 local catalog foundation
+
+`az_maf_agent.catalog` packages `synthetic-movies-v1`, a small invented catalog with stable `movie_` IDs and clearly labeled `synthetic_rating` values. The pinned dispatcher permits only `search_movies(query, limit)` and `get_movie(catalog_id)` for explicitly approved principals. It rejects unknown tools and arguments, pagination, URLs, paths, credential selectors, malformed records, and revoked tools before any catalog result is returned. Results have validated record fields, deterministic ordering, a truncation flag, and an 8 KiB serialized-result cap.
+
+This is a local contract foundation, not a deployed MCP service. Agent Framework tool registration, a separately authenticated catalog service, the admin-only PUT exercise, workload identities, and the five deployed network checks remain required before Stage 2 can be accepted.
 
 To exercise the deployed app, run `uv run --locked python scripts/test_container_app.py`. It starts a device-code flow only when the encrypted Stage 1 cache cannot refresh a token or `AGENT_ACCESS_TOKEN` is unset, prints only selected token claims, and checks unauthenticated rejection, session creation, chat, stale revision denial, and reset. It neither logs nor writes the bearer token.
 

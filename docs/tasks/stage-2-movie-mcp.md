@@ -8,6 +8,8 @@ Extend [Stage 1](stage-1-chat.md) with approved read-only movie tools and demons
 
 A small bundled synthetic IMDb-style catalog, guarded MCP dispatcher, and admin-only HTTP PUT exercise. There is no IMDb affiliation, scraping, account, or API integration.
 
+Current implementation status: the versioned local catalog and strict read-only dispatcher are in place. Agent tool registration, an MCP transport, the separately authorized catalog HTTP service, admin PUT, and deployed network evidence remain pending.
+
 ## Prerequisites and dependencies
 
 - Stage 1 core, scope, budgets, cancellation, audit, and hosted auth contracts.

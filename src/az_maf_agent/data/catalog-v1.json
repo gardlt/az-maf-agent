@@ -1,0 +1,53 @@
+{
+  "catalog_version": "synthetic-movies-v1",
+  "movies": [
+    {
+      "id": "movie_000101",
+      "title": "Brass Comet",
+      "year": 2008,
+      "genre": "science_fiction",
+      "synopsis": "A careful observatory clerk follows a new comet signal and finds a town preparing a welcome no one remembers scheduling.",
+      "synthetic_rating": 7.4
+    },
+    {
+      "id": "movie_000102",
+      "title": "Cedar Street Chorus",
+      "year": 2016,
+      "genre": "comedy",
+      "synopsis": "Neighbors form a reluctant choir to save their community hall and discover that rehearsal is harder than harmony.",
+      "synthetic_rating": 6.8
+    },
+    {
+      "id": "movie_000103",
+      "title": "The Last Lantern",
+      "year": 2021,
+      "genre": "mystery",
+      "synopsis": "A museum archivist maps anonymous lantern deliveries to a forgotten river crossing before the annual flood.",
+      "synthetic_rating": 8.1
+    },
+    {
+      "id": "movie_000104",
+      "title": "Maple Kite Day",
+      "year": 2013,
+      "genre": "family",
+      "synopsis": "Two siblings repair a neighbor's enormous kite for a park festival while learning why its first flight mattered.",
+      "synthetic_rating": 7.0
+    },
+    {
+      "id": "movie_000105",
+      "title": "Northbound Paper",
+      "year": 2019,
+      "genre": "drama",
+      "synopsis": "A small-town printer investigates a box of undelivered letters that changes how three families read their past.",
+      "synthetic_rating": 7.7
+    },
+    {
+      "id": "movie_000106",
+      "title": "Orchard Relay",
+      "year": 2011,
+      "genre": "action",
+      "synopsis": "Volunteer cyclists race a storm through an orchard valley to reconnect isolated radio stations before nightfall.",
+      "synthetic_rating": 6.5
+    }
+  ]
+}
