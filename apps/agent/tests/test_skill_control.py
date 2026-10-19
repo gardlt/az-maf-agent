@@ -54,3 +54,23 @@ def test_control_failure_is_closed(response):
     with pytest.raises(Denied, match="skill_control_unavailable"):
         reader()
     reader.close()
+
+
+def test_transient_network_retry_uses_fresh_control_state():
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        if len(calls) == 1:
+            raise httpx.ReadTimeout("fixture timeout")
+        state = {"generation": 7, "disabled": ["movie-night@1.0.0"], "revoked": []}
+        return httpx.Response(
+            200, json={"properties": {"tags": {"maf-skill-control": json.dumps(state)}}}
+        )
+
+    reader = AzureTagControl(
+        RESOURCE, Credential(), httpx.Client(transport=httpx.MockTransport(handler))
+    )
+    assert reader()["disabled"] == ["movie-night@1.0.0"]
+    assert len(calls) == 2
+    reader.close()

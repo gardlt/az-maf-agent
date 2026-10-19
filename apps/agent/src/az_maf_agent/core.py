@@ -283,7 +283,7 @@ class Service:
             from .skills import READ_TOOLS
 
             try:
-                async with asyncio.timeout(min(5.0, self.settings.limits.call_seconds)):
+                async with asyncio.timeout(min(10.0, self.settings.limits.call_seconds)):
                     skill = await asyncio.to_thread(
                         self.skill_registry.load,
                         skill_id,
@@ -361,7 +361,7 @@ class Service:
 
                     async def skill_gate():
                         if skill is not None:
-                            async with asyncio.timeout(min(5.0, lim.call_seconds)):
+                            async with asyncio.timeout(min(10.0, lim.call_seconds)):
                                 await asyncio.to_thread(self.skill_registry.check, skill)
                         if (
                             self.expired(session)
@@ -422,7 +422,7 @@ class Service:
                         raise Denied("tools_disabled")
                     answer = result.text
             if skill is not None:
-                async with asyncio.timeout(min(5.0, lim.call_seconds)):
+                async with asyncio.timeout(min(10.0, lim.call_seconds)):
                     await asyncio.to_thread(self.skill_registry.check, skill)
             if (
                 self.expired(session)
