@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+import json
 import logging
 import os
 import sys
@@ -57,8 +58,8 @@ async def run(args):
             timeout=settings.limits.run_seconds + 10,
         )
 
-    async def remote(path, body=None):
-        response = await client.post(path, json=body)
+    async def remote(path, body=None, method="POST"):
+        response = await client.request(method, path, json=body)
         if response.status_code in (401, 403):
             raise Denied(
                 "authenticate_again" if response.status_code == 401 else "permission_denied"
@@ -75,6 +76,13 @@ async def run(args):
             print("Use /search QUERY or /movie tmdb_<id> for TMDB movie reads.")
             print("This product uses the TMDB API but is not endorsed or certified by TMDB.")
             print("Credits: https://github.com/gardlt/az-maf-agent/blob/main/docs/credits.md")
+        if client:
+            print(
+                "Memory: /memory; /remember CATEGORY VALUE explicitly consents to a 30-day save/correction;"
+            )
+            print(
+                "/forget ID or /forget all removes saved preferences. Categories: preferred_genre, preferred_language."
+            )
         while True:
             # Blocking input is only used when no model operation is active.
             try:
@@ -91,6 +99,53 @@ async def run(args):
                 print("History reset; usage limits remain.")
                 continue
             try:
+                if text == "/memory" or text.startswith(("/remember ", "/forget ")):
+                    if not client:
+                        raise Denied("memory_requires_configured_api")
+                    path = f"/sessions/{sid}/memory"
+                    if text == "/memory":
+                        print(json.dumps(await remote(path, method="GET"), indent=2))
+                    elif text.startswith("/forget "):
+                        record_id = text[8:].strip()
+                        if not record_id or (record_id != "all" and len(record_id) != 36):
+                            raise Denied("memory_invalid")
+                        print(
+                            json.dumps(
+                                await remote(
+                                    path if record_id == "all" else path + "/" + record_id,
+                                    method="DELETE",
+                                )
+                            )
+                        )
+                    else:
+                        parts = text.split()
+                        if len(parts) != 3:
+                            raise Denied("memory_invalid")
+                        _, category, value = parts
+                        from .memory import Preference
+
+                        try:
+                            preference = Preference(category=category, value=value)
+                        except ValueError:
+                            raise Denied("memory_invalid") from None
+                        existing = await remote(path, method="GET")
+                        record = next(
+                            (r for r in existing["memories"] if r["category"] == category), None
+                        )
+                        body = {
+                            **preference.model_dump(),
+                            "consent": True,
+                            "expected_generation": existing["generation"],
+                        }
+                        if record:
+                            body["expected_revision"] = record["revision"]
+                        saved = await remote(
+                            path + "/" + record["id"] if record else path,
+                            body,
+                            method="PUT" if record else "POST",
+                        )
+                        print(json.dumps(saved, indent=2))
+                    continue
                 if args.movies and (text.startswith("/search ") or text.startswith("/movie ")):
                     name, arguments = (
                         ("search_movies", {"query": text[8:]})

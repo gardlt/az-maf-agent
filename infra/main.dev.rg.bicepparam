@@ -17,3 +17,8 @@ param cliClientId = readEnvironmentVariable('MAF_CLI_CLIENT_ID')
 param authClientSecret = readEnvironmentVariable('MAF_AUTH_CLIENT_SECRET')
 param mcpAudience = readEnvironmentVariable('MAF_MCP_AUDIENCE')
 param tmdbApiReadAccessToken = readEnvironmentVariable('TMDB_API_READ_ACCESS_TOKEN')
+
+// Enabled after operator bootstrap and Stage 4 acceptance.
+param enableMemory = true
+param memoryCleanupJobName = 'job-maf-memory-dev-eus2-01'
+param memoryAccountName = 'stmafmemdevmako261019'

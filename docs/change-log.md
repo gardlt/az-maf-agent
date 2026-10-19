@@ -1,3 +1,11 @@
+## 2026-10-19 — Stage 4 runtime and dev rollout
+
+- Added bounded asynchronous memory access, cancellation fencing before writes, worker admission limits, and explicit ambiguous-write reconciliation without retries.
+- Added user-scoped minimal recall as untrusted model context, shared operation/token budgets, final freshness checks, and history invalidation on generation changes.
+- Added hourly conditional expiry cleanup with a dedicated job identity, pinned namespace, page/time bounds, and retained empty generation fences.
+- Added CLI inspect/save/correct/forget commands and reproducible memory storage, cleanup job, role bootstrap, and dev deployment settings.
+- Local validation: 121 tests pass, Ruff passes, and both Bicep entry points compile. Dev storage has been provisioned; hosted acceptance is pending this rollout.
+
 ## 2026-10-19 — Stage 4 hosted configuration groundwork
 
 - Added operator-only Blob memory startup configuration with explicit Entra tenant/user permissions, approved backend, user scope, and 30-day retention checks.

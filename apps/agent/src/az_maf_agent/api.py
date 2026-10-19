@@ -205,11 +205,11 @@ def create_app(service: Service, verifier: EntraVerifier):
 
     @app.get("/sessions/{sid}/memory")
     async def inspect_memory(sid: str, who=Depends(principal)):
-        return service.memory(who, sid, "inspect")
+        return await service.memory_async(who, sid, "inspect")
 
     @app.post("/sessions/{sid}/memory")
     async def save_memory(sid: str, body: MemorySaveInput, who=Depends(principal)):
-        return service.memory(
+        return await service.memory_async(
             who,
             sid,
             "save",
@@ -222,7 +222,7 @@ def create_app(service: Service, verifier: EntraVerifier):
     async def correct_memory(
         sid: str, record_id: str, body: MemoryCorrectInput, who=Depends(principal)
     ):
-        return service.memory(
+        return await service.memory_async(
             who,
             sid,
             "correct",
@@ -235,11 +235,11 @@ def create_app(service: Service, verifier: EntraVerifier):
 
     @app.delete("/sessions/{sid}/memory/{record_id}")
     async def forget_memory(sid: str, record_id: str, who=Depends(principal)):
-        return service.memory(who, sid, "forget", record_id=record_id)
+        return await service.memory_async(who, sid, "forget", record_id=record_id)
 
     @app.delete("/sessions/{sid}/memory")
     async def forget_all_memory(sid: str, who=Depends(principal)):
-        return service.memory(who, sid, "forget_all")
+        return await service.memory_async(who, sid, "forget_all")
 
     return app
 
@@ -292,6 +292,8 @@ def from_env():
                 else frozenset()
             )
 
+    if os.environ.get("ENABLE_MEMORY", "false").lower() == "true" and not movie_model_tools:
+        raise ValueError("hosted memory recall requires the governed movie model loop")
     memory_service, memory_permissions = configured_memory(os.environ)
     service = Service(
         settings,

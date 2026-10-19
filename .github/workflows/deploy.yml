@@ -181,6 +181,13 @@ jobs:
                 --image "$MAF_AGENT_IMAGE" \
                 --subscription "$AZURE_SUBSCRIPTION_ID" \
                 --output none
+              if [[ "$env_name" == dev ]]; then
+                az containerapp job update \
+                  --name job-maf-memory-dev-eus2-01 \
+                  --resource-group "$resource_group" \
+                  --image "$MAF_AGENT_IMAGE" \
+                  --output none
+              fi
             else
               az containerapp update \
                 --name "ca-maf-movie-mcp-${env_name}-eus2-01" \

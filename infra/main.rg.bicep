@@ -24,6 +24,12 @@ param authClientSecret string
 param mcpAudience string
 @secure()
 param tmdbApiReadAccessToken string
+@description('Enable governed movie preferences only for approved environments.')
+param enableMemory bool = false
+param memoryAccountName string = 'stmafmem${uniqueString(subscription().subscriptionId, agentAppName)}'
+param memoryCleanupJobName string = 'job-${agentAppName}-memory'
+@description('Operator bootstrap only. Ordinary CI must leave false.')
+param bootstrapMemoryRoles bool = false
 
 module foundation './modules/foundation.bicep' = {
   name: 'foundation'
@@ -56,6 +62,9 @@ module agent './modules/container-app.bicep' = {
     movieMcpEndpoint: 'https://${movieMcpAppName}.internal.${foundation.outputs.environmentDefaultDomain}/mcp'
     movieMcpAudience: mcpAudience
     movieMcpIdentityClientId: '4eafecc0-0b7b-44b9-a478-02926e56bd89'
+    enableMemory: enableMemory
+    memoryAccountName: enableMemory ? memory!.outputs.accountName : ''
+    memoryAllowedUsers: enableMemory ? allowedUsers : ''
     enableMovieModelTools: true
     agentConfigPath: '/app/config/foundry-stage1.json'
     enableApprovedSkills: true
@@ -84,3 +93,34 @@ output agentId string = agent.outputs.appId
 output movieMcpId string = movieMcp.outputs.appId
 output agentPrincipalId string = agent.outputs.workloadPrincipalId
 output movieMcpPrincipalId string = movieMcp.outputs.workloadPrincipalId
+
+module memory './modules/memory-storage.bicep' = if (enableMemory) {
+  name: 'memory-storage'
+  params: {
+    accountName: memoryAccountName
+    location: location
+    softDeleteDays: 0
+    enableVersioning: false
+  }
+}
+module memoryCleanup './modules/memory-cleanup-job.bicep' = if (enableMemory) {
+  name: 'memory-cleanup'
+  params: {
+    jobName: memoryCleanupJobName
+    managedEnvironmentId: foundation.outputs.managedEnvironmentId
+    image: agentImage
+    registryLoginServer: foundation.outputs.registryLoginServer
+    pullIdentityId: foundation.outputs.pullIdentityId
+    memoryAccountName: memory!.outputs.accountName
+    location: location
+  }
+}
+module memoryRoles './modules/memory-rbac.bicep' = if (enableMemory && bootstrapMemoryRoles) {
+  name: 'memory-roles'
+  params: {
+    accountName: memory!.outputs.accountName
+    principalIds: [agent.outputs.workloadPrincipalId, memoryCleanup!.outputs.principalId]
+  }
+}
+output memoryStorageAccount string = enableMemory ? memory!.outputs.accountName : ''
+output memoryCleanupPrincipalId string = enableMemory ? memoryCleanup!.outputs.principalId : ''

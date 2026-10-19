@@ -3,6 +3,7 @@
 No model memory tools, transcript saving, or automatic recall are enabled here.
 """
 
+import asyncio
 import hashlib
 import json
 import threading
@@ -211,6 +212,7 @@ class MemoryService:
             raise ValueError("durable memory requires an explicit audit callback")
         self.policy, self.store, self.clock = policy, store, clock
         self.audit = audit or (lambda _: None)
+        self.pending = {}
 
     def call(
         self,
@@ -222,6 +224,7 @@ class MemoryService:
         record_id=None,
         expected_generation=None,
         expected_revision=None,
+        control=None,
     ):
         partition = access.partition(self.policy)
         # Skills can never turn a model's purported approval into write consent.
@@ -249,6 +252,11 @@ class MemoryService:
             self.audit(event)  # Required delivery failure prevents access/effect.
         except Exception:
             raise Denied("audit_unavailable") from None
+        if control is not None and control.is_set():
+            raise Denied("memory_cancelled")
+        from .blob_memory import BlobMemoryStore
+
+        options = {"control": control} if type(self.store) is BlobMemoryStore else {}
         return self.store.apply(
             partition,
             operation,
@@ -259,7 +267,40 @@ class MemoryService:
             record_id=record_id,
             expected_generation=expected_generation,
             expected_revision=expected_revision,
+            **options,
         )
+
+    async def acall(self, access, operation, **arguments):
+        """Bound worker admission and retain its slot until ambiguous I/O settles."""
+        partition = access.partition(self.policy)
+        if partition in self.pending or len(self.pending) >= 4:
+            raise Denied("memory_busy")
+        control = threading.Event()
+        task = asyncio.create_task(
+            asyncio.to_thread(self.call, access, operation, control=control, **arguments)
+        )
+        self.pending[partition] = task
+
+        def settled(done):
+            self.pending.pop(partition, None)
+            if not done.cancelled():
+                done.exception()  # Consume failures even after request cancellation.
+
+        task.add_done_callback(settled)
+        try:
+            async with asyncio.timeout(15):
+                return await asyncio.shield(task)
+        except TimeoutError:
+            control.set()
+            raise Denied("memory_timeout") from None
+        except asyncio.CancelledError:
+            control.set()
+            raise
+
+    async def aclose(self):
+        if self.pending:
+            await asyncio.gather(*list(self.pending.values()), return_exceptions=True)
+        await asyncio.to_thread(self.close)
 
     def close(self):
         from .blob_memory import BlobMemoryStore

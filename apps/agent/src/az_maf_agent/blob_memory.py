@@ -3,6 +3,7 @@
 import hashlib
 import json
 import re
+import time
 from dataclasses import asdict
 from email.utils import formatdate
 from typing import Literal
@@ -75,8 +76,11 @@ class BlobMemoryStore:
         )
         self.http = http or httpx.Client(timeout=5.0, follow_redirects=False)
 
-    def _request(self, method, url, *, content=None, conditions=None):
+    def _request(self, method, url, *, content=None, conditions=None, control=None):
+        started = time.monotonic()
         try:
+            if control is not None and control.is_set():
+                raise Denied("memory_cancelled")
             token = self.credential.get_token("https://storage.azure.com/.default")
             headers = {
                 "Authorization": "Bearer " + token.token,
@@ -86,9 +90,15 @@ class BlobMemoryStore:
             if method == "PUT":
                 headers.update({"x-ms-blob-type": "BlockBlob", "Content-Type": "application/json"})
             headers.update(conditions or {})
+            if control is not None and control.is_set():
+                raise Denied("memory_cancelled")
             with self.http.stream(method, url, headers=headers, content=content) as response:
                 body = bytearray()
                 for chunk in response.iter_bytes():
+                    if time.monotonic() - started > 10 or (
+                        control is not None and control.is_set()
+                    ):
+                        raise Denied("memory_timeout")
                     body.extend(chunk)
                     if len(body) > MAX_DOCUMENT_BYTES:
                         raise Denied("memory_backend_invalid")
@@ -100,11 +110,12 @@ class BlobMemoryStore:
             raise Denied("memory_backend_unavailable") from None
 
     def apply(self, partition, operation, **arguments):
+        control = arguments.pop("control", None)
         scope_ref = hashlib.sha256(
             json.dumps(partition, separators=(",", ":")).encode()
         ).hexdigest()
         url = self.origin + scope_ref + ".json"
-        status, headers, content = self._request("GET", url)
+        status, headers, content = self._request("GET", url, control=control)
         etag = None
         if status == 404 and headers.get("x-ms-error-code") == "BlobNotFound":
             document = Document(schema_version=1, scope_ref=scope_ref, generation=0, records=[])
@@ -151,7 +162,9 @@ class BlobMemoryStore:
             if len(payload) > MAX_DOCUMENT_BYTES:
                 raise Denied("memory_backend_invalid")
             conditions = {"If-Match": etag} if etag else {"If-None-Match": "*"}
-            status, _, _ = self._request("PUT", url, content=payload, conditions=conditions)
+            status, _, _ = self._request(
+                "PUT", url, content=payload, conditions=conditions, control=control
+            )
             if status in (409, 412):
                 raise Denied("memory_conflict")
             if status != 201:

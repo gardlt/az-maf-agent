@@ -244,7 +244,7 @@ class Service:
         self.emit("cancel_requested", principal=principal, sid=sid)
         return {"session_id": sid, "revision": session.revision}
 
-    def memory(self, principal, sid, operation, **arguments):
+    def _memory_access(self, principal, sid, operation):
         """Explicit authenticated API operations; never interpreted from chat text."""
         session = self.owned(principal, sid)
         if self.memory_service is None:
@@ -262,8 +262,22 @@ class Service:
             principal.tenant, principal.user, sid, "user", self.memory_permissions(principal)
         )
         self.emit("memory_operation_requested", principal=principal, sid=sid)
+        return access
+
+    def memory(self, principal, sid, operation, **arguments):
+        access = self._memory_access(principal, sid, operation)
         try:
             result = self.memory_service.call(access, operation, **arguments)
+        except Denied as exc:
+            self.emit(exc.code, principal=principal, sid=sid)
+            raise
+        self.emit("memory_operation_completed", principal=principal, sid=sid)
+        return result
+
+    async def memory_async(self, principal, sid, operation, **arguments):
+        access = self._memory_access(principal, sid, operation)
+        try:
+            result = await self.memory_service.acall(access, operation, **arguments)
         except Denied as exc:
             self.emit(exc.code, principal=principal, sid=sid)
             raise
@@ -387,6 +401,28 @@ class Service:
             ):
                 del messages[:2]
             async with asyncio.timeout(lim.run_seconds):
+                recalled = None
+                memory_access = None
+                if self.memory_service is not None and "inspect" in self.memory_permissions(
+                    principal
+                ):
+                    from .memory import MemoryAccess
+
+                    memory_access = MemoryAccess(
+                        principal.tenant, principal.user, sid, "skill", frozenset({"inspect"})
+                    )
+                    if (
+                        session.memory_operations + 2
+                        > self.memory_service.policy.operations_per_session
+                    ):
+                        raise Denied("memory_budget")
+                    # Reserve retrieval plus final freshness check before either I/O starts.
+                    session.memory_operations += 2
+                    recalled = await self.memory_service.acall(memory_access, "inspect")
+                    if hist.get("memory_generation") != recalled["generation"]:
+                        messages = []
+                    hist["memory_generation"] = recalled["generation"]
+                    emit_run("memory_recalled", run_id, principal=principal, sid=sid)
                 if self.movie_model_tools:
                     from .model_tools import run_model_tools
 
@@ -441,6 +477,14 @@ class Service:
                         instructions,
                         dispatch_movie,
                         gate=skill_gate,
+                        memory_context=(
+                            [
+                                {"category": r["category"], "value": r["value"]}
+                                for r in recalled["memories"]
+                            ]
+                            if recalled
+                            else None
+                        ),
                     )
                     hist["messages"] = self.history.trim(
                         [*messages, Message("user", [text]), Message("assistant", [answer])]
@@ -452,6 +496,10 @@ class Service:
                     if any(c.type != "text" for m in result.messages for c in m.contents):
                         raise Denied("tools_disabled")
                     answer = result.text
+                if memory_access is not None:
+                    fresh = await self.memory_service.acall(memory_access, "inspect")
+                    if fresh["generation"] != recalled["generation"]:
+                        raise Denied("memory_changed")
             if skill is not None:
                 async with asyncio.timeout(min(10.0, lim.call_seconds)):
                     await asyncio.to_thread(self.skill_registry.check, skill)
@@ -466,6 +514,11 @@ class Service:
             session.revision += 1
             session.touched = self.clock()
             response = {"text": safe_text(answer), "revision": session.revision, "run_id": run_id}
+            if recalled is not None:
+                response["memory"] = {
+                    "generation": recalled["generation"],
+                    "records": len(recalled["memories"]),
+                }
             if skill is not None:
                 response["skill"] = {
                     "id": skill.manifest.skill_id,
@@ -502,7 +555,7 @@ class Service:
                 session.active.cancel()
         await self.transport.close()
         if self.memory_service is not None:
-            await asyncio.to_thread(self.memory_service.close)
+            await self.memory_service.aclose()
         if self.skill_registry is not None and self.skill_registry.control_reader is not None:
             await asyncio.to_thread(self.skill_registry.control_reader.close)
         if self.movie_client is not None:
