@@ -1,0 +1,138 @@
+name: Deploy Azure environment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'config/**'
+      - 'Dockerfile*'
+      - 'infra/**'
+      - 'azure.yaml'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub deployment environment
+        required: true
+        type: choice
+        options: [dev, stage]
+        default: dev
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: 0.9.2
+          enable-cache: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: uv sync --locked --all-packages
+      - run: |
+          uv run --locked pytest -q
+          uv run --locked ruff check apps scripts
+          uv run --locked ruff format --check apps scripts
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}
+    env:
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      MAF_REGISTRY_NAME: ${{ vars.MAF_REGISTRY_NAME }}
+      MAF_TENANT_ID: ${{ vars.MAF_TENANT_ID }}
+      MAF_AGENT_AUDIENCE: ${{ vars.MAF_AGENT_AUDIENCE }}
+      MAF_ALLOWED_USERS: ${{ vars.MAF_ALLOWED_USERS }}
+      MAF_API_CLIENT_ID: ${{ vars.MAF_API_CLIENT_ID }}
+      MAF_CLI_CLIENT_ID: ${{ vars.MAF_CLI_CLIENT_ID }}
+      MAF_MCP_AUDIENCE: ${{ vars.MAF_MCP_AUDIENCE }}
+      MAF_AUTH_CLIENT_SECRET: ${{ secrets.MAF_AUTH_CLIENT_SECRET }}
+      TMDB_API_READ_ACCESS_TOKEN: ${{ secrets.TMDB_API_READ_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Create or update the environment foundation
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -euo pipefail
+            env_name='${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}'
+            resource_group="rg-maf-${env_name}-eus2-01"
+            managed_environment="cae-maf-${env_name}-eus2-01"
+            pull_identity="id-maf-${env_name}-eus2-01"
+            logs_name="law-maf-${env_name}-eus2-01"
+            az deployment sub create \
+              --name "foundation-${env_name}-${GITHUB_RUN_ID}" \
+              --location "$AZURE_LOCATION" \
+              --template-file infra/modules/test-foundation.bicep \
+              --parameters \
+                resourceGroupName="$resource_group" \
+                location="$AZURE_LOCATION" \
+                environmentName="$managed_environment" \
+                registryName="$MAF_REGISTRY_NAME" \
+                pullIdentityName="$pull_identity" \
+                logsName="$logs_name" \
+              --subscription "$AZURE_SUBSCRIPTION_ID" \
+              --output none
+
+      - name: Build and push digest-pinned images
+        run: |
+          set -euo pipefail
+          az acr login --name "$MAF_REGISTRY_NAME"
+          agent_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-agent:${GITHUB_SHA}"
+          mcp_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-movie-mcp:${GITHUB_SHA}"
+          docker build --platform linux/amd64 --file Dockerfile --tag "$agent_tag" .
+          docker build --platform linux/amd64 --file Dockerfile.mcp --tag "$mcp_tag" .
+          docker push "$agent_tag"
+          docker push "$mcp_tag"
+          echo "MAF_AGENT_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$agent_tag")" >> "$GITHUB_ENV"
+          echo "MAF_MCP_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$mcp_tag")" >> "$GITHUB_ENV"
+
+      - name: Preview infrastructure changes
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -euo pipefail
+            env_name='${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}'
+            az deployment sub what-if \
+              --name "whatif-${env_name}-${GITHUB_RUN_ID}" \
+              --location "$AZURE_LOCATION" \
+              --parameters "infra/main.${env_name}.bicepparam" \
+              --subscription "$AZURE_SUBSCRIPTION_ID" \
+              --result-format ResourceIdOnly
+
+      - name: Deploy application and MCP
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -euo pipefail
+            env_name='${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}'
+            az deployment sub create \
+              --name "deploy-${env_name}-${GITHUB_RUN_ID}" \
+              --location "$AZURE_LOCATION" \
+              --parameters "infra/main.${env_name}.bicepparam" \
+              --subscription "$AZURE_SUBSCRIPTION_ID" \
+              --output none
