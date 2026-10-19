@@ -18,8 +18,8 @@ CLI_APP_ID = "d8bd0dd5-388c-4436-a64b-bdfcdbeebe7f"
 SCOPE = f"api://{API_APP_ID}/Chat.Access"
 
 # The platform encrypts this cache for the current OS user. Do not permit plaintext fallback.
-CACHE_OPTIONS = TokenCachePersistenceOptions(name="az-maf-agent-stage1")
-AUTH_RECORD_PATH = Path.home() / ".config" / "az-maf-agent-stage1" / "authentication-record.json"
+CACHE_OPTIONS = TokenCachePersistenceOptions(name="az-maf-agent-dev")
+AUTH_RECORD_PATH = Path.home() / ".config" / "az-maf-agent-dev" / "authentication-record.json"
 DeviceCodePrompt = Callable[[str, str, datetime], None]
 
 
