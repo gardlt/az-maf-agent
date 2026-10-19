@@ -14,11 +14,11 @@ Deployment `stage5-control-bootstrap` succeeded in `rg-maf-dev-eus2-01` against 
 
 The runtime has policy Reader, state/session Contributor, and a custom audit write-only role without container deletion authority. The cleanup identity can clean sessions. The separate operator user has policy/state/audit access. Azure reports audit retention as **30 days, Unlocked**. This protects audit blobs from ordinary overwrite/delete; a privileged operator can modify the unlocked policy. It is not an irreversible lock or protection against every account administrator.
 
-The separate operator command initialized policy epoch **1**, **global_stop=true**, and an empty accounting document. A fresh operator process read the persisted stopped policy successfully. No runtime app was changed by this deployment.
+The separate operator command initialized policy epoch **1**, **global_stop=true**, and an empty accounting document. A fresh operator process read the persisted stopped policy successfully. No runtime app was changed by this deployment. The separately reviewed `stage5-monitoring-bootstrap` subsequently succeeded, creating `appi-ca-maf-agent-dev-eus2-01` with local authentication disabled and the scoped runtime Monitoring Metrics Publisher role.
 
 A probe inside the actual Stage 4 agent revision `ca-maf-agent-dev-eus2-01--0000024` verified the new identity boundary: policy GET 200, policy PUT 403, state GET 200, conditional same-content state PUT 201, audit create 201, audit GET 403, audit DELETE 403. The content-free `rbac-probe-*` audit record is an administrative permission test rather than a runtime event envelope and remains protected for the retention period. No preference or conversation content was read by this probe.
 
-Local validation reached **157 passing tests**, with lint passing. Operator publication failure, exact approval binding/cancellation, exported-span redaction, cleanup pagination/concurrent changes, and ambiguous Blob write outcomes have dedicated regression coverage.
+Local validation reached **158 passing tests**, with lint passing. Operator publication failure, exact approval binding/cancellation, exported-span redaction, cleanup pagination/concurrent changes, and ambiguous Blob write outcomes have dedicated regression coverage.
 
 ## Operator commands
 
@@ -47,3 +47,10 @@ Telemetry uses an isolated explicit tracer and static resources, without HTTP/mo
 ## Remaining release evidence
 
 The task checklist remains unchecked until complete evidence exists: hosted runtime integration, live cross-replica and stop/recovery timing, protected-audit outage behavior, final deployed network cases, independent Azure stop of an isolated unresponsive worker, reconciliation, fresh recovery canary, real exported spans and alert verification, the predeclared benign/adversarial evaluation, supply-chain/secret review, and rollback/incident runbooks. Local fixtures and historical Stage 2 network tests do not satisfy these hosted gates.
+
+
+## Deployment checkpoint
+
+Commit `eee02a8` was pushed to `main`. CI, infrastructure checks, and the dev deployment passed. The resulting ready revision was `ca-maf-agent-dev-eus2-01--0000025`, image digest `sha256:8328ed26a40064381ddd47022aaaa1be061c45c47962ffd509eb5a61575f18ed`. Stage 5 remained disabled. Hosted exporter probes identified an empty-setting parse problem and the SDK's `timeout` keyword requirement; fixes and a real exporter-construction regression are included in the follow-up. A flush acknowledgement alone is not evidence of ingestion or redaction; the actual Azure span query remains pending.
+
+The fixed evaluation inputs and approved thresholds are in `config/stage5-evaluation.json`. Commit the dataset before live evaluation; do not change thresholds to accommodate results.

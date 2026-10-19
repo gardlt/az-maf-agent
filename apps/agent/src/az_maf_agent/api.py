@@ -137,6 +137,10 @@ def create_app(service: Service, verifier: EntraVerifier):
 
     @app.exception_handler(Denied)
     async def denied(request, exc):
+        if service.safety is not None:
+            from .control_telemetry import fault_signal
+
+            fault_signal(exc.code)
         status = {
             "global_stop": 503,
             "control_unavailable": 503,

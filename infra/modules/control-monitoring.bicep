@@ -27,3 +27,28 @@ resource publisher 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (as
 }
 output connectionString string = insights.properties.ConnectionString
 output id string = insights.id
+
+@description('Portal alert; notification recipients are intentionally not configured.')
+resource faults 'Microsoft.Insights/scheduledQueryRules@2023-12-01' = {
+  name: '${name}-faults'
+  location: location
+  properties: {
+    displayName: 'Agent control denial, budget, outage, or unresolved effect'
+    description: 'Inspect metadata-only control_fault categories; authorization remains enforced in the application.'
+    enabled: true
+    severity: 2
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    scopes: [workspaceId]
+    autoMitigate: true
+    criteria: {
+      allOf: [{
+        query: 'ContainerAppConsoleLogs_CL | where TimeGenerated > ago(5m) | extend Signal=parse_json(Log_s) | where Signal.event == "control_fault" | project TimeGenerated, Category=tostring(Signal.category)'
+        timeAggregation: 'Count'
+        operator: 'GreaterThan'
+        threshold: 0
+        failingPeriods: { numberOfEvaluationPeriods: 1, minFailingPeriodsToAlert: 1 }
+      }]
+    }
+  }
+}

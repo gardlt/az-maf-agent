@@ -57,12 +57,15 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
       containers: [{
         name: 'agent-api'
         image: image
-        env: [
+        env: concat([
+          { name: 'APPLICATIONINSIGHTS_STATSBEAT_DISABLED_ALL', value: 'true' }
+          { name: 'APPLICATIONINSIGHTS_SDKSTATS_DISABLED', value: 'true' }
+          { name: 'APPLICATIONINSIGHTS_OPENTELEMETRY_RESOURCE_METRIC_DISABLED', value: 'true' }
+          { name: 'APPLICATIONINSIGHTS_CONTROLPLANE_DISABLED', value: 'true' }
           { name: 'ENABLE_GUARDRAILS', value: toLower(string(enableGuardrails)) }
           { name: 'ENABLE_SHARED_SESSIONS', value: toLower(string(enableGuardrails)) }
           { name: 'CONTROL_ACCOUNT', value: controlAccountName }
           { name: 'SESSION_ACCOUNT', value: controlAccountName }
-          { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: applicationInsightsConnectionString }
           { name: 'ENABLE_MEMORY', value: toLower(string(enableMemory)) }
           { name: 'MEMORY_BACKEND', value: 'azure_blob' }
           { name: 'MEMORY_POLICY', value: '/app/config/memory-policy.json' }
@@ -81,7 +84,7 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
           { name: 'SKILL_BUNDLE', value: enableApprovedSkills ? '/app/skills' : '' }
           { name: 'SKILL_CONTROL_RESOURCE_ID', value: skillControlResourceId }
           { name: 'SKILL_ALLOWED_USERS', value: enableApprovedSkills ? allowedUsers : '' }
-        ]
+        ], empty(applicationInsightsConnectionString) ? [] : [{ name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: applicationInsightsConnectionString }])
         resources: { cpu: json('0.5'), memory: '1Gi' }
       }]
       scale: { minReplicas: 1, maxReplicas: 1 }

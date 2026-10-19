@@ -381,7 +381,13 @@ class RunControls:
             run["status"] = status
             return copy.deepcopy(run)
 
-        return self.backend.transact(transition)
+        result = self.backend.transact(transition)
+        if result["unresolved"]:
+            self._event("unresolved_effect", run_id, epoch, status=status)
+            print(
+                json.dumps({"event": "control_fault", "category": "unresolved_effect"}), flush=True
+            )
+        return result
 
     def cancel(self, principal, run_id):
         owner = scope_ref(principal)
