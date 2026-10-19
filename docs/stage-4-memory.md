@@ -148,3 +148,21 @@ writes before any network access, redirects, failed/missing containers, oversize
 corrupted documents, expiry cleanup, and a committed write whose reply is lost. Actual
 Azure identity, encryption configuration, periodic cleanup, hosted persistence, and
 model recall require the next implementation/deployment step.
+
+
+## Hosted configuration checkpoint — 2026-10-19
+
+The application factory can now construct the Blob service from operator settings.
+`ENABLE_MEMORY` defaults to `false`; unsupported enable values/backends fail startup.
+When enabled, `MEMORY_BACKEND=azure_blob`, `MEMORY_ACCOUNT`, `MEMORY_CONTAINER`,
+`MEMORY_POLICY`, and `MEMORY_ALLOWED_USERS` are required. Allowed memory users must
+be a subset of `ENTRA_ALLOWED_USERS`; permission checks require authenticated Entra
+identity in the configured tenant. Hosted policy is restricted to user scope and the
+approved 30-day retention. No API caller can select these settings.
+
+The Container App module exposes these settings but keeps memory disabled by default.
+No memory resources or roles were deployed in this checkpoint. Do not enable the
+backend yet: asynchronous I/O with bounded cancellation behavior, scheduled physical
+expiry cleanup, model recall, and hosted acceptance remain unfinished. The 113-test
+suite passes, including configuration rejection before backend allocation and
+cross-tenant/user/source permission denial. The updated Container App module compiles.

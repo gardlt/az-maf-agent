@@ -1,6 +1,7 @@
 """Minimal hosted boundary. Identity headers and request-body identity are never trusted."""
 
 import asyncio
+import json
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -291,6 +292,7 @@ def from_env():
                 else frozenset()
             )
 
+    memory_service, memory_permissions = configured_memory(os.environ)
     service = Service(
         settings,
         AzureTransport(settings) if settings.mode == "azure" else None,
@@ -298,5 +300,45 @@ def from_env():
         movie_model_tools=movie_model_tools,
         skill_registry=skill_registry,
         skill_permissions=skill_permissions,
+        memory_service=memory_service,
+        memory_permissions=memory_permissions,
     )
     return create_app(service, verifier)
+
+
+def configured_memory(env, *, store_factory=None, audit=None):
+    """Operator-only configuration: never accept a backend or scope from requests."""
+    enabled = env.get("ENABLE_MEMORY", "false").lower()
+    if enabled not in {"true", "false"}:
+        raise ValueError("ENABLE_MEMORY must be true or false")
+    if enabled == "false":
+        return None, None
+    from .blob_memory import BlobMemoryStore
+    from .memory import OPERATIONS, MemoryService, load_memory_policy
+
+    if env.get("MEMORY_BACKEND") != "azure_blob":
+        raise ValueError("only the approved azure_blob memory backend is supported")
+    tenant = str(UUID(env["ENTRA_TENANT_ID"]))
+    users = frozenset(str(UUID(value)) for value in env["MEMORY_ALLOWED_USERS"].split(","))
+    admitted_users = frozenset(str(UUID(value)) for value in env["ENTRA_ALLOWED_USERS"].split(","))
+    if not users or not users <= admitted_users:
+        raise ValueError("memory users must be explicitly admitted API users")
+    policy = load_memory_policy(env["MEMORY_POLICY"])
+    if policy.scope != "user" or policy.retention_seconds != 2592000:
+        raise ValueError("hosted movie preferences require approved user scope and 30-day expiry")
+    # Validate all policy and identity configuration before allocating a network client.
+    store = (store_factory or BlobMemoryStore)(env["MEMORY_ACCOUNT"], env["MEMORY_CONTAINER"])
+    service = MemoryService(
+        policy,
+        store,
+        audit=audit or (lambda event: print(json.dumps(event), flush=True)),
+    )
+
+    def permissions(who):
+        return (
+            OPERATIONS
+            if who.source == "entra" and who.tenant == tenant and who.user in users
+            else frozenset()
+        )
+
+    return service, permissions

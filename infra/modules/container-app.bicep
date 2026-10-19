@@ -23,6 +23,11 @@ param enableMovieModelTools bool = false
 @description('Enable the reviewed read-only Markdown skills. Requires workload Reader access to the control resource.')
 param enableApprovedSkills bool = false
 param skillControlResourceId string = ''
+@description('Enable only after the memory lifecycle and hosted checks pass.')
+param enableMemory bool = false
+param memoryAccountName string = ''
+param memoryContainerName string = 'preferences'
+param memoryAllowedUsers string = ''
 @description('Enable public HTTPS ingress only after private validation.')
 param externalIngress bool = false
 @description('Absolute path to an approved configuration file included in the container image.')
@@ -49,6 +54,12 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
         name: 'agent-api'
         image: image
         env: [
+          { name: 'ENABLE_MEMORY', value: toLower(string(enableMemory)) }
+          { name: 'MEMORY_BACKEND', value: 'azure_blob' }
+          { name: 'MEMORY_POLICY', value: '/app/config/memory-policy.json' }
+          { name: 'MEMORY_ACCOUNT', value: memoryAccountName }
+          { name: 'MEMORY_CONTAINER', value: memoryContainerName }
+          { name: 'MEMORY_ALLOWED_USERS', value: memoryAllowedUsers }
           { name: 'AGENT_CONFIG', value: agentConfigPath }
           { name: 'ENTRA_TENANT_ID', value: tenantId }
           { name: 'ENTRA_AUDIENCE', value: audience }

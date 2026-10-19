@@ -1,3 +1,9 @@
+## 2026-10-19 — Stage 4 hosted configuration groundwork
+
+- Added operator-only Blob memory startup configuration with explicit Entra tenant/user permissions, approved backend, user scope, and 30-day retention checks.
+- Added disabled-by-default memory settings to the Container App module. No cloud resources or memory roles were changed.
+- Verified 113 tests, Ruff checks, and Container App Bicep compilation. Async access, scheduled cleanup, model recall, and hosted acceptance remain open.
+
 # Change log
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
