@@ -52,6 +52,7 @@ class Session:
     revision: int = 0
     active: asyncio.Task | None = None
     movie_reads: int = 0
+    memory_operations: int = 0
 
 
 class History(InMemoryHistoryProvider):
@@ -93,6 +94,8 @@ class Service:
         movie_model_tools=False,
         skill_registry=None,
         skill_permissions=None,
+        memory_service=None,
+        memory_permissions=None,
     ):
         if (
             os.environ.get("OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", "false").lower()
@@ -100,6 +103,8 @@ class Service:
         ):
             raise ValueError("message-content tracing is disabled in Stage 1")
         self.settings, self.clock, self.day = settings, clock, day
+        self.memory_service = memory_service
+        self.memory_permissions = memory_permissions or (lambda principal: frozenset())
         self.movie_client = movie_client
         self.skill_registry = skill_registry
         self.skill_permissions = skill_permissions or (lambda principal: frozenset())
@@ -238,6 +243,32 @@ class Service:
         session.revision += 1
         self.emit("cancel_requested", principal=principal, sid=sid)
         return {"session_id": sid, "revision": session.revision}
+
+    def memory(self, principal, sid, operation, **arguments):
+        """Explicit authenticated API operations; never interpreted from chat text."""
+        session = self.owned(principal, sid)
+        if self.memory_service is None:
+            raise Denied("memory_not_enabled")
+        from .memory import MemoryAccess
+
+        if session.active:
+            raise Denied("busy")
+        # Owner deletion remains available after the read/write budget is exhausted.
+        if operation not in {"forget", "forget_all"}:
+            if session.memory_operations >= self.memory_service.policy.operations_per_session:
+                raise Denied("memory_budget")
+            session.memory_operations += 1
+        access = MemoryAccess(
+            principal.tenant, principal.user, sid, "user", self.memory_permissions(principal)
+        )
+        self.emit("memory_operation_requested", principal=principal, sid=sid)
+        try:
+            result = self.memory_service.call(access, operation, **arguments)
+        except Denied as exc:
+            self.emit(exc.code, principal=principal, sid=sid)
+            raise
+        self.emit("memory_operation_completed", principal=principal, sid=sid)
+        return result
 
     async def movie_read(self, principal, sid, name, arguments):
         """A session-scoped, budgeted read through the pinned MCP adapter."""

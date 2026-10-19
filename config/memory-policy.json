@@ -1,0 +1,7 @@
+{
+  "version": "stage-4-movie-preferences-v1",
+  "scope": "user",
+  "retention_seconds": 2592000,
+  "max_records": 2,
+  "operations_per_session": 8
+}

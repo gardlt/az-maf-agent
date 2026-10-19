@@ -2,6 +2,12 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-19 — Stage 4 memory groundwork
+
+- Recorded the user's policy choice: explicitly saved movie genre/language preferences follow the same user across sessions and expire after 30 days. The cloud storage product is still undecided.
+- Added typed preference/provenance contracts, owner/purpose-scoped storage operations, consent/category checks, optimistic generations/revisions, inspect/correct/forget APIs, and session operation budgets. The API is disabled by default; only an injected RAM fixture is implemented.
+- The 95-test local suite covers consent before effects, cross-scope access, expiry, deletion races, concurrent creates, forged API scope, skill-origin denial, and ordinary chat never granting durable consent. No cloud memory resource or model recall path was enabled. See [the Stage 4 checkpoint](stage-4-memory.md).
+
 ## 2026-10-19 — Stage 3 approved Markdown skills
 
 - Implemented the user-selected movie research and movie-night skills, a reviewed digest-pinned registry, immutable bounded loader, permission intersection, and CLI/API selection. Updated CI/deployment triggers for skill bundles.

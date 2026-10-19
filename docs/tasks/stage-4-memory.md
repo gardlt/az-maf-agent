@@ -1,5 +1,9 @@
 # Stage 4 task — Governed durable memory
 
+## Current status
+
+Implementation in progress. The user approved explicit-consent movie genre/language preferences across owned sessions with a 30-day expiry. Typed contracts, authenticated API groundwork (disabled by default), a non-durable scoped fixture, consent/lifecycle controls, and isolation/race tests are implemented. The full suite passes 95 tests. Hosted backend selection and persistence, model recall integration, encryption/backup/deletion SLAs, and deployed acceptance remain open. See [the implementation and backend proposal](../stage-4-memory.md).
+
 ## Goal and outcome
 
 Add consented durable facts/preferences while preserving bounded short-term session history and all prior security gates. Implement [Stage 4 of the specification](../secure-agent-teaching-spec.md) under [shared conventions](README.md).
@@ -16,8 +20,8 @@ Authenticated memory APIs, approved persistence/retrieval, lifecycle controls, i
 
 ## Ordered work checklist
 
-1. [ ] Define session history versus durable fact contracts. “Chose comedy this session” and already-suggested movies are working context; consented “prefers comedy” is a durable personal preference. Actor/movie relationships are catalog knowledge, not automatically personal memory.
-2. [ ] Evaluate structured key/value/document records for exact preferences, vectors for similarity over approved memories, graphs for explicit relationships, or a hybrid only if measured needs justify its complexity. Graph/vector do not dictate lifetime or supply governance by themselves.
+1. [x] Define session history versus durable fact contracts. “Chose comedy this session” and already-suggested movies are working context; consented “prefers comedy” is a durable personal preference. Actor/movie relationships are catalog knowledge, not automatically personal memory.
+2. [x] Evaluate structured key/value/document records for exact preferences, vectors for similarity over approved memories, graphs for explicit relationships, or a hybrid only if measured needs justify its complexity. Graph/vector do not dictate lifetime or supply governance by themselves.
 3. [ ] Implement typed memory APIs deriving tenant/user/session/purpose from trusted authenticated scope. Enforce filtering in storage queries, caches, and every graph hop before data can be disclosed; no model-supplied identity is authoritative.
 4. [ ] Approve per-environment backend/endpoint/identity/namespace/operation allowlists. Reject arbitrary connection strings, endpoints, credentials, SQL/Gremlin, and uncontrolled traversals. Bound result count, depth/fan-out, query time, embedding calls, and spend under shared budgets.
 5. [ ] Validate consent and category before writes or derived-data creation. Store provenance, timestamps, expiry, and source metadata; exclude secrets, tokens, hidden reasoning, and unrestricted transcripts. Recalled content remains untrusted and cannot grant permissions.

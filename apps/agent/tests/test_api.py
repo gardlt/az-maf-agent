@@ -141,3 +141,73 @@ async def test_about_credits_require_authentication(api):
             "blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg"
             in page.text
         )
+
+
+async def test_memory_apis_disabled_by_default(api):
+    app, auth, _ = api
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="https://test"
+    ) as client:
+        sid = (await client.post("/sessions", headers=auth())).json()["session_id"]
+        response = await client.get(f"/sessions/{sid}/memory", headers=auth())
+        assert response.status_code == 403
+        assert response.json() == {"error": "memory_not_enabled"}
+
+
+async def test_authenticated_memory_lifecycle_uses_owned_scope(api):
+    from az_maf_agent.memory import OPERATIONS, FixtureMemoryStore, MemoryPolicy, MemoryService
+
+    app, auth, other = api
+    service = app.state.agent_service
+    store = FixtureMemoryStore()
+    service.memory_service = MemoryService(
+        MemoryPolicy("stage-4-movie-preferences-v1", "user", 30 * 86400, 2, 8), store
+    )
+    service.memory_permissions = lambda _: OPERATIONS
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="https://test"
+    ) as client:
+        sid = (await client.post("/sessions", headers=auth())).json()["session_id"]
+        path = f"/sessions/{sid}/memory"
+        body = {
+            "category": "preferred_genre",
+            "value": "comedy",
+            "consent": True,
+            "expected_generation": 0,
+        }
+        assert (await client.post(path, json=body)).status_code == 401
+        assert (
+            await client.post(path, headers=auth(), json=body | {"user": other})
+        ).status_code == 422
+        assert not store.effects
+        response = await client.post(path, headers=auth(), json=body)
+        assert response.status_code == 200
+        record = response.json()["memory"]
+        assert (await client.get(path, headers=auth(oid=other))).status_code == 404
+        stranger = (await client.post("/sessions", headers=auth(oid=other))).json()["session_id"]
+        stranger_path = f"/sessions/{stranger}/memory"
+        assert (await client.get(stranger_path, headers=auth(oid=other))).json()["memories"] == []
+        denied = await client.put(
+            stranger_path + "/" + record["id"],
+            headers=auth(oid=other),
+            json=body | {"value": "drama", "expected_revision": 1},
+        )
+        assert denied.status_code == 404
+        next_sid = (await client.post("/sessions", headers=auth())).json()["session_id"]
+        next_path = f"/sessions/{next_sid}/memory"
+        assert (await client.get(next_path, headers=auth())).json()["memories"] == [record]
+        before = list(store.effects)
+        refused = await client.post(next_path, headers=auth(), json=body | {"consent": False})
+        assert refused.status_code == 403
+        assert store.effects == before
+        corrected = await client.put(
+            next_path + "/" + record["id"],
+            headers=auth(),
+            json=body | {"value": "drama", "expected_generation": 1, "expected_revision": 1},
+        )
+        assert corrected.status_code == 200
+        assert corrected.json()["memory"]["revision"] == 2
+        assert (await client.delete(next_path, headers=auth())).status_code == 200
+        stale = await client.post(next_path, headers=auth(), json=body | {"expected_generation": 2})
+        assert stale.status_code == 409
+        assert (await client.get(next_path, headers=auth())).json()["memories"] == []

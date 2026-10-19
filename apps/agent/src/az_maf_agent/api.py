@@ -67,6 +67,18 @@ class ChatInput(BaseModel):
     skill_version: str | None = Field(default=None, pattern=r"^[0-9]+\.[0-9]+\.[0-9]+$")
 
 
+class MemorySaveInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    category: str = Field(min_length=1, max_length=32)
+    value: str = Field(min_length=1, max_length=32)
+    consent: bool
+    expected_generation: int = Field(ge=0)
+
+
+class MemoryCorrectInput(MemorySaveInput):
+    expected_revision: int = Field(ge=1)
+
+
 class BodyLimit:
     def __init__(self, app):
         self.app = app
@@ -125,6 +137,11 @@ def create_app(service: Service, verifier: EntraVerifier):
     async def denied(request, exc):
         status = {
             "session_not_found": 404,
+            "memory_not_found": 404,
+            "memory_forbidden": 403,
+            "memory_not_enabled": 403,
+            "memory_consent_required": 403,
+            "memory_invalid": 422,
             "tool_not_allowed": 403,
             "tool_not_enabled": 403,
             "invalid_tool_arguments": 422,
@@ -184,6 +201,44 @@ def create_app(service: Service, verifier: EntraVerifier):
             return await service.movie_read(who, sid, tool_name, body)
         except asyncio.CancelledError:
             return JSONResponse({"error": "run_cancelled"}, 409)
+
+    @app.get("/sessions/{sid}/memory")
+    async def inspect_memory(sid: str, who=Depends(principal)):
+        return service.memory(who, sid, "inspect")
+
+    @app.post("/sessions/{sid}/memory")
+    async def save_memory(sid: str, body: MemorySaveInput, who=Depends(principal)):
+        return service.memory(
+            who,
+            sid,
+            "save",
+            preference={"category": body.category, "value": body.value},
+            consent=body.consent,
+            expected_generation=body.expected_generation,
+        )
+
+    @app.put("/sessions/{sid}/memory/{record_id}")
+    async def correct_memory(
+        sid: str, record_id: str, body: MemoryCorrectInput, who=Depends(principal)
+    ):
+        return service.memory(
+            who,
+            sid,
+            "correct",
+            record_id=record_id,
+            preference={"category": body.category, "value": body.value},
+            consent=body.consent,
+            expected_generation=body.expected_generation,
+            expected_revision=body.expected_revision,
+        )
+
+    @app.delete("/sessions/{sid}/memory/{record_id}")
+    async def forget_memory(sid: str, record_id: str, who=Depends(principal)):
+        return service.memory(who, sid, "forget", record_id=record_id)
+
+    @app.delete("/sessions/{sid}/memory")
+    async def forget_all_memory(sid: str, who=Depends(principal)):
+        return service.memory(who, sid, "forget_all")
 
     return app
 
