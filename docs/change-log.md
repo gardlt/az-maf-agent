@@ -2,6 +2,14 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-18 — Stage 2 controlled-egress acceptance
+
+- The user approved a short-lived separate Consumption workload-profile test environment and cleanup. Foundation what-if predicted four new resources; app what-if predicted two new Container Apps; neither predicted changes to the working Stage 1 apps. Deployed `stage2-egress-foundation-20261018` and `stage2-egress-apps-20261018` with an NSG rule for the test-owned Stage 1 public IP `20.14.237.110/32`.
+- Duplicate agent revision `ca-az-maf-agent-nettest--imlae64` and private MCP revision `ca-az-maf-mcp-nettest--5m66ed5` were healthy on digest-pinned images. The duplicate agent received temporary Foundry account/project roles and only the catalog API's `Catalog.Read` app role. Signed-in movie read and live Foundry chat/reset checks passed with the NSG deny active. Missing and wrong-audience tokens, forged headers, and write proposals failed; the private MCP was not publicly reachable.
+- From the same agent replica, a direct HTTPS request to the test-owned destination returned `401` while the NSG rule was temporarily Allow. After switching that rule to Deny, a fresh direct connection timed out in 8.1 seconds; a direct TMDB control request still returned `401` in 0.3 seconds. This proves the selected one-destination network test, not a general outbound allowlist. The existing Log Analytics workspace recorded 28 agent and 29 MCP system events. [Validation](stage-2-validation.md) records the exact rule and scope.
+- Rebuilt and deployed the working agent from the pushed source with `.tdb-token` excluded from the Azure source archive. Revision `ca-az-maf-stage1--0000013`, digest `sha256:dd7c5bfd78a079538050cad3da83466cce82427869da1e9a5d0d90d1b47180f5`, passed the signed-in movie read and hosted Credits checks.
+- Removed the temporary `Catalog.Read` app-role assignment, both Foundry role assignments, and both duplicate Container Apps. Deletion of the test environment and network resources was initiated after evidence capture; final removal is recorded below when Azure completes it.
+
 ## 2026-10-18 — Hosted credits, TMDB token rotation, and network-test preparation
 
 - Added an authenticated `/about` page on agent revision `ca-az-maf-stage1--0000012` (digest `sha256:24f6ca06d1c9bd6f21dff0fc22b2ea5b42b452146d5dd1c0503ae9f9be7daa49`). Hosted unauthenticated access returned `401`; an approved user received `200` with TMDB's required notice and approved logo. The CLI now points movie users to the Credits page.

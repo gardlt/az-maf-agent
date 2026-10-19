@@ -34,9 +34,9 @@ The agent API is still a single-replica teaching deployment. Its Stage 1 shared-
 
 ## Deployment and remaining boundary
 
-The MCP revision `ca-az-maf-movie-mcp--0000002` is healthy on image digest `sha256:8f0b79e3bf22f576acd4b3bfcf5be17d40bcbdb55522081905bd6c55a802890f`. Its TMDB secret was rotated on 2026-10-18. Agent revision `ca-az-maf-stage1--0000012` is healthy on digest `sha256:24f6ca06d1c9bd6f21dff0fc22b2ea5b42b452146d5dd1c0503ae9f9be7daa49`. Hosted signed-in search, details, model-selected read, denial, Stage 1 regression, and the authenticated `/about` Credits page checks passed as recorded in [validation](stage-2-validation.md).
+The MCP revision `ca-az-maf-movie-mcp--0000002` is healthy on image digest `sha256:8f0b79e3bf22f576acd4b3bfcf5be17d40bcbdb55522081905bd6c55a802890f`. Its TMDB secret was rotated on 2026-10-18. Agent revision `ca-az-maf-stage1--0000013` is healthy on digest `sha256:dd7c5bfd78a079538050cad3da83466cce82427869da1e9a5d0d90d1b47180f5`, rebuilt with the secret file excluded from the image-build archive. Hosted signed-in search, details, model-selected read, denial, Stage 1 regression, and the authenticated `/about` Credits page checks passed as recorded in [validation](stage-2-validation.md).
 
-The existing environment has no VNet or workload profiles. Internal ingress, endpoint pinning, redirect refusal, and service authorization do not prove that an arbitrary unapproved outbound destination is blocked by a network rule. A separate [network-test foundation and duplicate apps](stage-2-network-design.md) are prepared but not deployed; controlled-egress acceptance remains open. Any future separately built hosted user interface must also display the [TMDB credits](credits.md).
+The existing environment has no VNet or workload profiles. A separate [network-test foundation and duplicate apps](stage-2-network-design.md) demonstrated an NSG deny to one test-owned public IP while the approved TMDB and Foundry paths remained healthy. This closes the Stage 2 **controlled test-destination** acceptance check; it does not turn the existing Stage 1 environment into a production outbound allowlist. Any future separately built hosted user interface must also display the [TMDB credits](credits.md).
 
 ## Implementation map
 
