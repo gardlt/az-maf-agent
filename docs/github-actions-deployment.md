@@ -1,11 +1,12 @@
 # GitHub Actions deployment
 
-The repository has two workflows:
+The repository has three workflows:
 
-- `CI` runs tests, lint, formatting, Docker-independent checks, and Bicep compilation on pull requests and pushes.
-- `Deploy Azure environment` validates the same suite, provisions the selected environment foundation, builds both digest-pinned images, runs an Azure what-if, and deploys `infra/main.<environment>.bicepparam`.
+- `CI` runs application tests, lint, formatting, and dependency checks.
+- `Infra` compiles every Bicep module and validates all parameter-file syntax with non-secret placeholder values.
+- `Deploy Azure environment` provisions the selected environment foundation, builds both digest-pinned images, runs an Azure what-if, and deploys `infra/main.<environment>.bicepparam`.
 
-The `main` branch deploys to the GitHub `dev` environment. A manual run can select `dev` or `stage`; configure approval rules on the `stage` GitHub environment before using it for release validation. The workflows use Azure workload identity federation through `azure/login`; no Azure client secret is stored in GitHub.
+The `main` branch deploys to the GitHub `dev` environment. A manual run can select `dev` or `stage`; configure approval rules on the `stage` GitHub environment before using it for release validation. Require both the `CI` and `Infra` checks in branch protection before allowing changes to `main`. The workflows use Azure workload identity federation through `azure/login`; no Azure client secret is stored in GitHub.
 
 Configure one federated Azure application per deployment environment, or use one tightly scoped deployment identity with separate federated credentials. Each identity needs permission to create/update the environment resource group, assign the image-pull role in that group, push to its registry, and deploy the Container Apps resources. The federated credential subject should be restricted to this repository and the matching GitHub environment, for example `repo:gardlt/az-maf-agent:environment:dev` or `repo:gardlt/az-maf-agent:environment:stage`.
 

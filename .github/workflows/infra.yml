@@ -1,0 +1,57 @@
+name: Infra
+
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+      - 'azure.yaml'
+      - '.github/workflows/infra.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/**'
+      - 'azure.yaml'
+      - '.github/workflows/infra.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bicep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile Bicep modules
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -euo pipefail
+            for file in infra/main.bicep infra/modules/*.bicep; do
+              az bicep build --file "$file" --stdout >/dev/null
+            done
+
+      - name: Validate parameter file syntax
+        uses: azure/cli@v2
+        env:
+          AZURE_ENV_NAME: dev
+          AZURE_LOCATION: eastus2
+          MAF_REGISTRY_NAME: crmafvalidation123
+          MAF_AGENT_IMAGE: example.azurecr.io/agent@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          MAF_MCP_IMAGE: example.azurecr.io/mcp@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          MAF_TENANT_ID: 00000000-0000-0000-0000-000000000000
+          MAF_AGENT_AUDIENCE: 00000000-0000-0000-0000-000000000001
+          MAF_ALLOWED_USERS: 00000000-0000-0000-0000-000000000002
+          MAF_API_CLIENT_ID: 00000000-0000-0000-0000-000000000003
+          MAF_CLI_CLIENT_ID: 00000000-0000-0000-0000-000000000004
+          MAF_AUTH_CLIENT_SECRET: validation-only
+          MAF_MCP_AUDIENCE: 00000000-0000-0000-0000-000000000005
+          TMDB_API_READ_ACCESS_TOKEN: validation-only
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -euo pipefail
+            az bicep build-params --file infra/main.bicepparam --stdout >/dev/null
+            az bicep build-params --file infra/main.dev.bicepparam --stdout >/dev/null
+            az bicep build-params --file infra/main.stage.bicepparam --stdout >/dev/null
