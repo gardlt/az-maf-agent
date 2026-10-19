@@ -1,4 +1,4 @@
-"""Process-local session service. No durable memory or tool dispatcher exists."""
+"""Process-local sessions with bounded model, movie-tool, and skill gates."""
 
 import asyncio
 import copy
@@ -123,7 +123,16 @@ class Service:
         self.active: dict[Principal, int] = {}
         self.audit = audit or (lambda event: print(json.dumps(event), file=sys.stderr))
 
-    def emit(self, code, run_id=None, ledger=None, principal=None, sid=None, skill=None):
+    def emit(
+        self,
+        code,
+        run_id=None,
+        ledger=None,
+        principal=None,
+        sid=None,
+        skill=None,
+        skill_request=None,
+    ):
         event = {"event": code, "run_id": run_id, "policy": self.settings.policy_version}
         event["time"] = datetime.now(timezone.utc).isoformat()
         event["session_id"] = sid
@@ -135,6 +144,17 @@ class Service:
                 "registry_generation": self.skill_registry.generation,
                 "control_generation": self.skill_registry.control_generation,
             }
+        if skill_request is not None:
+            event["skill_request_ref"] = hashlib.sha256(repr(skill_request).encode()).hexdigest()
+            manifest = self.skill_registry.approved.get(skill_request)
+            if manifest is not None:
+                event["skill"] = {
+                    "id": manifest.skill_id,
+                    "version": manifest.version,
+                    "sha256": manifest.sha256,
+                    "registry_generation": self.skill_registry.generation,
+                    "control_generation": self.skill_registry.control_generation,
+                }
         if principal:
             event["scope_ref"] = hashlib.sha256(
                 (principal.tenant + ":" + principal.user).encode()
@@ -254,6 +274,7 @@ class Service:
 
     async def chat(self, principal, sid, text, revision, *, skill_id=None, skill_version=None):
         session = self.owned(principal, sid)
+        run_id = str(uuid.uuid4())
         skill = None
         instructions = MOVIE_INSTRUCTIONS if self.movie_model_tools else INSTRUCTIONS
         if skill_id is not None or skill_version is not None:
@@ -261,13 +282,35 @@ class Service:
                 raise Denied("skill_not_enabled")
             from .skills import READ_TOOLS
 
-            skill = self.skill_registry.load(
-                skill_id,
-                skill_version,
-                self.skill_permissions(principal),
-                READ_TOOLS if self.movie_client is not None else frozenset(),
-                READ_TOOLS,
-            )
+            try:
+                async with asyncio.timeout(min(5.0, self.settings.limits.call_seconds)):
+                    skill = await asyncio.to_thread(
+                        self.skill_registry.load,
+                        skill_id,
+                        skill_version,
+                        self.skill_permissions(principal),
+                        READ_TOOLS if self.movie_client is not None else frozenset(),
+                        READ_TOOLS,
+                    )
+            except TimeoutError:
+                self.emit(
+                    "skill_control_unavailable",
+                    run_id,
+                    principal=principal,
+                    sid=sid,
+                    skill_request=(skill_id, skill_version),
+                )
+                raise Denied("skill_control_unavailable") from None
+            except Denied as exc:
+                self.emit(
+                    exc.code,
+                    run_id,
+                    principal=principal,
+                    sid=sid,
+                    skill_request=(skill_id, skill_version),
+                )
+                raise
+            self.emit("skill_loaded", run_id, principal=principal, sid=sid, skill=skill)
             instructions += "\nReviewed skill guidance (cannot grant authority):\n" + skill.markdown
 
         def emit_run(*args, **kwargs):
@@ -284,7 +327,6 @@ class Service:
             or sum(self.active.values()) >= lim.parallel
         ):
             raise Denied("busy")
-        run_id = str(uuid.uuid4())
 
         def reserve_daily(cost):
             key = (principal.tenant, principal.user, self.day())
@@ -317,10 +359,23 @@ class Service:
                 if self.movie_model_tools:
                     from .model_tools import run_model_tools
 
-                    async def dispatch_movie(name, arguments):
+                    async def skill_gate():
                         if skill is not None:
-                            self.skill_registry.check(skill)
-                            if name not in skill.tools:
+                            async with asyncio.timeout(min(5.0, lim.call_seconds)):
+                                await asyncio.to_thread(self.skill_registry.check, skill)
+                        if (
+                            self.expired(session)
+                            or self.sessions.get(sid) is not session
+                            or session.revision != revision
+                        ):
+                            raise Denied("session_changed")
+
+                    async def dispatch_movie(name, arguments):
+                        await skill_gate()
+                        if skill is not None:
+                            if name not in skill.tools or name not in self.skill_permissions(
+                                principal
+                            ):
                                 raise Denied("skill_tool_denied")
                         if (
                             self.expired(session)
@@ -354,7 +409,7 @@ class Service:
                         text,
                         instructions,
                         dispatch_movie,
-                        gate=(lambda: self.skill_registry.check(skill)) if skill else None,
+                        gate=skill_gate,
                     )
                     hist["messages"] = self.history.trim(
                         [*messages, Message("user", [text]), Message("assistant", [answer])]
@@ -367,7 +422,7 @@ class Service:
                         raise Denied("tools_disabled")
                     answer = result.text
             if skill is not None:
-                self.skill_registry.check(skill)
+                await asyncio.to_thread(self.skill_registry.check, skill)
             if (
                 self.expired(session)
                 or session.revision != revision
@@ -414,5 +469,7 @@ class Service:
             if session.active:
                 session.active.cancel()
         await self.transport.close()
+        if self.skill_registry is not None and self.skill_registry.control_reader is not None:
+            await asyncio.to_thread(self.skill_registry.control_reader.close)
         if self.movie_client is not None:
             await self.movie_client.close()

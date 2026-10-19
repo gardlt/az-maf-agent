@@ -20,6 +20,9 @@ param movieMcpAudience string = ''
 param movieMcpIdentityClientId string = ''
 @description('Allow the live model to select the bounded movie read tools.')
 param enableMovieModelTools bool = false
+@description('Enable the reviewed read-only Markdown skills. Requires workload Reader access to the control resource.')
+param enableApprovedSkills bool = false
+param skillControlResourceId string = ''
 @description('Enable public HTTPS ingress only after private validation.')
 param externalIngress bool = false
 @description('Absolute path to an approved configuration file included in the container image.')
@@ -55,6 +58,9 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
           { name: 'MCP_AUDIENCE', value: movieMcpAudience }
           { name: 'MCP_IDENTITY_CLIENT_ID', value: movieMcpIdentityClientId }
           { name: 'ENABLE_MOVIE_MODEL_TOOLS', value: toLower(string(enableMovieModelTools)) }
+          { name: 'SKILL_BUNDLE', value: enableApprovedSkills ? '/app/skills' : '' }
+          { name: 'SKILL_CONTROL_RESOURCE_ID', value: skillControlResourceId }
+          { name: 'SKILL_ALLOWED_USERS', value: enableApprovedSkills ? allowedUsers : '' }
         ]
         resources: { cpu: json('0.5'), memory: '1Gi' }
       }]

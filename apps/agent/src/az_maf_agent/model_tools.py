@@ -27,7 +27,7 @@ async def _turn(transport, settings, ledger, messages, gate=None):
         raise Denied("context_limit")
     for attempt in range(settings.limits.retries + 1):
         if gate is not None:
-            gate()
+            await gate()
         ledger.reserve(count)
         try:
             async with asyncio.timeout(settings.limits.call_seconds):
@@ -56,7 +56,7 @@ async def run_model_tools(
     attempts = 0
     while True:
         if gate is not None:
-            gate()
+            await gate()
         message, finish = await _turn(transport, settings, ledger, messages, gate)
         if not isinstance(message, dict) or message.get("role") != "assistant":
             raise Denied("provider_shape")

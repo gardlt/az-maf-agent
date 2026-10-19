@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps/**'
       - 'config/**'
+      - 'skills/**'
       - 'Dockerfile*'
       - 'infra/**'
       - 'azure.yaml'

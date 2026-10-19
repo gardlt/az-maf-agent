@@ -56,7 +56,10 @@ module agent './modules/container-app.bicep' = {
     movieMcpEndpoint: 'https://${movieMcpAppName}.internal.${foundation.outputs.environmentDefaultDomain}/mcp'
     movieMcpAudience: mcpAudience
     movieMcpIdentityClientId: '4eafecc0-0b7b-44b9-a478-02926e56bd89'
-    enableMovieModelTools: false
+    enableMovieModelTools: true
+    agentConfigPath: '/app/config/foundry-stage1.json'
+    enableApprovedSkills: true
+    skillControlResourceId: resourceGroup().id
     location: location
   }
 }

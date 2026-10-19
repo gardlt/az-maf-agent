@@ -57,9 +57,10 @@ class SkillRegistry:
     Shared persistent control state is a Stage 5 dependency.
     """
 
-    def __init__(self, root: Path, control_path: Path | None = None):
+    def __init__(self, root: Path, control_path: Path | None = None, control_reader=None):
         self.root = Path(root)
         self.control_path = control_path
+        self.control_reader = control_reader
         self.approved: dict[tuple[str, str], Manifest] = {}
         self.revoked: set[tuple[str, str]] = set()
         self.generation = 0
@@ -79,9 +80,11 @@ class SkillRegistry:
         self.generation += 1
 
     def control_check(self, skill_id, version):
-        if self.control_path is None:
+        if self.control_path is None and self.control_reader is None:
             return
-        state = read_control(self.control_path)
+        state = self.control_reader() if self.control_reader else read_control(self.control_path)
+        if self.control_generation is not None and state["generation"] < self.control_generation:
+            raise Denied("skill_control_stale")
         self.control_generation = state["generation"]
         key = f"{skill_id}@{version}"
         if key in state["revoked"]:
@@ -133,7 +136,9 @@ class SkillRegistry:
             & frozenset(application_tools)
             & frozenset(agent_tools)
         )
-        return Skill(manifest, markdown, tools)
+        skill = Skill(manifest, markdown, tools)
+        self.check(skill)
+        return skill
 
 
 def reviewed_registry(root: Path, control_path: Path | None = None) -> SkillRegistry:
@@ -144,7 +149,12 @@ def reviewed_registry(root: Path, control_path: Path | None = None) -> SkillRegi
     if not isinstance(entries, list) or len(entries) > 16:
         raise ValueError("invalid approval index")
     registry = SkillRegistry(root, control_path)
+    seen = set()
     for entry in entries:
+        key = (entry["skill_id"], entry["version"])
+        if key in seen:
+            raise ValueError("duplicate approved skill")
+        seen.add(key)
         registry.publish(Manifest(**{**entry, "tools": frozenset(entry["tools"])}))
     return registry
 
@@ -160,9 +170,9 @@ def read_regular(path: Path, limit: int) -> bytes:
     return content
 
 
-def read_control(path: Path) -> dict:
+def parse_control(content: bytes | str) -> dict:
     try:
-        state = json.loads(read_regular(path, 16384))
+        state = json.loads(content)
         if (
             set(state) != {"generation", "disabled", "revoked"}
             or type(state["generation"]) is not int
@@ -182,4 +192,11 @@ def read_control(path: Path) -> dict:
                 raise ValueError("invalid control keys")
         return state
     except (OSError, ValueError, TypeError, KeyError):
+        raise Denied("skill_control_unavailable") from None
+
+
+def read_control(path: Path) -> dict:
+    try:
+        return parse_control(read_regular(path, 16384))
+    except OSError:
         raise Denied("skill_control_unavailable") from None

@@ -217,9 +217,15 @@ def from_env():
         from .skills import READ_TOOLS, reviewed_registry
 
         # Both paths are operator configuration; no request can select them.
-        skill_registry = reviewed_registry(
-            Path(os.environ["SKILL_BUNDLE"]), Path(os.environ["SKILL_CONTROL"])
-        )
+        if os.environ.get("SKILL_CONTROL_RESOURCE_ID"):
+            from .skill_control import AzureTagControl
+
+            skill_registry = reviewed_registry(Path(os.environ["SKILL_BUNDLE"]))
+            skill_registry.control_reader = AzureTagControl(os.environ["SKILL_CONTROL_RESOURCE_ID"])
+        else:
+            skill_registry = reviewed_registry(
+                Path(os.environ["SKILL_BUNDLE"]), Path(os.environ["SKILL_CONTROL"])
+            )
         skill_users = frozenset(os.environ["SKILL_ALLOWED_USERS"].split(","))
         tenant = os.environ["ENTRA_TENANT_ID"]
 
