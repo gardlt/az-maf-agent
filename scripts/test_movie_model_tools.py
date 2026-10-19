@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
 """Verify a hosted model-selected catalog read without printing model text or tokens."""
 
+import argparse
 import sys
 
 import httpx
-from test_container_app import DEFAULT_API, acquire_token, validate_stage1_claims
+from test_container_app import acquire_token, validate_origin, validate_stage1_claims
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--api", required=True, help="HTTPS Container App origin")
+    return parser.parse_args()
 
 
 def main() -> int:
+    args = parse_args()
     try:
         token = acquire_token("AGENT_ACCESS_TOKEN")
         validate_stage1_claims(token)
         with httpx.Client(
-            base_url=DEFAULT_API,
+            base_url=validate_origin(args.api),
             timeout=140,
             follow_redirects=False,
             headers={"Authorization": f"Bearer {token}"},

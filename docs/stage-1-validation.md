@@ -1,6 +1,6 @@
 # Stage 1 validation and limits
 
-This records local and test-hosted implementation evidence, not completion of every hosted milestone in [the task](tasks/stage-1-chat.md). No live model invocation was performed; no model/deployment was chosen.
+This records local and test-hosted implementation evidence, not completion of every hosted milestone in [the task](tasks/stage-1-chat.md). Live model tests were performed after the initial offline checkpoint. The dedicated hosting and Foundry project were retired on 2026-10-18; all hosted results below are historical.
 
 ## Recorded results
 

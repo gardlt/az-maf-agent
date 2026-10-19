@@ -5,11 +5,12 @@ import argparse
 import sys
 
 import httpx
-from test_container_app import DEFAULT_API, acquire_token, validate_stage1_claims
+from test_container_app import acquire_token, validate_origin, validate_stage1_claims
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--api", required=True, help="HTTPS Container App origin")
     parser.add_argument("--catalog-id", default="tmdb_11")
     parser.add_argument("--expect-title")
     return parser.parse_args()
@@ -27,7 +28,9 @@ def main() -> int:
     try:
         token = acquire_token("AGENT_ACCESS_TOKEN")
         validate_stage1_claims(token)
-        with httpx.Client(base_url=DEFAULT_API, timeout=45, follow_redirects=False) as client:
+        with httpx.Client(
+            base_url=validate_origin(args.api), timeout=45, follow_redirects=False
+        ) as client:
             session = require(
                 client.post("/sessions", headers={"Authorization": f"Bearer {token}"}),
                 200,

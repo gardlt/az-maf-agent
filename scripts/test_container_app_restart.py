@@ -12,12 +12,10 @@ from azure.core.exceptions import ClientAuthenticationError
 
 from az_maf_agent.client_auth import acquire_stage1_token
 
-DEFAULT_API = "https://ca-az-maf-stage1.purplehill-879f4f4f.eastus2.azurecontainerapps.io"
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--api", default=DEFAULT_API, help="HTTPS Container App origin")
+    parser.add_argument("--api", required=True, help="HTTPS Container App origin")
     parser.add_argument("--wait-after-create", type=int, default=90, choices=range(30, 121))
     return parser.parse_args()
 

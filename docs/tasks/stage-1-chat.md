@@ -1,5 +1,7 @@
 # Stage 1 task — Chat and bounded session history
 
+**Hosting status:** The dedicated Stage 1 Azure test deployment, Foundry project, and Entra registrations were removed on 2026-10-18. Checked hosted items below record tests completed before teardown; the local implementation remains. New hosted tests require reprovisioning.
+
 ## Goal and outcome
 
 Deliver the first runnable slice of the [specification](../secure-agent-teaching-spec.md): one Python CLI and Microsoft Agent Framework core with safe multi-turn chat and explicit short-term history. Follow the [shared task conventions](README.md).

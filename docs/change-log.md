@@ -2,6 +2,12 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-18 — Dedicated Stage 1/2 Azure teardown
+
+- At the user's direction, removed the dedicated `rg-az-maf-stage1` test foundation and both hosted apps (`ca-az-maf-stage1` and `ca-az-maf-movie-mcp`), including their Container Apps environment, registry, Log Analytics workspace, and image-pull identity. The separate short-lived Stage 2 network-test resources had already been removed.
+- Removed the dedicated `az-maf-agent-stage1` Foundry project under `aif-homelab-rv6t99la`, the three dedicated Entra app registrations and matching service principals (`az-maf-stage1-api`, `az-maf-stage1-cli`, `az-maf-movie-catalog-stage2`), and the agent's external Foundry account/project and movie-catalog app-role grants. The shared Foundry account, its existing model deployment, and the unrelated `hermes-agent` project were preserved.
+- The hosted URLs and cached tokens for the removed app registrations are no longer usable. The repository, local fake-mode app, local FastMCP implementation, and user-owned TMDB token file remain. Earlier hosted validation entries below are historical results, not current availability claims.
+
 ## 2026-10-18 — Stage 2 controlled-egress acceptance
 
 - The user approved a short-lived separate Consumption workload-profile test environment and cleanup. Foundation what-if predicted four new resources; app what-if predicted two new Container Apps; neither predicted changes to the working Stage 1 apps. Deployed `stage2-egress-foundation-20261018` and `stage2-egress-apps-20261018` with an NSG rule for the test-owned Stage 1 public IP `20.14.237.110/32`.

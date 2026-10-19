@@ -1,12 +1,14 @@
 # Stage 1 hosted test runbook
 
-This runbook describes the single-replica fake-model test deployment. It is not a production architecture and it has no durable session store.
+**Retired on 2026-10-18:** The dedicated Azure resource group, Foundry project, and Entra app registrations were deleted. The endpoint and IDs below document the former test deployment and cannot be used as a current runbook without reprovisioning and updating configuration.
 
-## Current test deployment
+This runbook describes the former single-replica fake-model test deployment. It is not a production architecture and it has no durable session store.
 
-The approved test foundation is in the SpaceColony subscription, resource group `rg-az-maf-stage1`, East US 2. The running image is pinned to `azmafstage1mako261016.azurecr.io/az-maf-stage1@sha256:9aee3d497a5a46dd5169c698d0d92b8a2be7e35e1ab588ab21040645f14dfdfa`.
+## Former test deployment
 
-The public test origin is `https://ca-az-maf-stage1.purplehill-879f4f4f.eastus2.azurecontainerapps.io`. It has one replica, HTTPS-only ingress, and Entra Easy Auth configured to return 401 for missing authentication. It must not be treated as production capacity or as a durable session service.
+The approved test foundation was in the SpaceColony subscription, resource group `rg-az-maf-stage1`, East US 2. A historical image was pinned to `azmafstage1mako261016.azurecr.io/az-maf-stage1@sha256:9aee3d497a5a46dd5169c698d0d92b8a2be7e35e1ab588ab21040645f14dfdfa`.
+
+The former public test origin was `https://ca-az-maf-stage1.purplehill-879f4f4f.eastus2.azurecontainerapps.io`. It had one replica, HTTPS-only ingress, and Entra Easy Auth configured to return 401 for missing authentication. It must not be treated as a live endpoint.
 
 ## Build and deploy
 

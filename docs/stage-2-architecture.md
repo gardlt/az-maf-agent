@@ -1,6 +1,8 @@
 # Stage 2 architecture — agent and TMDB movie MCP
 
-The user selected TMDB as the sole movie source for this non-commercial teaching project. The agent and separate FastMCP service now run as two Container Apps in the existing `cae-az-maf-stage1` environment in East US 2. The MCP has internal ingress only. The older synthetic catalog and admin PUT implementation have been removed from repository code; their Azure revisions are inactive. [Stage 2 validation](stage-2-validation.md) separates current TMDB results from the historical synthetic experiment.
+**Deployment status:** The dedicated agent and FastMCP Container Apps and their environment were retired on 2026-10-18. This diagram records the tested architecture, not a currently running deployment.
+
+The user selected TMDB as the sole movie source for this non-commercial teaching project. The agent and separate FastMCP service ran as two Container Apps in the `cae-az-maf-stage1` environment in East US 2. The MCP had internal ingress only. The older synthetic catalog and admin PUT implementation have been removed from repository code. [Stage 2 validation](stage-2-validation.md) separates TMDB results from the historical synthetic experiment.
 
 ```mermaid
 flowchart LR
