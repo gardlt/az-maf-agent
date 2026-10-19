@@ -1,6 +1,12 @@
 # Stage 2 validation — TMDB movie MCP
 
-**Historical evidence:** The dedicated Stage 1/2 Azure hosting, Foundry project, and Entra registrations were retired on 2026-10-18. The checks below passed before teardown and do not imply a currently running endpoint.
+The dedicated network-test environment and temporary grants were retired on 2026-10-18. The reproducible dev agent and private MCP remain deployed; the checks below distinguish current dev evidence from the retired network test.
+
+## Current dev MCP smoke test — 2026-10-19
+
+The deployed dev agent completed 50 authenticated TMDB `get_movie` queries with **50/50 HTTP 200** responses. Ten fresh sessions were used because each session enforces an eight-read tool budget. The returned records included *Star Wars*, *The Empire Strikes Back*, *The Matrix*, *Fight Club*, *Pulp Fiction*, *Forrest Gump*, *The Dark Knight*, *Inception*, *Interstellar*, and *The Shawshank Redemption*. The full output is recorded in [the 50-query report](mcp-50-query-results.md).
+
+An initial single-session run confirmed that reads 1–8 succeed and read 9 onward returns `409 {"error":"tool_budget"}`. This is expected bounded-session behavior, not an MCP failure.
 
 ## Controlled-egress acceptance — 2026-10-18 CDT
 

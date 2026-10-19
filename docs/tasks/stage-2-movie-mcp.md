@@ -1,6 +1,6 @@
 # Stage 2 task — TMDB movie MCP
 
-**Hosting status:** The dedicated agent and MCP Container Apps, Foundry project, and Entra registrations were removed on 2026-10-18. The completed hosted checks below are historical evidence; the local FastMCP implementation remains.
+**Hosting status:** The dev agent and private FastMCP movie MCP are currently deployed in Azure Container Apps. The short-lived network-test environment and its temporary grants were removed after validation.
 
 ## Goal
 
@@ -10,7 +10,7 @@ The [TMDB integration record](../tmdb-integration.md) describes credentials, API
 
 ## Current status
 
-**Status: complete for the non-commercial teaching scope; hosting retired.** The repository has a read-only TMDB adapter and two FastMCP tools, `search_movies` and `get_movie`. The agent-side contract expects `tmdb_<id>`, `tmdb-v1`, and a labeled TMDB rating. The locked local suite passed 47 tests. Both working images were deployed by digest, and signed-in hosted reads and a model-selected read passed against real TMDB data. Internal missing-token and wrong-audience requests returned `401`; the external internal-hostname request returned `404`. An authenticated hosted `/about` Credits page showed the required notice and approved logo. The rotated TMDB token passed a live hosted movie read. A separate short-lived VNet/NSG environment demonstrated a network-rule deny to one test-owned destination while TMDB and Foundry stayed healthy; all temporary resources and grants were then removed. This was a controlled one-destination test, not a production-wide outbound allowlist.
+**Status: complete for the non-commercial teaching scope.** The repository has a read-only TMDB adapter and two FastMCP tools, `search_movies` and `get_movie`. The agent-side contract expects `tmdb_<id>`, `tmdb-v1`, and a labeled TMDB rating. The locked local suite passed 47 tests. The dev images are deployed by digest, signed-in hosted reads and a model-selected read pass against real TMDB data, and the 50-query hosted smoke test passed with 50/50 HTTP 200 responses across fresh sessions. Internal missing-token and wrong-audience requests returned `401`; the external internal-hostname request returned `404`. An authenticated hosted `/about` Credits page showed the required notice and approved logo. The rotated TMDB token passed a live hosted movie read. A separate short-lived VNet/NSG environment demonstrated a network-rule deny to one test-owned destination while TMDB and Foundry stayed healthy; all temporary resources and grants were then removed. This was a controlled one-destination test, not a production-wide outbound allowlist. Detailed evidence is in [the 50-query report](../mcp-50-query-results.md).
 
 ## Implementation checklist
 

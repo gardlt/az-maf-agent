@@ -1,6 +1,6 @@
 # Stage 1 task — Chat and bounded session history
 
-**Hosting status:** The dedicated Stage 1 Azure test deployment, Foundry project, and Entra registrations were removed on 2026-10-18. Checked hosted items below record tests completed before teardown; the local implementation remains. New hosted tests require reprovisioning.
+**Hosting status:** The dev Stage 1 agent is deployed in Azure Container Apps. The earlier dedicated test deployment and temporary network environment were removed after validation; current hosted checks use the reproducible dev infrastructure.
 
 ## Goal and outcome
 
