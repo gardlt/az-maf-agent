@@ -30,6 +30,7 @@ param memoryAccountName string = 'stmafmem${uniqueString(subscription().subscrip
 param memoryCleanupJobName string = 'job-memory-${uniqueString(agentAppName)}'
 @description('Operator bootstrap only. Ordinary CI must leave false.')
 param bootstrapMemoryRoles bool = false
+param memoryCleanupAlertName string = 'al-memory-${uniqueString(agentAppName)}'
 
 module foundation './modules/foundation.bicep' = {
   name: 'foundation'
@@ -124,3 +125,13 @@ module memoryRoles './modules/memory-rbac.bicep' = if (enableMemory && bootstrap
 }
 output memoryStorageAccount string = enableMemory ? memory!.outputs.accountName : ''
 output memoryCleanupPrincipalId string = enableMemory ? memoryCleanup!.outputs.principalId : ''
+
+module memoryHealth './modules/memory-cleanup-alert.bicep' = if (enableMemory) {
+  name: 'memory-health'
+  params: {
+    name: memoryCleanupAlertName
+    workspaceId: resourceId('Microsoft.OperationalInsights/workspaces', logsName)
+    location: location
+  }
+  dependsOn: [foundation]
+}

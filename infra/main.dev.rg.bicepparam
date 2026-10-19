@@ -22,3 +22,4 @@ param tmdbApiReadAccessToken = readEnvironmentVariable('TMDB_API_READ_ACCESS_TOK
 param enableMemory = true
 param memoryCleanupJobName = 'job-maf-memory-dev-eus2-01'
 param memoryAccountName = 'stmafmemdevmako261019'
+param memoryCleanupAlertName = 'al-maf-memory-cleanup-dev-eus2-01'

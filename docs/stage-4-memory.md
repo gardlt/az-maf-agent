@@ -1,168 +1,135 @@
-# Stage 4 memory — implementation checkpoint
+# Stage 4 — Governed movie preferences
 
-Stage 4 is in progress. The user approved explicitly saved movie genre/language
-preferences following the same authenticated user across sessions, with a 30-day
-expiry. `config/memory-policy.json` records that policy. The user selected Azure Blob Storage (one document per user) and approved dev
-cleanup within 24 hours with no backups or version history. Hosted wiring, scheduled
-cleanup, and deployed acceptance remain open. No cloud memory resources
-have been created, and the running app does not enable memory persistence.
+The selected pattern is a structured document per authenticated user and purpose in
+Azure Blob Storage. Vector, graph, embedding, summary, and automatic transcript
+storage are not enabled. Exact genre/language preferences do not need semantic
+search or relationships; those alternatives add derived-data deletion and isolation
+work without improving this exercise.
 
-## Contracts implemented
+## Approved policy and data flow
 
-Session chat history remains separate from personal preferences. Neither ordinary
-chat text, a movie lookup, nor a skill's purported approval supplies write consent.
-The initial preference vocabulary is deliberately bounded:
+The user approved explicit consent, preferences shared across that user's sessions,
+a 30-day expiry, and no dev backups/version history. The two allowed categories are
+`preferred_genre` (action, animation, comedy, documentary, drama, science_fiction)
+and `preferred_language` (en, es, fr, ja). All other values, extra identity fields,
+arbitrary text, connection strings, and query operations are rejected.
 
-- `preferred_genre`: action, animation, comedy, documentary, drama, science_fiction.
-- `preferred_language`: en, es, fr, ja.
+```mermaid
+flowchart LR
+  CLI[Authenticated CLI] --> Auth[Entra and owned-session gate]
+  Auth --> Consent[Consent, category, operation and budget checks]
+  Consent --> Blob[Scoped JSON document with ETag]
+  Blob --> Recall[Minimal untrusted preference context]
+  Recall --> Model[Existing governed Foundry model loop]
+  Job[Hourly cleanup job with separate identity] --> Blob
+```
 
-There is one record per category, at most two records per user/purpose namespace.
-Arbitrary free text, credentials, transcripts, movie synopses, and catalog relationships
-cannot fit this schema. Expanding categories or vocabulary requires policy review.
-Each record includes a stable ID, revision, source session, explicit-consent policy
-version, created/updated/expiry timestamps, user-declared provenance/confidence, and
-an `untrusted` marker. Correction requires fresh explicit consent and renews expiry
-from that write. Recall integration will treat the values as evidence, never authority.
+API identity comes from the verified token and owned session, never the request
+body, skill, model, or headers claiming identity. The Blob object name is a hash of
+trusted tenant/user/purpose scope. Production credentials and transcripts are never
+memory categories. Each record includes provenance, user-declared confidence,
+creation/update/expiry times, revision, consent-policy version, and source-session
+metadata. Recall sends only category/value pairs, marked as untrusted user data.
+Memory cannot grant tools, change policy, or provide consent. Application recall has read-only inspection capability. The reviewed Stage 3 skills
+have no memory capability: they receive neither saved preferences nor earlier
+personalized history, and cannot supply another user's scope.
 
-The service derives tenant/user/session from authenticated identity and owned sessions.
-Purpose is the fixed application value `movie_preferences`. Bodies cannot choose an
-identity, namespace, backend, endpoint, query, or purpose. The selected user scope
-allows another owned session for that same user to access the preferences. A separate
-session-scoped fixture verifies the narrower policy remains enforceable.
+## Lifecycle and concurrency
 
-## Authenticated API groundwork
+Creation uses `If-None-Match: *`; updates use `If-Match` with the exact ETag. Conflicts
+fail without blind retries. An uncertain write requires inspection to reconcile its
+outcome. Forget retains an empty generation document so a stale create cannot
+resurrect old state. Correction requires both namespace generation and record
+revision, renews the 30-day expiry, and never recreates a deleted ID.
 
-These routes are implemented but return `403 memory_not_enabled` in the default
-hosted configuration. The tests inject the explicitly non-durable local adapter and
-an application-owned permission callback to exercise them:
+Expired values are excluded immediately by every read. The hourly cleanup job removes
+expired record bodies from live documents and retains their advanced generation.
+It scans only the approved prefix, at most 100 pages of 50 documents, within a
+480-second work deadline and 600-second replica timeout. ETag conflicts fail the job
+rather than overwriting a concurrent correction. The platform retries once; the next
+hourly execution retries from storage. This is a small dev teaching deployment with
+one approved user, not an unlimited cleanup service. Investigate failed or overdue
+executions before the 24-hour physical-cleanup target is breached; outages or a
+namespace exceeding these bounds require operator intervention.
 
-| Route | Purpose |
-| --- | --- |
-| `GET /sessions/{sid}/memory` | Inspect records and the namespace generation |
-| `POST /sessions/{sid}/memory` | Explicitly save an allowed preference |
-| `PUT /sessions/{sid}/memory/{record_id}` | Correct a record using its revision and namespace generation |
-| `DELETE /sessions/{sid}/memory/{record_id}` | Forget one owned record |
-| `DELETE /sessions/{sid}/memory` | Forget all preferences in the owned namespace |
+There are no derived indexes, embeddings, personal-data caches, replicas maintained
+by the app, or backups to propagate deletion into. Blob versioning and both soft-delete
+features are disabled in dev. Empty fencing documents and content-free audit metadata
+remain. Enabling backup/restore later requires a separate deletion-fencing review;
+restoring old preference documents is unsupported.
 
-A save body contains category, value, `consent: true`, and the `expected_generation`
-returned by inspection. Correction also requires `expected_revision`. This is a
-separate explicit user action, not consent inferred from chat. Only a trusted API
-adapter constructs user-origin access; never register that write adapter as a model
-or skill tool. Skill-origin access is restricted to inspection even if it supplies
-`consent: true`; another user's namespace remains inaccessible.
+Each recalled run binds its working history to the current memory generation.
+Correction, deletion, or expiry changes the generation and invalidates older working
+history before the next model call. A final fresh read rejects an answer if memory
+changed while the model ran. Preference records themselves are never copied into
+session history. Previously displayed answers cannot be retracted from a user's
+terminal. `/reset` clears working history and leaves durable preferences and budgets
+intact.
 
-A generation fence rejects stale creates/corrections after deletion. Corrections
-never recreate a missing record. Deletion atomically removes values and advances the
-namespace generation; tombstone/effect metadata contains no preference values.
-Owner deletion stays available after the eight-operation session read/write budget is
-exhausted. Chat reset does not reset that counter or automatically save/delete preferences.
+## Bounds and cancellation
 
-## Local storage and lifecycle limits
+The policy allows eight memory operations per session. A recalled turn reserves two
+operations for retrieval and its final freshness check; explicit owner deletion stays
+available after the budget is exhausted. Model context, tokens, tools, retries, and
+spend retain their existing run ledger limits. Retrieval has no embedding spend.
 
-`FixtureMemoryStore` is an in-process, lock-protected test store. Queries select the
-owner/purpose partition before inspecting records. There is no general query API,
-network client, embedding, graph, derived index, cache, or disk backup. Expired records
-are immediately excluded and removed on a scoped operation. It does not provide an
-idle-data cleanup schedule, encryption at rest, persistence across process restarts,
-a hosted deletion SLA, or backup restore guarantees. Those are acceptance work for
-the selected durable adapter; the fixture does not satisfy hosted durability.
+Storage runs off the event loop. At most four workers may remain pending, with one
+per user namespace. Requests time out after 15 seconds. Cancellation prevents a later
+PUT when observed before dispatch; an already-dispatched PUT may have committed.
+Its worker keeps its slot until it settles, and no retry is issued. Socket/stream
+bounds remain active. Shutdown drains pending workers before closing credentials.
+Audit authorization must be delivered before effects; logs omit preference values,
+raw tokens, model responses, and prompts.
 
-Audit callbacks contain policy/operation, origin, and hashed scope references without
-preference content. Delivery failure before access prevents storage effects. Protected
-hosted audit retention and reconciliation of ambiguous durable commits are still to
-be implemented with the durable backend.
+## Learner exercise
 
-## Selected backend — Azure Blob Storage
+Run the authenticated chat CLI against dev with the existing encrypted token cache:
 
-Start with exact structured records; there is no measured need for vectors, embeddings,
-graph traversal, or a hybrid store. This preserves simple consent, correction, and
-forget-all operations without introducing derived copies of personal data.
+```sh
+uv run --locked agent-chat --api https://ca-maf-agent-dev-eus2-01.kindisland-49d1cad2.eastus2.azurecontainerapps.io --movies
+```
 
-The user-selected hosted design is one bounded JSON document per user/purpose in Azure Blob
-Storage. Its document contains the two preferences, namespace generation, and deletion
-metadata. Scope-derived object names avoid a broad listing query. Conditional ETag
-updates can implement the same optimistic-concurrency contract: Azure documents a
-failed `If-Match` update returning `412` when another writer has changed the blob.
-This is a design inference from [Microsoft's Blob concurrency documentation](https://learn.microsoft.com/en-us/azure/storage/blobs/concurrency-manage).
+- `/memory` inspects records, IDs, generation, revision, and expiry.
+- `/remember preferred_genre comedy` explicitly consents to save for 30 days.
+- Ask for a recommendation. The agent can use the saved preference across sessions.
+- `/remember preferred_genre drama` explicitly corrects the existing category.
+- `/forget RECORD_ID` deletes one record; `/forget all` removes all preferences.
+- Start a fresh session when its operation budget is exhausted. Reset does not refill it.
 
-Azure Table Storage is a credible row-based alternative. It supports Entra data
-access and table-scoped data roles, including read/write/delete through Storage Table
-Data Contributor; the shared generation/forget-all contract would need a coordinated
-row design. See [Microsoft's Table authorization documentation](https://learn.microsoft.com/en-us/azure/storage/tables/authorize-access-azure-active-directory).
-Microsoft recommends managed identities for storage data access where possible;
-[its authorization guide](https://learn.microsoft.com/en-us/azure/storage/common/authorize-data-access)
-describes the identity-based boundary. The user selected Blob Storage; it is not yet provisioned or enabled by
-this checkpoint. Revisit a database/vector/graph option only when measured query or
-scale requirements justify it.
+Typing a preference in ordinary chat never saves it. The explicit `/remember` command
+constitutes consent; the CLI inspects the latest generation/revision before writing.
+Concurrent changes may produce a conflict; inspect and decide again rather than retry
+blindly. TMDB catalog knowledge remains separate and read-only.
 
-The durable implementation still needs the deployed endpoint/namespace/identity,
-async request deadlines/cancellation, scheduled expiry cleanup within the approved
-24-hour bound, and complete shared run accounting for model recall. Dev has no
-backups or retained versions; enabling either later requires restore deletion fencing. The session-resumption backend remains a separate decision.
+## Deployment and operations
 
-## Validation checkpoint
+Dev uses `stmafmemdevmako261019`, container `preferences`, and hourly job
+`job-maf-memory-dev-eus2-01`. The agent and job use separate system identities with
+container-scoped Blob Data Contributor; the existing pull identity only pulls images.
+Shared Key and anonymous Blob access are disabled; HTTPS, TLS 1.2 and storage
+encryption are required. Account/container/policy/user allowlist come from operator
+settings; unsupported configuration fails startup.
 
-Run `uv run --locked pytest -q` and `uv run --locked ruff check apps scripts`.
-The full suite currently passes **106 tests**, retaining the Stage 1–3 regressions.
-The new tests cover consent/category denial before storage, user/tenant/session
-isolation, forged API scope, correction and expiry, deletion/stale-write fences,
-concurrent correction/delete and duplicate creates, audit failure, reset/counter
-behavior, and chat text not promoting transcripts into preferences.
+`infra/main.dev.rg.bicepparam` enables dev memory. `main.rg.bicep` wires storage,
+agent settings, and cleanup job. `main.bicep` exposes the same optional modules for
+other environments, where memory remains disabled until separately approved.
+Operator bootstrap uses `infra/modules/memory-rbac.bicep` (or
+`bootstrapMemoryRoles=true` with authorized role-assignment rights). Ordinary GitHub
+OIDC deployment does not assign roles. Agent-only deployments also update the dev
+cleanup job image to the same digest.
 
-Stage 3 memory case 4 now has local memory-layer fixtures proving that skill-origin
-writes deny even with purported consent and that another user's records are not
-returned. Actual model-to-memory integration and durable/hosted versions of those
-cases remain mandatory Stage 4 acceptance work. No acceptance checkbox is closed on
-the strength of a fake model refusing an operation.
+Inspect cleanup health with:
 
+```sh
+az containerapp job execution list -g rg-maf-dev-eus2-01 -n job-maf-memory-dev-eus2-01 -o table
+az containerapp job start -g rg-maf-dev-eus2-01 -n job-maf-memory-dev-eus2-01
+```
 
-## Blob adapter checkpoint
-
-`BlobMemoryStore` now implements the selected single-document design. A scope-derived
-hashed object name selects one user/purpose namespace before any read. It uses managed
-identity for the storage audience and pins the account/container; there are no model-
-supplied endpoints, wildcard queries, or listing operations. Stored documents are
-bounded to 16 KiB and validated for schema, scope, category/value, provenance, expiry,
-record count, and unique IDs/categories before use.
-
-The shared `PreferenceState` transition engine operates on an immutable-record snapshot.
-Creation uses `If-None-Match: *`; every existing-document update uses its exact ETag
-with `If-Match`. A 409/412 conflict is surfaced without an unconditional overwrite or
-blind retry. Forgetting retains an empty document with the advanced generation, rather
-than deleting the object and allowing an old create to see a fresh namespace. Expiry
-is excluded and persisted on inspection. A timed-out PUT is reported as ambiguous;
-inspection can reconcile the committed state without creating a duplicate record.
-An explicit audit callback is required to construct the durable service adapter.
-
-The storage module `infra/modules/memory-storage.bicep` and
-`infra/memory.dev.bicepparam` are prepared. The dev parameters disable versions, blob
-soft delete, and container soft delete according to the user's choice. The module
-requires HTTPS, TLS 1.2, storage encryption, no anonymous Blob access, and no Shared
-Key access. Optional operator bootstrap grants only container-scoped Blob Data
-Contributor to the specified workload. The module compiles; it has not been deployed.
-The existing hosted app still has no enabled memory backend.
-
-Blob tests use a deterministic HTTP fixture, not Azure. They cover adapter recreation,
-user isolation, ETag conflicts, empty generation persistence, missing consent/skill
-writes before any network access, redirects, failed/missing containers, oversized or
-corrupted documents, expiry cleanup, and a committed write whose reply is lost. Actual
-Azure identity, encryption configuration, periodic cleanup, hosted persistence, and
-model recall require the next implementation/deployment step.
-
-
-## Hosted configuration checkpoint — 2026-10-19
-
-The application factory can now construct the Blob service from operator settings.
-`ENABLE_MEMORY` defaults to `false`; unsupported enable values/backends fail startup.
-When enabled, `MEMORY_BACKEND=azure_blob`, `MEMORY_ACCOUNT`, `MEMORY_CONTAINER`,
-`MEMORY_POLICY`, and `MEMORY_ALLOWED_USERS` are required. Allowed memory users must
-be a subset of `ENTRA_ALLOWED_USERS`; permission checks require authenticated Entra
-identity in the configured tenant. Hosted policy is restricted to user scope and the
-approved 30-day retention. No API caller can select these settings.
-
-The Container App module exposes these settings but keeps memory disabled by default.
-No memory resources or roles were deployed in this checkpoint. Do not enable the
-backend yet: asynchronous I/O with bounded cancellation behavior, scheduled physical
-expiry cleanup, model recall, and hosted acceptance remain unfinished. The 113-test
-suite passes, including configuration rejection before backend allocation and
-cross-tenant/user/source permission denial. The updated Container App module compiles.
+A successful job emits `memory_cleanup_completed` with counts only. The portal alert
+`al-maf-memory-cleanup-dev-eus2-01` evaluates hourly and fires when no success marker
+has arrived in 20 hours. It has no external notification recipients; an operator must
+monitor Azure alerts. Its query counts heartbeat metadata, never preference contents. On failure,
+inspect identity access, ETag contention, corrupt documents, and scan/time bounds.
+Do not repair by unconditional overwrites or restoring a deleted document. Keep the
+24-hour cleanup target visible during dev operation and disable writes if it cannot
+be maintained. See the retained Stage 4 validation report for release evidence.

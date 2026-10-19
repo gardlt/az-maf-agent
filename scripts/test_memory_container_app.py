@@ -24,7 +24,7 @@ def run(api, phase):
             )
             if response.status_code != expected:
                 raise RuntimeError(f"expected HTTP {expected}, received {response.status_code}")
-            return response.json()
+            return response.json() if expected == 200 else {}
 
         request("POST", "/sessions", expected=401, authenticated=False)
         session = request("POST", "/sessions")
