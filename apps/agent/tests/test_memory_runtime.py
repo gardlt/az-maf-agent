@@ -326,3 +326,23 @@ async def test_explicit_cancel_fences_memory_write_before_dispatch():
         await task
     assert not server.documents
     await memory.aclose()
+
+
+def test_blob_read_evaluates_expiry_after_network_delay():
+    server = BlobServer()
+    memory = make(server)
+    record = save(memory, access())["memory"]
+    now = [record["expires_at"] - 1]
+    original = memory.store._request
+
+    def delayed(method, url, **kwargs):
+        result = original(method, url, **kwargs)
+        if method == "GET":
+            now[0] = record["expires_at"]
+        return result
+
+    memory.clock = lambda: now[0]
+    memory.store._request = delayed
+    assert memory.call(access(), "inspect")["memories"] == []
+    assert json.loads(next(iter(server.documents.values())))["records"] == []
+    memory.close()

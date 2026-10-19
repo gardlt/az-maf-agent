@@ -111,6 +111,7 @@ class BlobMemoryStore:
 
     def apply(self, partition, operation, **arguments):
         control = arguments.pop("control", None)
+        clock = arguments.pop("clock", None)
         scope_ref = hashlib.sha256(
             json.dumps(partition, separators=(",", ":")).encode()
         ).hexdigest()
@@ -146,6 +147,9 @@ class BlobMemoryStore:
             r.id: MemoryRecord(**r.model_dump()) for r in document.records
         }
         engine._generations[partition] = document.generation
+        if clock is not None:
+            # Evaluate expiry after remote I/O, not at the start of a slow GET.
+            arguments["now"] = clock()
         result = engine.apply(partition, operation, **arguments)
         generation = engine._generations[partition]
         if generation != document.generation:

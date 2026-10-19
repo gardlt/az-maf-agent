@@ -257,7 +257,9 @@ class MemoryService:
             raise Denied("memory_cancelled")
         from .blob_memory import BlobMemoryStore
 
-        options = {"control": control} if type(self.store) is BlobMemoryStore else {}
+        options = (
+            {"control": control, "clock": self.clock} if type(self.store) is BlobMemoryStore else {}
+        )
         return self.store.apply(
             partition,
             operation,
