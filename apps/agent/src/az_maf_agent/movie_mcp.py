@@ -192,5 +192,14 @@ class MovieMCPClient:
                 return validated
         except Denied:
             raise
-        except Exception:
+        except Exception as exc:
+            print(
+                json.dumps(
+                    {
+                        "movie_mcp_error": type(exc).__name__,
+                        "detail": str(exc)[:180],
+                    }
+                ),
+                file=sys.stderr,
+            )
             raise Denied("tool_service_unavailable") from None
