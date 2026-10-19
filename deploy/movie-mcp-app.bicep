@@ -10,6 +10,9 @@ param tenantId string
 param mcpAudience string
 @description('Object ID of the agent Container App system identity.')
 param allowedAgentOid string
+@secure()
+@description('TMDB API Read Access Token, supplied only as a secure deployment parameter.')
+param tmdbApiReadAccessToken string
 param location string = resourceGroup().location
 
 resource app 'Microsoft.App/containerApps@2025-01-01' = {
@@ -20,6 +23,7 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
     managedEnvironmentId: managedEnvironmentId
     configuration: {
       activeRevisionsMode: 'Single'
+      secrets: [{ name: 'tmdb-api-read-access-token', value: tmdbApiReadAccessToken }]
       registries: [{ server: registryLoginServer, identity: pullIdentityId }]
       ingress: { external: false, targetPort: 8000, transport: 'http', allowInsecure: false }
     }
@@ -32,6 +36,7 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
           { name: 'MCP_TENANT_ID', value: tenantId }
           { name: 'MCP_AUDIENCE', value: mcpAudience }
           { name: 'MCP_ALLOWED_AGENT_OID', value: allowedAgentOid }
+          { name: 'TMDB_API_READ_ACCESS_TOKEN', secretRef: 'tmdb-api-read-access-token' }
         ]
         resources: { cpu: json('0.5'), memory: '1Gi' }
       }]

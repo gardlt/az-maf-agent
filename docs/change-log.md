@@ -2,6 +2,23 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-18 — TMDB replaces synthetic catalog
+
+- The user selected TMDB as the sole movie source. The repository now uses a pinned, read-only TMDB search/details adapter behind the two FastMCP tools and agent-side `tmdb_<id>` validation. The synthetic catalog fixture and admin PUT source were removed from the target design. Existing hosted synthetic results remain historical evidence, not TMDB acceptance.
+- The temporary `ca-az-maf-catalog-admin-probe` Container App was deleted. Its only `Catalog.Admin` app-role assignment and its user-assigned managed identity were also removed. The unassigned `Catalog.Admin` role definition remains on the catalog API registration until reviewed removal.
+- The TMDB token is not stored in the repository. The user will provide a local secret-file path for live validation and secure deployment. No TMDB-hosted request has passed yet. The current catalog Container App still runs the older synthetic image until a new rollout.
+- The user confirmed non-commercial teaching use. Added a repository [Credits](credits.md) page with TMDB's approved primary logo and required notice. The CLI shows the notice in movie mode; a separate hosted user interface will need to show the credits as well.
+- The locked local suite passed 46 tests, and lint and whitespace checks passed. Built private ACR images for the TMDB MCP (`sha256:8f0b79e3bf22f576acd4b3bfcf5be17d40bcbdb55522081905bd6c55a802890f`) and matching agent (`sha256:4fe10a9dc7f8d19865987acd6da2d8ab66ab1dcedce2ea422fdebf6f6f6274bf`). These images are not yet deployed; live credential and hosted checks remain open.
+
+## 2026-10-18 — Hosted catalog admin PUT
+
+- Added [Stage 2 architecture](stage-2-architecture.md) and [network design](stage-2-network-design.md) records covering service topology, trust boundaries, read/write flows, deployment identities, network limits, and the remaining hosted acceptance plan. The network design is a proposal; it does not authorize or deploy a new foundation.
+- Mounted a separately authenticated FastAPI admin PUT route beside the two FastMCP read tools, with a shared in-memory catalog. The route requires a signed Entra v2 token for the catalog API, the configured tenant and admin object ID, and the `Catalog.Admin` application role. Local invalid-token, reader-denial, and read-after-write tests passed; the full suite reached 54 tests.
+- Added `Catalog.Admin` to the existing catalog API registration and assigned it to dedicated admin test identity `id-az-maf-catalog-admin-test`. Deployed catalog image digest `sha256:209edec91beb1da58fd028601f7ea5a3a576c7f8d270f2d41f5963258c2b771d` as healthy revision `ca-az-maf-movie-mcp--0000001` with internal ingress.
+- Deployed temporary ingress-free `ca-az-maf-catalog-admin-probe` and used its admin managed identity to replace synthetic record `movie_000101`. The direct downstream PUT returned `200` and catalog revision `1`. The temporary title is *Brass Comet Admin Test*; it must be restored to *Brass Comet* after read verification.
+- The hosted explicit agent read regression passed after rollout. The follow-up read of the modified record, direct downstream PUT denial for the actual agent identity, record restoration, and probe cleanup remain pending. Automatic approval review rejected the follow-up command due to an account usage limit before execution. Stage 2 remains open, including controlled-egress evidence.
+- Hardened the MCP reader to require a list-valued `roles` claim and added regression coverage. This change was made after the current hosted image build; it will require a new image rollout.
+
 ## 2026-10-18 — Model-selected Stage 2 reads
 
 - Added an opt-in, application-owned model tool loop that advertises only the two pinned read functions, validates proposed calls and results, limits a run to two sequential MCP read attempts, and charges model calls/retries to the existing budget ledger. Session history retains only the final text pair. Local tests cover forbidden calls, duplicate arguments, loop limits, injected tool text, and reset cancellation.

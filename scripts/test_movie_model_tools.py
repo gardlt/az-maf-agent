@@ -26,8 +26,8 @@ def main() -> int:
                 f"/sessions/{sid}/chat",
                 json={
                     "text": (
-                        "Use the movie catalog tool to look up movie_000103. "
-                        "What is its title and synthetic rating? Do not guess."
+                        "Use the movie catalog tool to look up tmdb_11. "
+                        "What is its title and TMDB rating? Do not guess."
                     ),
                     "revision": 0,
                 },

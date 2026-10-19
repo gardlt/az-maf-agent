@@ -1,6 +1,7 @@
-"""Pinned, read-only FastMCP client for the synthetic catalog."""
+"""Pinned, read-only FastMCP client for TMDB movie data."""
 
 import json
+import os
 import sys
 from typing import Literal
 from urllib.parse import urlsplit
@@ -10,7 +11,7 @@ import httpx2
 from azure.identity.aio import ManagedIdentityCredential
 from fastmcp import Client
 from fastmcp.client.transports import StdioTransport, StreamableHttpTransport
-from pydantic import BaseModel, ConfigDict, Field, StrictFloat, StrictInt, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, StrictFloat, ValidationError
 
 from .model import Denied
 
@@ -33,29 +34,27 @@ MAX_RESULT_BYTES = 8192
 
 class Movie(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
-    id: str = Field(pattern=r"^movie_[0-9]{6}$")
+    id: str = Field(pattern=r"^tmdb_[1-9][0-9]{0,9}$")
     title: str = Field(min_length=1, max_length=200)
-    year: StrictInt = Field(ge=1888, le=2100)
-    genre: Literal["action", "comedy", "drama", "family", "mystery", "science_fiction"]
+    year: int | None = Field(ge=1888, le=2100)
     synopsis: str = Field(max_length=1000)
-    synthetic_rating: StrictFloat = Field(ge=0, le=10)
+    tmdb_rating: StrictFloat = Field(ge=0, le=10)
+    source: Literal["TMDB"]
 
 
 class SearchResult(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
-    catalog_version: Literal["synthetic-movies-v1"]
-    catalog_revision: StrictInt = Field(ge=0)
+    catalog_version: Literal["tmdb-v1"]
     movies: list[Movie] = Field(max_length=10)
     truncated: bool
 
 
 class GetResult(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
-    catalog_version: Literal["synthetic-movies-v1"]
-    catalog_revision: StrictInt = Field(ge=0)
+    catalog_version: Literal["tmdb-v1"]
     movie: Movie | None = None
     not_found: bool | None = None
-    catalog_id: str | None = Field(default=None, pattern=r"^movie_[0-9]{6}$")
+    catalog_id: str | None = Field(default=None, pattern=r"^tmdb_[1-9][0-9]{0,9}$")
 
 
 def validate_arguments(name: str, arguments: object) -> dict:
@@ -79,10 +78,12 @@ def validate_arguments(name: str, arguments: object) -> dict:
     catalog_id = arguments["catalog_id"]
     if (
         not isinstance(catalog_id, str)
-        or len(catalog_id) != 12
-        or not catalog_id.startswith("movie_")
-        or not catalog_id[6:].isascii()
-        or not catalog_id[6:].isdigit()
+        or not catalog_id.startswith("tmdb_")
+        or not catalog_id[5:].isascii()
+        or not catalog_id[5:].isdigit()
+        or not 1 <= len(catalog_id[5:]) <= 10
+        or catalog_id[5] == "0"
+        or int(catalog_id[5:]) > 2_147_483_647
     ):
         raise Denied("invalid_tool_arguments")
     return {"catalog_id": catalog_id}
@@ -133,7 +134,13 @@ class MovieMCPClient:
         self.transport = transport or (
             None
             if endpoint is not None
-            else StdioTransport(sys.executable, ["-m", "movie_catalog_mcp.server"], env={})
+            else StdioTransport(
+                sys.executable,
+                ["-m", "movie_catalog_mcp.server"],
+                env={"TMDB_API_READ_ACCESS_TOKEN": os.environ["TMDB_API_READ_ACCESS_TOKEN"]}
+                if os.environ.get("TMDB_API_READ_ACCESS_TOKEN")
+                else {},
+            )
         )
         self.revoked: set[str] = set()
 

@@ -9,7 +9,26 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 from az_maf_agent.api import EntraVerifier, create_app
 from az_maf_agent.core import Service
-from az_maf_agent.movie_mcp import MovieMCPClient
+
+
+class FakeMovieClient:
+    async def read(self, name, arguments):
+        if name != "get_movie":
+            raise AssertionError("unexpected tool")
+        return {
+            "catalog_version": "tmdb-v1",
+            "movie": {
+                "id": arguments["catalog_id"],
+                "title": "Star Wars",
+                "year": 1977,
+                "synopsis": "A movie.",
+                "tmdb_rating": 8.2,
+                "source": "TMDB",
+            },
+        }
+
+    async def close(self):
+        pass
 
 
 @pytest.fixture
@@ -60,7 +79,7 @@ async def test_auth_and_body_identity(api):
             await c.post(
                 f"/sessions/{sid}/movies/get_movie",
                 headers=auth(),
-                json={"catalog_id": "movie_000101"},
+                json={"catalog_id": "tmdb_11"},
             )
         ).status_code == 403
         path = f"/sessions/{sid}/chat"
@@ -84,24 +103,24 @@ async def test_auth_and_body_identity(api):
 
 async def test_authenticated_movie_route_keeps_read_only_scope(api):
     app, auth, other = api
-    app.state.agent_service.movie_client = MovieMCPClient()
+    app.state.agent_service.movie_client = FakeMovieClient()
     try:
         async with httpx.AsyncClient(
             transport=httpx.ASGITransport(app), base_url="https://test"
         ) as c:
             sid = (await c.post("/sessions", headers=auth())).json()["session_id"]
             path = f"/sessions/{sid}/movies/get_movie"
-            assert (await c.post(path, json={"catalog_id": "movie_000101"})).status_code == 401
+            assert (await c.post(path, json={"catalog_id": "tmdb_11"})).status_code == 401
             assert (
-                await c.post(path, headers=auth(oid=other), json={"catalog_id": "movie_000101"})
+                await c.post(path, headers=auth(oid=other), json={"catalog_id": "tmdb_11"})
             ).status_code == 404
-            good = await c.post(path, headers=auth(), json={"catalog_id": "movie_000101"})
+            good = await c.post(path, headers=auth(), json={"catalog_id": "tmdb_11"})
             assert good.status_code == 200
-            assert good.json()["movie"]["title"] == "Brass Comet"
+            assert good.json()["movie"]["title"] == "Star Wars"
             forbidden = await c.post(
                 f"/sessions/{sid}/movies/put_movie",
                 headers=auth(),
-                json={"catalog_id": "movie_000101"},
+                json={"catalog_id": "tmdb_11"},
             )
             assert forbidden.status_code == 403
     finally:

@@ -158,6 +158,10 @@ Acceptance covers session/user isolation, reset and TTL expiry, context bounds, 
 
 ## Stage 2 — Approved MCP tools
 
+**2026-10-18 scope revision:** The user selected TMDB as the sole movie source. The synthetic catalog and admin PUT design below is retained as historical context and is no longer an active implementation or acceptance requirement. The current Stage 2 contract is in [the Stage 2 task](tasks/stage-2-movie-mcp.md) and [TMDB integration record](tmdb-integration.md): two read-only tools, `tmdb_<id>` identifiers, labeled TMDB ratings, no TMDB user session or write endpoint, and live credential/attribution/network acceptance. Stage 3 references to synthetic catalog PUT inherit this supersession; their active lesson is that skills cannot grant any unregistered or unauthorized write capability.
+
+### Superseded synthetic-catalog design
+
 ### Requirements
 
 - Add an approved MCP registry and guarded dispatcher exposing only the two read-only movie catalog tools below initially. Bundle a small versioned dataset of invented movie records with the application/fixture server. “IMDb-style” describes familiar record structure only: no IMDb affiliation, scraping, account requirement, or IMDb API integration is implied or required.

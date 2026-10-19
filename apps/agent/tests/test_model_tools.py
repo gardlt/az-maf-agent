@@ -6,7 +6,7 @@ from az_maf_agent.core import LOCAL, Service
 from az_maf_agent.model import Denied, FakeTransport
 
 
-def tool_call(name="get_movie", arguments='{"catalog_id":"movie_000103"}', call_id="call_1"):
+def tool_call(name="get_movie", arguments='{"catalog_id":"tmdb_11"}', call_id="call_1"):
     return (
         {
             "role": "assistant",
@@ -41,15 +41,14 @@ class MovieClient:
     async def read(self, name, args):
         self.calls.append((name, args))
         return {
-            "catalog_version": "synthetic-movies-v1",
-            "catalog_revision": 0,
+            "catalog_version": "tmdb-v1",
             "movie": {
-                "id": "movie_000103",
-                "title": "The Last Lantern",
-                "year": 2024,
-                "genre": "drama",
-                "synopsis": "An invented story.",
-                "synthetic_rating": 7.0,
+                "id": "tmdb_11",
+                "title": "Star Wars",
+                "year": 1977,
+                "synopsis": "A movie.",
+                "tmdb_rating": 8.2,
+                "source": "TMDB",
             },
         }
 
@@ -59,7 +58,7 @@ class MovieClient:
 
 async def test_model_selected_read_preserves_bounded_history(settings):
     transport = ToolTransport(
-        [tool_call(), ({"role": "assistant", "content": "The Last Lantern."}, "stop", 30)]
+        [tool_call(), ({"role": "assistant", "content": "Star Wars."}, "stop", 30)]
     )
     movie = MovieClient()
     service = Service(
@@ -71,10 +70,10 @@ async def test_model_selected_read_preserves_bounded_history(settings):
     )
     sid = service.create(LOCAL)["session_id"]
     result = await service.chat(LOCAL, sid, "Find the lantern movie", 0)
-    assert result["text"] == "The Last Lantern."
+    assert result["text"] == "Star Wars."
     assert result["revision"] == 1
     assert result["movie_reads"] == 1
-    assert movie.calls == [("get_movie", {"catalog_id": "movie_000103"})]
+    assert movie.calls == [("get_movie", {"catalog_id": "tmdb_11"})]
     assert transport.messages[1][-1]["role"] == "tool"
     assert [m.role for m in service.sessions[sid].state.state["stage1_history"]["messages"]] == [
         "user",
@@ -87,11 +86,11 @@ async def test_model_selected_read_preserves_bounded_history(settings):
     [
         (tool_call(name="put_movie"), "tool_not_allowed"),
         (
-            tool_call(arguments='{"catalog_id":"movie_000103","url":"https://bad"}'),
+            tool_call(arguments='{"catalog_id":"tmdb_11","url":"https://bad"}'),
             "invalid_tool_arguments",
         ),
         (
-            tool_call(arguments='{"catalog_id":"movie_000103","catalog_id":"movie_000104"}'),
+            tool_call(arguments='{"catalog_id":"tmdb_11","catalog_id":"tmdb_12"}'),
             "invalid_tool_arguments",
         ),
     ],

@@ -17,8 +17,8 @@ from .model import Denied
 
 def show_movie(movie):
     print(
-        f"{safe_text(movie['title'])} ({movie['year']}) — {safe_text(movie['id'])}; "
-        f"synthetic rating {movie['synthetic_rating']}/10"
+        f"{safe_text(movie['title'])} ({movie['year'] or 'year unavailable'}) — "
+        f"{safe_text(movie['id'])}; TMDB rating {movie['tmdb_rating']}/10"
     )
     print(safe_text(movie["synopsis"]))
 
@@ -70,7 +70,8 @@ async def run(args):
         sid, revision = session["session_id"], session["revision"]
         print("Text-only chat. /reset clears history; /quit exits. Ctrl-C cancels the active run.")
         if args.movies:
-            print("Use /search QUERY or /movie movie_###### for synthetic catalog reads.")
+            print("Use /search QUERY or /movie tmdb_<id> for TMDB movie reads.")
+            print("This product uses the TMDB API but is not endorsed or certified by TMDB.")
         while True:
             # Blocking input is only used when no model operation is active.
             try:
@@ -102,13 +103,13 @@ async def run(args):
                         for movie in result["movies"]:
                             show_movie(movie)
                         if not result["movies"]:
-                            print("No synthetic movies matched.")
+                            print("No TMDB movies matched.")
                         if result["truncated"]:
                             print("Results truncated.")
                     elif "movie" in result:
                         show_movie(result["movie"])
                     else:
-                        print("Synthetic movie not found.")
+                        print("TMDB movie not found.")
                     continue
                 result = (
                     await remote(f"/sessions/{sid}/chat", {"text": text, "revision": revision})
