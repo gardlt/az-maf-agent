@@ -2,7 +2,7 @@
 
 A Python CLI and Microsoft Agent Framework chat core with bounded, process-local session history. The deterministic offline default requires **no Azure account or credentials** after dependencies are installed. Stage 2 includes a separate FastMCP movie catalog and an explicit agent-side read path. Model-selected read tools are opt-in; skills, durable memory, command execution, and agent catalog writes remain disabled.
 
-This is a teaching implementation plus a single-replica authenticated API test deployment, **not a production-ready service**. Stage 2 is migrating from the previously deployed synthetic catalog to TMDB-backed reads. The [stage tasks](docs/tasks/README.md), [TMDB integration](docs/tmdb-integration.md), [architecture](docs/stage-2-architecture.md), [network design](docs/stage-2-network-design.md), and [validation record](docs/stage-2-validation.md) distinguish the current source from the older hosted image. TMDB has not yet been verified in Azure.
+This is a teaching implementation plus a single-replica authenticated API test deployment, **not a production-ready service**. Stage 2 now uses TMDB-backed reads in the hosted agent and MCP. The [stage tasks](docs/tasks/README.md), [TMDB integration](docs/tmdb-integration.md), [architecture](docs/stage-2-architecture.md), [network design](docs/stage-2-network-design.md), and [validation record](docs/stage-2-validation.md) distinguish current TMDB results from the older synthetic experiment.
 
 ## Run locally
 
@@ -58,7 +58,7 @@ API routes: `POST /sessions`, `POST /sessions/{id}/chat` with `{"text":"hello","
 
 `movie-catalog-mcp` exposes only `search_movies(query, limit)` and `get_movie(catalog_id)` through FastMCP. Its TMDB adapter calls the pinned search and details endpoints with an API Read Access Token from `TMDB_API_READ_ACCESS_TOKEN`. It uses `tmdb_<id>` identifiers and labels TMDB's vote average as `tmdb_rating`. It neither creates a TMDB user session nor exposes a movie write route. The agent validates tool names, arguments, results, and an 8 KiB result bound. Local use requires the token in the MCP subprocess environment; run `uv run --locked agent-chat --movies`, then `/search QUERY` or `/movie tmdb_<id>`. See [TMDB integration](docs/tmdb-integration.md) for the credential and attribution requirements.
 
-The existing hosted Container App still runs the older synthetic image. It must be replaced with a new image and secret configuration before TMDB-backed hosted tests count as passed. The temporary admin probe and its role assignment and identity were removed. Controlled egress and live TMDB reads remain open Stage 2 acceptance work. See the [Credits](docs/credits.md) page for TMDB attribution.
+The hosted agent and private MCP now run digest-pinned TMDB-aware images, and signed-in hosted search, details, model-selected read, downstream authentication denials, and Stage 1 regression checks passed. The temporary admin probe and its role assignment and identity were removed. Controlled egress remains open Stage 2 acceptance work. See the [Credits](docs/credits.md) page for TMDB attribution.
 
 To exercise the deployed app, run `uv run --locked python scripts/test_container_app.py`. It starts a device-code flow only when the encrypted Stage 1 cache cannot refresh a token or `AGENT_ACCESS_TOKEN` is unset, prints only selected token claims, and checks unauthenticated rejection, session creation, chat, stale revision denial, and reset. It neither logs nor writes the bearer token.
 

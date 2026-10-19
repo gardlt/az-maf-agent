@@ -1,18 +1,18 @@
 # TMDB movie data integration
 
-TMDB is the selected movie source for the MCP. The current hosted Stage 2 catalog still runs the older synthetic image; no TMDB credential or hosted TMDB request has been configured or verified. The repository implementation now uses `movie_catalog_mcp.tmdb.TMDBClient` for the two MCP read tools. Its local tests use mocked HTTP responses.
+TMDB is the sole movie source for the MCP. The hosted agent and MCP now run the TMDB-aware images, with the TMDB credential referenced as a Container App secret. A live local search/details check and hosted agent-to-MCP reads passed on 2026-10-18; see the [validation record](stage-2-validation.md). The repository implementation uses `movie_catalog_mcp.tmdb.TMDBClient` for the two MCP read tools, and its local tests use mocked HTTP responses.
 
 ## API and credential
 
 TMDB's [application authentication guide](https://developer.themoviedb.org/docs/authentication-application) says an API Read Access Token can be sent as a bearer token to both v3 and v4 methods. Movie [search](https://developer.themoviedb.org/reference/search-movie) and [details](https://developer.themoviedb.org/reference/movie-details) are v3 endpoints, even when the token comes from the v4 account settings. The adapter calls only `GET https://api.themoviedb.org/3/search/movie` and `GET https://api.themoviedb.org/3/movie/{id}`. It does not request a TMDB user session or perform a write.
 
-The token should be supplied to the MCP workload as a secret or local environment setting such as `TMDB_API_READ_ACCESS_TOKEN`. Do not put it in Git, Bicep parameters, client arguments, logs, or chat. A live hosted test requires the token and an approved outbound path to `api.themoviedb.org`. The current Container Apps environment has no controlled-egress network policy; that remains a separate Stage 2 acceptance gap.
+The token is supplied to the MCP workload as a Container App secret or locally as `TMDB_API_READ_ACCESS_TOKEN`. Do not put it in Git, committed Bicep parameters, client arguments, logs, or chat. The current Container Apps environment permits the successful TMDB requests but has no controlled-egress network policy; that remains a separate Stage 2 acceptance gap.
 
 The adapter pins the API origin and paths, disables redirects, sets a five-second timeout, caps response bodies at 128 KiB, requests only English-language non-adult search results from the first page, and returns at most ten normalized records. It treats `429` as a rate-limit failure and returns no upstream body or credential in its error. TMDB [documents that limits can change and `429` must be respected](https://developer.themoviedb.org/docs/rate-limiting).
 
 ## Contract decision
 
-The two MCP tools and agent client now use `tmdb_<id>` IDs, `tmdb-v1`, and `tmdb_rating` with `source: "TMDB"`; they do not relabel a TMDB rating as synthetic. The synthetic admin PUT flow has been removed from the repository target design because TMDB is an external read-only source. The previously deployed synthetic admin probe and role still require Azure cleanup. The old Stage 2 write/read-after-write acceptance criterion is superseded by downstream read-only and egress checks; historical validation remains in the change log.
+The two MCP tools and agent client use `tmdb_<id>` IDs, `tmdb-v1`, and `tmdb_rating` with `source: "TMDB"`; they do not relabel a TMDB rating as synthetic. The synthetic admin PUT flow has been removed from the repository because TMDB is an external read-only source. The previously deployed synthetic admin probe, role assignment, and identity have been removed. The old Stage 2 write/read-after-write acceptance criterion is superseded by downstream read-only and egress checks; historical validation remains in the change log.
 
 ## Attribution and release gate
 

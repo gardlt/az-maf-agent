@@ -1,6 +1,18 @@
-# Stage 2 validation — MCP reads and catalog admin
+# Stage 2 validation — TMDB movie MCP
 
-**Migration status, 2026-10-18:** The user selected TMDB as the sole movie source. All hosted movie results and admin PUT evidence below concern the older synthetic revision; none proves the new TMDB implementation. The temporary admin probe was deleted after this change, and its role assignment and managed identity were removed. TMDB local mock tests pass, but live TMDB and hosted agent-to-TMDB validation are pending. See [TMDB integration](tmdb-integration.md) and [the revised Stage 2 task](tasks/stage-2-movie-mcp.md).
+## Current TMDB validation — 2026-10-18
+
+The user selected TMDB as the sole movie source and confirmed non-commercial teaching use. The locked local suite passed 46 tests; Ruff lint/format and whitespace checks passed. With the API Read Access Token in a private local file, a live adapter check returned three *Star Wars* search records and `get_movie(tmdb_11)` returned *Star Wars*, with `source: TMDB`. A local `agent-chat --movies` smoke test used FastMCP stdio for `/search Star Wars` and `/movie tmdb_11`; the CLI displayed the title, TMDB rating label, and attribution notice and exited successfully. The token value was neither printed nor committed. [Credits](credits.md) includes TMDB's approved logo and notice.
+
+The Azure what-if showed only `ca-az-maf-movie-mcp` changing. Deployment `stage2-tmdb-mcp-20261018` succeeded; revision `ca-az-maf-movie-mcp--0000002` is healthy on digest `sha256:8f0b79e3bf22f576acd4b3bfcf5be17d40bcbdb55522081905bd6c55a802890f` and references a Container App secret for the TMDB token. The matching agent revision `ca-az-maf-stage1--0000011` is healthy on digest `sha256:4fe10a9dc7f8d19865987acd6da2d8ab66ab1dcedce2ea422fdebf6f6f6274bf`. Both older synthetic MCP revisions are inactive. The temporary synthetic admin probe, role assignment, and identity were removed.
+
+The signed-in hosted checks recorded session creation `200`, unauthenticated movie read `401`, `get_movie(tmdb_11)` `200` with title *Star Wars*, and unknown write tool `403`. Hosted search returned `200` with TMDB-labeled records; malformed ID and limit 11 returned `422`; a no-match search returned an empty `200`; and a missing valid ID returned `not_found: true` with `200`. The Foundry model selected one MCP read and completed chat with `200`. The Stage 1 hosted regression passed: unauthenticated create `401`; approved create, two live chats, reset, and post-reset chat `200`; stale replay `409`; revisions `1`, `2`, `4`. The encrypted CLI auth cache supplied the token without another device prompt.
+
+The MCP is still internal to the existing Container Apps environment. On the new agent revision, an internal MCP request without a token returned `401`; a signed managed-identity token for the Foundry audience also returned `401`. A request to the MCP's internal hostname from outside the environment returned `404`. The remaining Stage 2 gaps are a hosted user-interface Credits surface and deployed controlled-egress rules/tests. The environment has no VNet or workload profiles, so Azure's documented UDR firewall pattern cannot be applied to it as it stands. See [TMDB integration](tmdb-integration.md), [network design](stage-2-network-design.md), and [the revised Stage 2 task](tasks/stage-2-movie-mcp.md).
+
+## Historical synthetic validation
+
+The evidence below predates the TMDB rollout. It describes the old synthetic catalog and admin PUT experiment and does not count as TMDB acceptance.
 
 The deployed components and trust boundaries are described in [Stage 2 architecture](stage-2-architecture.md).
 

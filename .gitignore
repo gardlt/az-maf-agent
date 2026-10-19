@@ -3,4 +3,5 @@ __pycache__/
 .venv/
 dist/
 .env
+.tdb-token
 *.parameters.json
