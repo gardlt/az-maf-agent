@@ -1,3 +1,11 @@
+## 2026-10-19 — Stage 4 completed in dev
+
+- Deployed the approved Blob preference store, bounded model recall, hourly cleanup job, and content-free overdue-cleanup portal alert. Versions and both soft-delete features are disabled.
+- Verified missing/wrong-audience/spoofed-header authentication rejection, explicit-consent enforcement, cross-session persistence after restarting the final revision, correction, reset, both deletion controls, recall exclusion after deletion, and stale recreation denial. No test preferences remain; empty generation fences remain intentionally.
+- A synthetic expired record was physically removed by the dedicated job in a 35-second execution; raw stored state and Log Analytics completion metadata were verified.
+- Closed Stage 3 memory boundary case 4. All 126 tests, lint/format checks, Bicep compilation, runtime CI, and dev deployment pass. Updated task status, decision register, learner/operator guide, environment inventory, architecture data flow, and redacted release evidence.
+- Stage 1 shared-session/expired-token gates and Stage 5 production controls remain open; Stage 4 completion does not imply production readiness.
+
 ## 2026-10-19 — Stage 4 runtime and dev rollout
 
 - Added bounded asynchronous memory access, cancellation fencing before writes, worker admission limits, and explicit ambiguous-write reconciliation without retries.

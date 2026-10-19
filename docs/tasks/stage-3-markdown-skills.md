@@ -2,7 +2,7 @@
 
 ## Current status
 
-**Complete for the single-replica teaching scope.** Both user-selected skills are implemented and validated locally and in dev. All 81 local tests pass. Hosted skill reads, exact digest binding, downstream write denial, and disable-without-redeploy passed. Case 4 remains mandatory Stage 4 memory integration work. See [validation evidence](../stage-3-validation.md) and [the operator guide](../stage-3-skills.md).
+**Complete for the single-replica teaching scope.** Both user-selected skills are implemented and validated locally and in dev. All 81 local tests pass. Hosted skill reads, exact digest binding, downstream write denial, and disable-without-redeploy passed. Case 4 is now completed at the actual memory layer in Stage 4; the integrated suite passes 126 tests. See [validation evidence](../stage-3-validation.md) and [the operator guide](../stage-3-skills.md).
 
 ## Goal and outcome
 
@@ -31,7 +31,7 @@ Approved skill registry/loader, capability intersection, integrity/revocation ga
 ## Acceptance criteria
 
 - [x] Approved selected skill works with chat and read-only catalog; unknown/tampered/revoked/path-escaping skills fail closed.
-- [x] Cases 1–3 and 5–6 below pass now with absence-of-effects evidence. Case 4 is tracked as mandatory [Stage 4](stage-4-memory.md) integration work, not marked passed prematurely.
+- [x] Cases 1–3 and 5–6 below pass now with absence-of-effects evidence. Case 4 is completed in [Stage 4](stage-4-memory.md), with memory-layer and no-effects evidence.
 - [x] Unavailable durable-memory operations already deny in Stage 3; isolated Stage 1 session history continues working.
 - [x] No policy expansion, unauthorized dispatch, private-file read, network fetch, or catalog mutation occurs in negative cases.
 
@@ -42,7 +42,7 @@ Approved skill registry/loader, capability intersection, integrity/revocation ga
 | 1. Forbidden catalog write | Request PUT/update with and without purported human approval. Dispatcher denies; reuse direct service test proving actual agent identity remains read-only and records unchanged. |
 | 2. Injection | Malicious Markdown or movie synopsis asks to override policy/identity. Even a complying fake model cannot change permissions or cause unauthorized dispatch. |
 | 3. Unapproved loading | Request files, another unapproved skill, external URL, or escaping reference. Deny before access/fetch; approved composition, if enabled, cannot widen permissions or grant arbitrary filesystem/network access. |
-| 4. Memory boundary — Stage 4 follow-up | With durable memory enabled, request another user's data or a durable write without consent. Memory layer denies; assert no disclosure or persistence. Model restraint is not enforcement. |
+| 4. Memory boundary — completed in Stage 4 | With durable memory enabled, request another user's data or a durable write without consent. Memory layer denies; assert no disclosure or persistence. Model restraint is not enforcement. |
 | 5. Recursion/repeats | Recursive invocation or repeated searches either fail composition policy or consume the same counters/deadline. Stop at limits/cancellation with no reset or subsequent dispatch. |
 | 6. Integrity/revocation | Swap content after validation, load tampered/unknown/revoked artifacts, and revoke an active skill. Only verified immutable bytes may be consumed; subsequent work blocks within existing bounds. |
 
@@ -50,8 +50,8 @@ Approved skill registry/loader, capability intersection, integrity/revocation ga
 
 - Approved skill format, selection rationale/alternatives, review/update/rollback procedure, and normal/negative learner walkthrough.
 - Loader/network spies, backend invocation counts, state/version comparisons, and redacted run/skill/policy/revocation IDs, rule decisions, and timing. Do not retain private content or raw malicious payloads in logs.
-- Explicit Stage 4 follow-up for case 4 and limits on cancellation of accepted external work.
+- Completed Stage 4 case 4 evidence and limits on cancellation of accepted external work.
 
 ## Out of scope
 
-Unreviewed marketplace installation, arbitrary executable Markdown/code, permission escalation, agent PUT, automatic durable writes, required composition, or production shared-control guarantees. Both teaching skills were explicitly selected by the user. The existing approved Foundry model is reused; no durable memory backend is selected.
+Unreviewed marketplace installation, arbitrary executable Markdown/code, permission escalation, agent PUT, automatic durable writes, required composition, or production shared-control guarantees. Both teaching skills were explicitly selected by the user. The existing approved Foundry model is reused; the selected Stage 4 Blob backend remains unavailable to reviewed skills.

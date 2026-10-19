@@ -83,3 +83,12 @@ proposal returned **403**. The run references were
 `454effd5-09eb-44a7-9989-61355d4128da` (research) and
 `1dfda034-4f6b-4327-93f6-4408b3796b4d` (movie-night). Generation 2 survived app revision
 replacement, confirming that deployment did not reset the operator's control state.
+
+
+## Stage 4 case 4 completion — 2026-10-19
+
+The deferred memory boundary is now validated at the actual memory layer: no
+other-user disclosure, no skill writes (including claimed consent), and no backend
+I/O for denied writes. Reviewed skills cannot receive saved preferences or prior
+personalized history. The integrated 126-test suite passes; see
+[Stage 4 validation](stage-4-validation.md) for fixtures and hosted lifecycle evidence.

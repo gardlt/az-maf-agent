@@ -2,7 +2,17 @@
 
 ## Current status
 
-Implementation in progress. The user approved explicit-consent movie genre/language preferences across owned sessions with a 30-day expiry. Typed contracts, authenticated API groundwork (disabled by default), a non-durable scoped fixture, consent/lifecycle controls, and isolation/race tests are implemented. The user selected Blob Storage with no dev backups/version history and expiry cleanup within 24 hours. The ETag-protected Blob adapter and undeployed infrastructure module are implemented; the full suite passes 113 tests. Operator-only hosted configuration and disabled-by-default Container App settings are implemented. Bounded asynchronous access, scheduled cleanup, model recall integration, and deployed acceptance remain open. See [the implementation and backend proposal](../stage-4-memory.md).
+**Complete for the selected single-process dev teaching scope.** User-approved,
+explicit-consent genre/language preferences use Blob Storage across the same user's
+sessions with 30-day expiry and no dev backups/version history. Bounded async access,
+governed recall, inspection/correction/deletion, ETag/generation fencing, hourly
+physical cleanup and overdue-cleanup monitoring are deployed. All **126 tests pass**;
+CI, infrastructure validation, restart persistence and the stable hosted lifecycle
+passed. Stage 3 case 4 is resolved at the memory layer. See the
+[guide](../stage-4-memory.md) and [validation evidence](../stage-4-validation.md).
+
+Stage 1's shared/resumable-session and expired-ingress-token gaps are unchanged;
+Stage 5 production controls remain separate.
 
 ## Goal and outcome
 
@@ -14,7 +24,7 @@ Authenticated memory APIs, approved persistence/retrieval, lifecycle controls, i
 
 ## Prerequisites and dependencies
 
-- [Stage 3](stage-3-markdown-skills.md), including tested skill capabilities and pending boundary case 4.
+- [Stage 3](stage-3-markdown-skills.md), including tested skill capabilities and the now-completed boundary case 4.
 - Select durable backend, allowed categories, consent policy, retention/deletion values, and any derived-data design before enabling persistence. Keep the session backend/resumption decision distinct.
 - Recommend the simplest adequate design without treating that recommendation as user approval of a product. Record rationale, alternatives, tradeoffs, and reconsideration triggers.
 
@@ -22,22 +32,27 @@ Authenticated memory APIs, approved persistence/retrieval, lifecycle controls, i
 
 1. [x] Define session history versus durable fact contracts. “Chose comedy this session” and already-suggested movies are working context; consented “prefers comedy” is a durable personal preference. Actor/movie relationships are catalog knowledge, not automatically personal memory.
 2. [x] Evaluate structured key/value/document records for exact preferences, vectors for similarity over approved memories, graphs for explicit relationships, or a hybrid only if measured needs justify its complexity. Graph/vector do not dictate lifetime or supply governance by themselves.
-3. [ ] Implement typed memory APIs deriving tenant/user/session/purpose from trusted authenticated scope. Enforce filtering in storage queries, caches, and every graph hop before data can be disclosed; no model-supplied identity is authoritative.
-4. [ ] Approve per-environment backend/endpoint/identity/namespace/operation allowlists. Reject arbitrary connection strings, endpoints, credentials, SQL/Gremlin, and uncontrolled traversals. Bound result count, depth/fan-out, query time, embedding calls, and spend under shared budgets.
-5. [ ] Validate consent and category before writes or derived-data creation. Store provenance, timestamps, expiry, and source metadata; exclude secrets, tokens, hidden reasoning, and unrestricted transcripts. Recalled content remains untrusted and cannot grant permissions.
-6. [ ] Implement inspect, correct, forget-record, and forget-all controls; encrypt/restrict access and propagate lifecycle actions to records, embeddings, graph nodes/edges, indexes, caches, replicas, and backups as applicable. Keep source-to-derived mappings and restore/rebuild tombstones.
-7. [ ] Enforce immediate retrieval exclusion for expiry/deletion and physical cleanup within the spec's approved SLA. Document bounded backup expiry and separately retained content-free audit metadata.
-8. [ ] Complete Stage 3 case 4 and all memory tests below; retain session, skill, catalog, network, and budget regression coverage.
+3. [x] Implement typed memory APIs deriving tenant/user/session/purpose from trusted authenticated scope. Enforce filtering in storage queries, caches, and every graph hop before data can be disclosed; no model-supplied identity is authoritative.
+4. [x] Approve per-environment backend/endpoint/identity/namespace/operation allowlists. Reject arbitrary connection strings, endpoints, credentials, SQL/Gremlin, and uncontrolled traversals. Bound result count, depth/fan-out, query time, embedding calls, and spend under shared budgets.
+5. [x] Validate consent and category before writes or derived-data creation. Store provenance, timestamps, expiry, and source metadata; exclude secrets, tokens, hidden reasoning, and unrestricted transcripts. Recalled content remains untrusted and cannot grant permissions.
+6. [x] Implement inspect, correct, forget-record, and forget-all controls; encrypt/restrict access and propagate lifecycle actions to records, embeddings, graph nodes/edges, indexes, caches, replicas, and backups as applicable. Keep source-to-derived mappings and restore/rebuild tombstones.
+7. [x] Enforce immediate retrieval exclusion for expiry/deletion and physical cleanup within the spec's approved SLA. Document bounded backup expiry and separately retained content-free audit metadata.
+8. [x] Complete Stage 3 case 4 and all memory tests below; retain session, skill, catalog, network, and budget regression coverage.
 
 ## Acceptance criteria
 
-- [ ] Consented allowed preference survives a session boundary only in its approved scope; session history is not automatically promoted into durable memory.
-- [ ] Another tenant/user/session cannot retrieve or modify protected memory through APIs, indexes, caches, concurrent requests, semantic matches, or graph paths.
-- [ ] Missing consent/category authorization denies before source or derived persistence. Poisoned memory never becomes policy, approval, or authority.
-- [ ] Inspect/correct/delete and expiry work across enabled source/derived stores; reset/restore/rebuild cannot resurrect deleted data. Tests prove immediate retrieval exclusion and cleanup within declared SLA.
-- [ ] Unapproved backends/endpoints and arbitrary query text fail; retrieval, traversal, embedding, and retry consumption stay bounded and cancel correctly.
-- [ ] Stage 3 memory case 4 passes at the memory layer for a skill requesting another user's records or writing without consent, with no disclosure/change.
-- [ ] Short-term isolation/reset/expiry, summary poisoning, context limits, and applicable restart/concurrency tests still pass. Catalog records remain separate from user memory; agent PUT stays forbidden.
+- [x] Consented allowed preference survives a session boundary only in its approved scope; session history is not automatically promoted into durable memory.
+- [x] Another tenant/user or non-owned session cannot retrieve or modify protected memory through APIs, indexes, caches, concurrent requests, semantic matches, or graph paths.
+- [x] Missing consent/category authorization denies before source or derived persistence. Poisoned memory never becomes policy, approval, or authority.
+- [x] Inspect/correct/delete and expiry work across enabled source/derived stores; reset/restore/rebuild cannot resurrect deleted data. Tests prove immediate retrieval exclusion and cleanup within declared SLA.
+- [x] Unapproved backends/endpoints and arbitrary query text fail; retrieval, traversal, embedding, and retry consumption stay bounded and cancel correctly.
+- [x] Stage 3 memory case 4 passes at the memory layer for a skill requesting another user's records or writing without consent, with no disclosure/change.
+- [x] Short-term isolation/reset/expiry, summary poisoning, context limits, and applicable restart/concurrency tests still pass. Catalog records remain separate from user memory; agent PUT stays forbidden.
+
+Same-user owned sessions intentionally share approved preferences. Vector/graph/
+embedding paths are not enabled. Backup restore/rebuild is not exposed; no dev
+versions or soft-delete copies exist. The lifecycle tests cover every enabled store
+and retain empty generation fences instead of private deleted content.
 
 ## Security and negative scenarios
 

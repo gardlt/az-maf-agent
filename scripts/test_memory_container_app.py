@@ -19,9 +19,12 @@ def run(api, phase):
                 json=body,
                 headers={"Authorization": "Bearer " + token} if authenticated else {},
             )
-            print(
-                f"{method} {path.split('/memory')[0].split('/sessions/')[0] or '/sessions'}: HTTP {response.status_code}"
-            )
+            parts = path.split("/")
+            if len(parts) > 2:
+                parts[2] = "{session}"
+            if len(parts) > 4 and parts[3] == "memory":
+                parts[4] = "{record}"
+            print(f"{method} {'/'.join(parts)}: HTTP {response.status_code}")
             if response.status_code != expected:
                 raise RuntimeError(f"expected HTTP {expected}, received {response.status_code}")
             return response.json() if expected == 200 else {}
@@ -81,8 +84,21 @@ def run(api, phase):
             request("POST", f"/sessions/{another}/reset")
             assert len(request("GET", f"/sessions/{another}/memory")["memories"]) == 1
         if phase in {"all", "verify", "cleanup"}:
+            if phase in {"all", "verify"}:
+                removed = request("DELETE", path + "/" + record["id"])
+                assert removed["forgotten"] is True
             result = request("DELETE", path)
             assert request("GET", path)["memories"] == []
+            if phase in {"all", "verify"}:
+                after = request(
+                    "POST",
+                    f"/sessions/{another}/chat",
+                    body={
+                        "text": "Do I have any saved movie preferences? Keep the answer brief.",
+                        "revision": chat["revision"] + 1,
+                    },
+                )
+                assert after["memory"]["records"] == 0
             request(
                 "POST",
                 path,

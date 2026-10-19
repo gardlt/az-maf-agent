@@ -78,7 +78,8 @@ per user namespace. Requests time out after 15 seconds. Cancellation prevents a 
 PUT when observed before dispatch; an already-dispatched PUT may have committed.
 Its worker keeps its slot until it settles, and no retry is issued. Socket/stream
 bounds remain active. Shutdown drains pending workers before closing credentials.
-Audit authorization must be delivered before effects; logs omit preference values,
+Audit authorization must be delivered before effects; the dev Log Analytics workspace
+retains content-free metadata for 30 days. Logs omit preference values,
 raw tokens, model responses, and prompts.
 
 ## Learner exercise
@@ -105,7 +106,8 @@ blindly. TMDB catalog knowledge remains separate and read-only.
 
 Dev uses `stmafmemdevmako261019`, container `preferences`, and hourly job
 `job-maf-memory-dev-eus2-01`. The agent and job use separate system identities with
-container-scoped Blob Data Contributor; the existing pull identity only pulls images.
+container-scoped Blob Data Contributor. Registry authentication reuses the existing
+user-assigned pull identity; memory code selects the system identity.
 Shared Key and anonymous Blob access are disabled; HTTPS, TLS 1.2 and storage
 encryption are required. Account/container/policy/user allowlist come from operator
 settings; unsupported configuration fails startup.

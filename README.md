@@ -85,3 +85,16 @@ Validate live tokens, real Easy Auth behavior, workload RBAC, endpoint compatibi
 See [Stage 1 validation](docs/stage-1-validation.md) for evidence and incomplete gates. Subsequent stages must preserve these tests and the spec's read-only agent catalog policy.
 
 See [the change log](docs/change-log.md) for a committed record of material deployment, authentication, and hosted-test changes.
+
+
+## Stage 4 movie preferences
+
+Dev can explicitly save genre/language preferences across the same user's sessions
+for 30 days. Use `/memory` to inspect, `/remember preferred_genre comedy` to consent
+to a save/correction, and `/forget all` to delete. Ordinary chat never saves memory.
+The reviewed movie skills remain catalog-only and receive no durable preferences.
+
+See the [memory learner/operator guide](docs/stage-4-memory.md) and
+[Stage 4 validation](docs/stage-4-validation.md). The Blob store is distinct from
+process-local chat sessions: durable preferences survive replica replacement while
+short-term sessions still require a fresh session after restart.

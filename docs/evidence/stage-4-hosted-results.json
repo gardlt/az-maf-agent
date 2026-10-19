@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-19",
+  "scope": "single-process dev teaching deployment",
+  "runtime_commit": "c02d72ef7d081d3f1244a1613a53365799ef8a90",
+  "revision": "ca-maf-agent-dev-eus2-01--0000024",
+  "image_digest": "sha256:dbf44f40453e8aa6e3f7a008de35507c0d654fb40298f806b8c6ee4e35e9b8a8",
+  "local_tests_passed": 126,
+  "hosted": {
+    "missing_token": 401,
+    "spoofed_identity_header": 401,
+    "wrong_audience": 401,
+    "no_consent": 403,
+    "forged_identity_body": 422,
+    "save": 200,
+    "restart_persistence": 200,
+    "cross_session_inspect": 200,
+    "correct": 200,
+    "model_recall": 200,
+    "reset": 200,
+    "forget_record": 200,
+    "forget_all": 200,
+    "chat_after_forget": 200,
+    "stale_recreation": 409,
+    "final_generation": 7,
+    "test_preferences_remaining": 0
+  },
+  "cleanup": {
+    "execution": "job-maf-memory-dev-eus2-01-jtibvd7",
+    "status": "Succeeded",
+    "duration_seconds": 35,
+    "examined": 2,
+    "expired_removed": 1,
+    "empty_generation_fence_verified": true,
+    "console_heartbeat_in_log_analytics": true,
+    "final_image_execution": {
+      "execution": "job-maf-memory-dev-eus2-01-de08dtn",
+      "status": "Succeeded",
+      "duration_seconds": 33
+    }
+  },
+  "backup_policy": {
+    "versions": false,
+    "blob_soft_delete": false,
+    "container_soft_delete": false
+  },
+  "overdue_cleanup_portal_alert": {
+    "enabled": true,
+    "evaluation_hours": 1,
+    "no_success_threshold_hours": 20,
+    "external_notification_recipients": 0
+  }
+}

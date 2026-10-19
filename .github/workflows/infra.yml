@@ -28,7 +28,7 @@ jobs:
           azcliversion: latest
           inlineScript: |
             set -euo pipefail
-            for file in infra/main.bicep infra/modules/*.bicep; do
+            for file in infra/main.bicep infra/main.rg.bicep infra/modules/*.bicep; do
               az bicep build --file "$file" --stdout >/dev/null
             done
 
@@ -48,6 +48,7 @@ jobs:
           MAF_AUTH_CLIENT_SECRET: validation-only
           MAF_MCP_AUDIENCE: 00000000-0000-0000-0000-000000000005
           TMDB_API_READ_ACCESS_TOKEN: validation-only
+          MAF_MEMORY_ACCOUNT_NAME: stmafmemvalidation123
         with:
           azcliversion: latest
           inlineScript: |
@@ -56,3 +57,5 @@ jobs:
             az bicep build-params --file infra/main.dev.bicepparam --stdout >/dev/null
             az bicep build-params --file infra/main.stage.bicepparam --stdout >/dev/null
             az bicep build-params --file infra/main.prod.bicepparam --stdout >/dev/null
+            az bicep build-params --file infra/main.dev.rg.bicepparam --stdout >/dev/null
+            az bicep build-params --file infra/memory.dev.bicepparam --stdout >/dev/null

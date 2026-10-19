@@ -116,7 +116,7 @@ Unknown skill requests are represented by a hash; known loader denials include t
 approved manifest binding. Backend invocation counts and unchanged-record comparisons
 provide absence-of-effects evidence, independently of model refusal.
 
-Case 4 remains mandatory Stage 4 work: once durable memory exists, test another user's
-records and writes without consent at the actual memory layer. Stage 3 already denies
-unavailable memory tool requests while keeping isolated short-term history. Stage 1's
+Case 4 is completed in [Stage 4 validation](stage-4-validation.md): actual memory-layer
+tests show no other-user disclosure and no skill write effects. Reviewed skills still
+have no memory capability and cannot inherit earlier personalized history. Stage 1's
 remaining shared-session and expired-ingress-token gates are tracked separately.

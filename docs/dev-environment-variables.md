@@ -79,4 +79,24 @@ These are identifiers, not credentials:
 - CLI: `d8bd0dd5-388c-4436-a64b-bdfcdbeebe7f`
 - Movie MCP: `f992b99b-25b8-4a99-8c00-7157b8edf4de`
 
-The registrations still need their service principals and API scope/client consent configured before authenticated Container Apps deployment.
+The dev registrations have configured service principals and consent; authenticated hosted acceptance succeeds.
+
+
+## Stage 4 memory settings
+
+No additional GitHub secret is needed. Bicep supplies these non-secret container
+settings; storage authentication uses each workload's managed identity.
+
+| Setting | Dev value |
+| --- | --- |
+| `ENABLE_MEMORY` | `true` (agent only) |
+| `MEMORY_BACKEND` | `azure_blob` (agent only) |
+| `MEMORY_ACCOUNT` | `stmafmemdevmako261019` |
+| `MEMORY_CONTAINER` | `preferences` |
+| `MEMORY_POLICY` | `/app/config/memory-policy.json` |
+| `MEMORY_ALLOWED_USERS` | Approved `MAF_ALLOWED_USERS` subset (agent only) |
+
+`infra/main.dev.rg.bicepparam` also pins cleanup job and portal alert names. Operator
+bootstrap grants agent/job system identities container-scoped Blob Data Contributor.
+Ordinary CI leaves `bootstrapMemoryRoles=false` and cannot grant roles. See the
+[Stage 4 guide](stage-4-memory.md) for lifecycle policy, tests, and operations.
