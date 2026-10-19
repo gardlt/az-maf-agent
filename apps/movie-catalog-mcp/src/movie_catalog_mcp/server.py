@@ -29,7 +29,10 @@ if _hosted:
     _tenant, _audience, _agent_oid = _hosted
     _verifier = JWTVerifier(
         jwks_uri=f"https://login.microsoftonline.com/{_tenant}/discovery/v2.0/keys",
-        issuer=f"https://login.microsoftonline.com/{_tenant}/v2.0",
+        issuer=[
+            f"https://login.microsoftonline.com/{_tenant}/v2.0",
+            f"https://sts.windows.net/{_tenant}/",
+        ],
         audience=[_audience, f"api://{_audience}"],
         algorithm="RS256",
     )
