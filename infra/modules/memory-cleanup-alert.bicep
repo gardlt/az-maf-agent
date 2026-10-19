@@ -1,6 +1,9 @@
 param name string
 param workspaceId string
 param location string = resourceGroup().location
+param requireSessionCycle bool = false
+
+var completedFilter = requireSessionCycle ? ' | where parse_json(Log_s).session_cycle_completed == true' : ''
 
 @description('Portal alert only; no notification recipients are configured by this module.')
 resource heartbeat 'Microsoft.Insights/scheduledQueryRules@2023-12-01' = {
@@ -17,7 +20,7 @@ resource heartbeat 'Microsoft.Insights/scheduledQueryRules@2023-12-01' = {
     autoMitigate: true
     criteria: {
       allOf: [{
-        query: 'ContainerAppConsoleLogs_CL | where TimeGenerated > ago(20h) | where Log_s has "memory_cleanup_completed" | summarize Successes=count() | where Successes == 0'
+        query: 'ContainerAppConsoleLogs_CL | where TimeGenerated > ago(20h) | where Log_s has "memory_cleanup_completed"${completedFilter} | summarize Successes=count() | where Successes == 0'
         timeAggregation: 'Count'
         operator: 'GreaterThan'
         threshold: 0

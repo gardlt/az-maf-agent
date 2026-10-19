@@ -13,6 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from .approval_ledger import ApprovalLedger, CreditArguments
 from .config import load_settings
 from .core import Principal, Service
 from .model import AzureTransport, Denied
@@ -137,6 +138,28 @@ def create_app(service: Service, verifier: EntraVerifier):
     @app.exception_handler(Denied)
     async def denied(request, exc):
         status = {
+            "global_stop": 503,
+            "control_unavailable": 503,
+            "control_invalid": 503,
+            "control_state_missing": 503,
+            "control_rollback": 503,
+            "control_timeout": 503,
+            "audit_unavailable": 503,
+            "capability_disabled": 403,
+            "action_forbidden": 403,
+            "approval_required": 403,
+            "approval_invalid": 403,
+            "control_not_enabled": 403,
+            "run_not_found": 404,
+            "receipt_not_found": 404,
+            "shared_concurrency": 429,
+            "shared_daily_budget": 429,
+            "shared_run_budget": 429,
+            "shared_tool_budget": 429,
+            "shared_memory_budget": 429,
+            "session_capacity": 429,
+            "control_capacity": 429,
+            "control_backpressure": 429,
             "session_not_found": 404,
             "memory_not_found": 404,
             "memory_forbidden": 403,
@@ -172,7 +195,11 @@ def create_app(service: Service, verifier: EntraVerifier):
 
     @app.post("/sessions")
     async def create(who=Depends(principal)):
-        return service.create(who)
+        return await service.create_async(who)
+
+    @app.get("/sessions/{sid}")
+    async def session_status(sid: str, who=Depends(principal)):
+        return await service.session_status(who, sid)
 
     @app.post("/sessions/{sid}/chat")
     async def chat(sid: str, body: ChatInput, who=Depends(principal)):
@@ -190,11 +217,11 @@ def create_app(service: Service, verifier: EntraVerifier):
 
     @app.post("/sessions/{sid}/reset")
     async def reset(sid: str, who=Depends(principal)):
-        return service.reset(who, sid)
+        return await service.reset_async(who, sid)
 
     @app.post("/sessions/{sid}/cancel")
     async def cancel(sid: str, who=Depends(principal)):
-        return service.cancel(who, sid)
+        return await service.reset_async(who, sid, clear=False)
 
     @app.post("/sessions/{sid}/movies/{tool_name}")
     async def movie_read(sid: str, tool_name: str, body: dict, who=Depends(principal)):
@@ -240,6 +267,61 @@ def create_app(service: Service, verifier: EntraVerifier):
     @app.delete("/sessions/{sid}/memory")
     async def forget_all_memory(sid: str, who=Depends(principal)):
         return await service.memory_async(who, sid, "forget_all")
+
+    class SimulationExecute(BaseModel):
+        model_config = ConfigDict(extra="forbid", strict=True)
+        approval_id: str = Field(pattern=r"^[0-9a-f-]{36}$")
+        arguments: CreditArguments
+
+    def require_safety():
+        if service.safety is None:
+            raise Denied("control_not_enabled")
+        return service.safety
+
+    @app.get("/runs/{run_id}")
+    async def run_status(run_id: str, who=Depends(principal)):
+        safety = require_safety()
+        return await safety.call(safety.controls.inspect, who, run_id)
+
+    @app.post("/runs/{run_id}/cancel")
+    async def cancel_run(run_id: str, who=Depends(principal)):
+        safety = require_safety()
+        return await safety.call(safety.controls.cancel, who, run_id)
+
+    @app.post("/simulations/requests")
+    async def request_simulation(body: CreditArguments, who=Depends(principal)):
+        from uuid import uuid4
+
+        safety = require_safety()
+        run_id = str(uuid4())
+        admitted = await safety.call(safety.controls.start, who, run_id)
+        return await safety.call(
+            ApprovalLedger(safety.controls).display,
+            who,
+            run_id,
+            admitted["epoch"],
+            body.model_dump(),
+        )
+
+    @app.post("/simulations/{run_id}/execute")
+    async def execute_simulation(run_id: str, body: SimulationExecute, who=Depends(principal)):
+        safety = require_safety()
+        run = await safety.call(safety.controls.inspect, who, run_id)
+        result = await safety.call(
+            ApprovalLedger(safety.controls).execute,
+            who,
+            run_id,
+            run["epoch"],
+            body.arguments.model_dump(),
+            body.approval_id,
+        )
+        await safety.call(safety.controls.finish, who, run_id, run["epoch"], "completed")
+        return result
+
+    @app.get("/simulations/receipts/{approval_id}")
+    async def simulation_receipt(approval_id: str, who=Depends(principal)):
+        safety = require_safety()
+        return await safety.call(ApprovalLedger(safety.controls).receipt, who, approval_id)
 
     return app
 
@@ -295,6 +377,7 @@ def from_env():
     if os.environ.get("ENABLE_MEMORY", "false").lower() == "true" and not movie_model_tools:
         raise ValueError("hosted memory recall requires the governed movie model loop")
     memory_service, memory_permissions = configured_memory(os.environ)
+    safety, session_repository = configured_safety(os.environ, settings)
     service = Service(
         settings,
         AzureTransport(settings) if settings.mode == "azure" else None,
@@ -304,8 +387,40 @@ def from_env():
         skill_permissions=skill_permissions,
         memory_service=memory_service,
         memory_permissions=memory_permissions,
+        safety=safety,
+        session_repository=session_repository,
     )
     return create_app(service, verifier)
+
+
+def configured_safety(env, settings):
+    enabled = env.get("ENABLE_GUARDRAILS", "false").lower()
+    shared = env.get("ENABLE_SHARED_SESSIONS", "false").lower()
+    if enabled not in {"true", "false"} or shared not in {"true", "false"}:
+        raise ValueError("guardrail/session enable flags must be true or false")
+    if enabled == "false":
+        if shared == "true":
+            raise ValueError("shared sessions require shared controls")
+        return None, None
+    from .guardrail_blob import BlobControlBackend
+    from .guardrails import RunControls
+    from .shared_sessions import BlobSessionBackend, SessionRepository
+    from .supervisor import SafetySupervisor
+
+    telemetry = None
+    if env.get("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+        from .control_telemetry import azure_telemetry
+
+        telemetry = azure_telemetry(env["APPLICATIONINSIGHTS_CONNECTION_STRING"])
+    safety = SafetySupervisor(
+        RunControls(BlobControlBackend(env["CONTROL_ACCOUNT"], telemetry=telemetry), settings)
+    )
+    repository = (
+        SessionRepository(BlobSessionBackend(env["SESSION_ACCOUNT"]), settings)
+        if shared == "true"
+        else None
+    )
+    return safety, repository
 
 
 def configured_memory(env, *, store_factory=None, audit=None):

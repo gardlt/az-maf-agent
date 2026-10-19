@@ -44,6 +44,8 @@ class Ledger:
     reserved_tokens: int = 0
     reserved_usd: Decimal = Decimal(0)
     actual_tokens: int = 0
+    shared_reserve: object = None
+    shared_reconcile: object = None
 
     def reserve(self, count: int):
         s, lim = self.settings, self.settings.limits
@@ -63,6 +65,46 @@ class Ledger:
         self.reserved_tokens += total
         self.reserved_usd += cost
         # Reservations are never refunded: failed/ambiguous requests may be billed.
+
+    async def areserve(self, count):
+        self.reserve(count)
+        if self.shared_reserve is not None:
+            return await self.shared_reserve(count)
+        return self.calls
+
+    async def reconcile(self, call_number, actual):
+        if self.shared_reconcile is not None:
+            await self.shared_reconcile(call_number, actual)
+        self.actual_tokens += actual
+
+
+async def isolated_provider_call(awaitable, ledger, call_number):
+    """A cancellation-resistant adapter cannot hold its parent or commit history."""
+    task = asyncio.create_task(awaitable)
+    try:
+        return await asyncio.shield(task)
+    except asyncio.CancelledError:
+        task.cancel()
+
+        def settled(done):
+            if done.cancelled():
+                return
+            error = done.exception()
+            if error is None and ledger.shared_reconcile is not None:
+                result = done.result()
+                actual = result[-1] if isinstance(result, tuple) else None
+                if type(actual) is int and actual >= 0:
+                    reconciliation = asyncio.create_task(
+                        ledger.shared_reconcile(call_number, actual)
+                    )
+                    reconciliation.add_done_callback(
+                        lambda completed: (
+                            completed.exception() if not completed.cancelled() else None
+                        )
+                    )
+
+        task.add_done_callback(settled)
+        raise
 
 
 CURRENT_LEDGER: ContextVar[Ledger] = ContextVar("ledger")
@@ -200,15 +242,17 @@ class GuardedClient(BaseChatClient):
             raise Denied("context_limit")
         ledger = CURRENT_LEDGER.get()
         for attempt in range(lim.retries + 1):
-            ledger.reserve(count)
+            call_number = await ledger.areserve(count)
             try:
                 async with asyncio.timeout(lim.call_seconds):
-                    text, actual = await self.transport.complete(messages, self.settings)
+                    text, actual = await isolated_provider_call(
+                        self.transport.complete(messages, self.settings), ledger, call_number
+                    )
                 if not isinstance(text, str) or not text or tokens(text) > lim.output_tokens:
                     raise Denied("output_limit")
                 if type(actual) is not int or actual < 0 or actual > count + lim.output_tokens:
                     raise Denied("provider_usage")
-                ledger.actual_tokens += actual
+                await ledger.reconcile(call_number, actual)
                 return ChatResponse(messages=[Message("assistant", [text])])
             except Transient:
                 if attempt == lim.retries:

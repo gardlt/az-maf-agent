@@ -99,6 +99,17 @@ def main():
     store = BlobMemoryStore(os.environ["MEMORY_ACCOUNT"], os.environ["MEMORY_CONTAINER"])
     try:
         result = sweep(store, load_memory_policy(os.environ["MEMORY_POLICY"]))
+        if os.environ.get("SESSION_ACCOUNT"):
+            from .config import load_settings
+            from .session_cleanup import sweep_sessions
+
+            session_store = BlobMemoryStore(os.environ["SESSION_ACCOUNT"], "agent-sessions")
+            try:
+                result.update(
+                    sweep_sessions(session_store, load_settings(os.environ["SESSION_CONFIG"]))
+                )
+            finally:
+                session_store.close()
         print(json.dumps({"event": "memory_cleanup_completed", **result}), flush=True)
     except Exception:
         print(json.dumps({"event": "memory_cleanup_failed"}), flush=True)

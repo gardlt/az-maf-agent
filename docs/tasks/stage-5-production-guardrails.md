@@ -1,5 +1,7 @@
 # Stage 5 task — Production containment and operator recovery
 
+Implementation status and approved dev decisions: [Stage 5 implementation notes](../stage-5-production-guardrails.md). Hosted release evidence remains pending; checklist items are intentionally not marked complete.
+
 ## Goal and outcome
 
 Make all prior controls operational across the selected Container Apps deployment and prove containment/recovery with deterministic and deployed exercises. Implement the [production contracts and release gates](../secure-agent-teaching-spec.md), following [shared conventions](README.md). Passing a finite suite is not a universal safety guarantee.

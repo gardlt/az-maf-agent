@@ -33,6 +33,10 @@ param memoryCleanupJobName string = 'job-memory-${uniqueString(agentAppName)}'
 @description('Operator bootstrap only. Ordinary CI must leave false.')
 param bootstrapMemoryRoles bool = false
 param memoryCleanupAlertName string = 'al-memory-${uniqueString(agentAppName)}'
+@description('Requires separately bootstrapped stopped policy and operator-approved runtime roles.')
+param enableGuardrails bool = false
+param controlAccountName string = memoryAccountName
+param controlInsightsName string = 'appi-${agentAppName}'
 
 resource resourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroupName
@@ -70,6 +74,9 @@ module agent './modules/container-app.bicep' = {
     enableMovieMcp: true
     movieMcpEndpoint: 'https://${movieMcpAppName}.internal.${foundation.outputs.environmentDefaultDomain}/mcp'
     movieMcpAudience: mcpAudience
+    enableGuardrails: enableGuardrails
+    controlAccountName: enableGuardrails ? controlAccountName : ''
+    applicationInsightsConnectionString: enableGuardrails ? controlMonitoring!.outputs.connectionString : ''
     enableMemory: enableMemory
     memoryAccountName: enableMemory ? memory!.outputs.accountName : ''
     memoryAllowedUsers: enableMemory ? allowedUsers : ''
@@ -121,6 +128,7 @@ module memoryCleanup './modules/memory-cleanup-job.bicep' = if (enableMemory) {
     registryLoginServer: foundation.outputs.registryLoginServer
     pullIdentityId: foundation.outputs.pullIdentityId
     memoryAccountName: memory!.outputs.accountName
+    sessionAccountName: enableGuardrails ? controlAccountName : ''
     location: location
   }
 }
@@ -140,7 +148,28 @@ module memoryHealth './modules/memory-cleanup-alert.bicep' = if (enableMemory) {
   scope: resourceGroup
   params: {
     name: memoryCleanupAlertName
+    requireSessionCycle: enableGuardrails
     workspaceId: resourceId(subscription().subscriptionId, resourceGroupName, 'Microsoft.OperationalInsights/workspaces', logsName)
+    location: location
+  }
+  dependsOn: [foundation]
+}
+
+module controlStorage './modules/guardrail-storage.bicep' = if (enableGuardrails) {
+  name: 'guardrail-storage'
+  scope: resourceGroup
+  params: {
+    accountName: controlAccountName
+    assignRoles: false
+  }
+  dependsOn: [memory]
+}
+module controlMonitoring './modules/control-monitoring.bicep' = if (enableGuardrails) {
+  name: 'control-monitoring'
+  scope: resourceGroup
+  params: {
+    name: controlInsightsName
+    workspaceId: resourceId(resourceGroupName, 'Microsoft.OperationalInsights/workspaces', logsName)
     location: location
   }
   dependsOn: [foundation]

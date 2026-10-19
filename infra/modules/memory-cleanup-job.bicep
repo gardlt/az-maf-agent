@@ -5,6 +5,7 @@ param registryLoginServer string
 param pullIdentityId string
 param memoryAccountName string
 param memoryContainerName string = 'preferences'
+param sessionAccountName string = ''
 param location string = resourceGroup().location
 
 resource job 'Microsoft.App/jobs@2025-01-01' = {
@@ -26,6 +27,8 @@ resource job 'Microsoft.App/jobs@2025-01-01' = {
         image: image
         command: ['python', '-m', 'az_maf_agent.memory_cleanup']
         env: [
+          { name: 'SESSION_ACCOUNT', value: sessionAccountName }
+          { name: 'SESSION_CONFIG', value: '/app/config/foundry-stage1.json' }
           { name: 'MEMORY_ACCOUNT', value: memoryAccountName }
           { name: 'MEMORY_CONTAINER', value: memoryContainerName }
           { name: 'MEMORY_POLICY', value: '/app/config/memory-policy.json' }

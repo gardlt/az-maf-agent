@@ -17,6 +17,7 @@ dependencies = [
   "cryptography==50.0.2",
   "uvicorn==0.54.0",
   "aiohttp>=3.12,<4",
+  "azure-monitor-opentelemetry-exporter==1.0.0b58",
 ]
 
 [project.scripts]

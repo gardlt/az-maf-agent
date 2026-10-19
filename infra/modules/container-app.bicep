@@ -28,6 +28,10 @@ param enableMemory bool = false
 param memoryAccountName string = ''
 param memoryContainerName string = 'preferences'
 param memoryAllowedUsers string = ''
+@description('Enable only after operator bootstrap and hosted validation.')
+param enableGuardrails bool = false
+param controlAccountName string = ''
+param applicationInsightsConnectionString string = ''
 @description('Enable public HTTPS ingress only after private validation.')
 param externalIngress bool = false
 @description('Absolute path to an approved configuration file included in the container image.')
@@ -54,6 +58,11 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
         name: 'agent-api'
         image: image
         env: [
+          { name: 'ENABLE_GUARDRAILS', value: toLower(string(enableGuardrails)) }
+          { name: 'ENABLE_SHARED_SESSIONS', value: toLower(string(enableGuardrails)) }
+          { name: 'CONTROL_ACCOUNT', value: controlAccountName }
+          { name: 'SESSION_ACCOUNT', value: controlAccountName }
+          { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: applicationInsightsConnectionString }
           { name: 'ENABLE_MEMORY', value: toLower(string(enableMemory)) }
           { name: 'MEMORY_BACKEND', value: 'azure_blob' }
           { name: 'MEMORY_POLICY', value: '/app/config/memory-policy.json' }

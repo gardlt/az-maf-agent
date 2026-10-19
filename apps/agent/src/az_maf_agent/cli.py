@@ -40,6 +40,8 @@ async def run(args):
         raise Denied("https_api_required")
     if args.skill and not args.api:
         raise Denied("skill_requires_configured_api")
+    if getattr(args, "session", None) and not args.api:
+        raise Denied("resume_requires_configured_api")
     movie_client = None
     if args.movies and not args.api:
         from .movie_mcp import MovieMCPClient
@@ -69,8 +71,15 @@ async def run(args):
         return response.json()
 
     try:
-        session = await remote("/sessions") if client else service.create(LOCAL)
+        session = (
+            await remote("/sessions/" + args.session, method="GET")
+            if client and getattr(args, "session", None)
+            else await remote("/sessions")
+            if client
+            else service.create(LOCAL)
+        )
         sid, revision = session["session_id"], session["revision"]
+        print(f"Session: {sid} (revision {revision})")
         print("Text-only chat. /reset clears history; /quit exits. Ctrl-C cancels the active run.")
         if args.movies:
             print("Use /search QUERY or /movie tmdb_<id> for TMDB movie reads.")
@@ -210,6 +219,7 @@ def main():
     parser.add_argument(
         "--api", help="Approved HTTPS API origin; uses an encrypted local Entra token cache"
     )
+    parser.add_argument("--session", help="Resume an owned shared session by ID")
     parser.add_argument("--movies", action="store_true", help="Enable explicit movie catalog reads")
     parser.add_argument("--skill", choices=["movie-research", "movie-night"])
     parser.add_argument("--skill-version", default="1.0.0")

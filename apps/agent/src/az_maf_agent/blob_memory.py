@@ -76,7 +76,18 @@ class BlobMemoryStore:
         )
         self.http = http or httpx.Client(timeout=5.0, follow_redirects=False)
 
-    def _request(self, method, url, *, content=None, conditions=None, control=None):
+    def _request(
+        self,
+        method,
+        url,
+        *,
+        content=None,
+        conditions=None,
+        control=None,
+        max_bytes=MAX_DOCUMENT_BYTES,
+    ):
+        if type(max_bytes) is not int or not 1 <= max_bytes <= 1048576:
+            raise ValueError("invalid bounded response size")
         started = time.monotonic()
         try:
             if control is not None and control.is_set():
@@ -94,13 +105,13 @@ class BlobMemoryStore:
                 raise Denied("memory_cancelled")
             with self.http.stream(method, url, headers=headers, content=content) as response:
                 body = bytearray()
-                for chunk in response.iter_bytes():
+                for chunk in response.iter_bytes(chunk_size=4096):
                     if time.monotonic() - started > 10 or (
                         control is not None and control.is_set()
                     ):
                         raise Denied("memory_timeout")
                     body.extend(chunk)
-                    if len(body) > MAX_DOCUMENT_BYTES:
+                    if len(body) > max_bytes:
                         raise Denied("memory_backend_invalid")
                 return response.status_code, response.headers, bytes(body)
         except Denied:
