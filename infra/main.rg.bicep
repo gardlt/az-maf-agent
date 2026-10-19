@@ -71,7 +71,7 @@ module movieMcp './modules/movie-mcp-app.bicep' = {
     pullIdentityId: foundation.outputs.pullIdentityId
     tenantId: tenantId
     mcpAudience: mcpAudience
-    allowedAgentOid: agent.outputs.workloadPrincipalId
+    allowedAgentOid: foundation.outputs.pullIdentityPrincipalId
     tmdbApiReadAccessToken: tmdbApiReadAccessToken
     location: location
   }

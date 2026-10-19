@@ -52,4 +52,5 @@ resource environment 'Microsoft.App/managedEnvironments@2024-03-01' = {
 output managedEnvironmentId string = environment.id
 output registryLoginServer string = registry.properties.loginServer
 output pullIdentityId string = pullIdentity.id
+output pullIdentityPrincipalId string = pullIdentity.properties.principalId
 output environmentDefaultDomain string = environment.properties.defaultDomain
