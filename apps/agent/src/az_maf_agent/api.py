@@ -196,7 +196,9 @@ def from_env():
         from .movie_mcp import MovieMCPClient
 
         movie_client = MovieMCPClient(
-            endpoint=os.environ["MCP_ENDPOINT"], audience=os.environ["MCP_AUDIENCE"]
+            endpoint=os.environ["MCP_ENDPOINT"],
+            audience=os.environ["MCP_AUDIENCE"],
+            identity_client_id=os.environ.get("MCP_IDENTITY_CLIENT_ID"),
         )
     service = Service(
         settings,

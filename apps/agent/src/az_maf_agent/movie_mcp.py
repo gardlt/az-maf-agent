@@ -110,7 +110,7 @@ def validate_result(name: str, value: object) -> dict:
 class MovieMCPClient:
     """Calls local stdio or the pinned internal MCP host with workload identity."""
 
-    def __init__(self, transport=None, endpoint=None, audience=None):
+    def __init__(self, transport=None, endpoint=None, audience=None, identity_client_id=None):
         self.endpoint = endpoint
         self.audience = None
         self.credential = None
@@ -130,7 +130,7 @@ class MovieMCPClient:
             ):
                 raise ValueError("expected pinned internal Container Apps MCP endpoint")
             self.audience = str(UUID(audience))
-            self.credential = ManagedIdentityCredential()
+            self.credential = ManagedIdentityCredential(client_id=identity_client_id or None)
         self.transport = transport or (
             None
             if endpoint is not None

@@ -55,6 +55,7 @@ module agent './modules/container-app.bicep' = {
     enableMovieMcp: true
     movieMcpEndpoint: 'https://${movieMcpAppName}.internal.${foundation.outputs.environmentDefaultDomain}/mcp'
     movieMcpAudience: mcpAudience
+    movieMcpIdentityClientId: 'e34a91a0-c4d1-4a93-bd3a-1d5575ba9312'
     enableMovieModelTools: false
     location: location
   }

@@ -17,6 +17,7 @@ param authClientSecret string
 param enableMovieMcp bool = false
 param movieMcpEndpoint string = ''
 param movieMcpAudience string = ''
+param movieMcpIdentityClientId string = ''
 @description('Allow the live model to select the bounded movie read tools.')
 param enableMovieModelTools bool = false
 @description('Enable public HTTPS ingress only after private validation.')
@@ -52,6 +53,7 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
           { name: 'ENABLE_MOVIE_MCP', value: toLower(string(enableMovieMcp)) }
           { name: 'MCP_ENDPOINT', value: movieMcpEndpoint }
           { name: 'MCP_AUDIENCE', value: movieMcpAudience }
+          { name: 'MCP_IDENTITY_CLIENT_ID', value: movieMcpIdentityClientId }
           { name: 'ENABLE_MOVIE_MODEL_TOOLS', value: toLower(string(enableMovieModelTools)) }
         ]
         resources: { cpu: json('0.5'), memory: '1Gi' }
