@@ -32,6 +32,7 @@ module foundation './modules/foundation.bicep' = {
     registryName: registryName
     pullIdentityName: pullIdentityName
     logsName: logsName
+    assignAcrPullRole: false
     location: location
   }
 }

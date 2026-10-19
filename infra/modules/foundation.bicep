@@ -6,6 +6,8 @@ param registryName string
 param pullIdentityName string
 @description('Log Analytics workspace name.')
 param logsName string
+@description('Create the registry pull role assignment. Existing scoped environments can disable this after bootstrap.')
+param assignAcrPullRole bool = true
 param location string = resourceGroup().location
 
 resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -26,7 +28,7 @@ resource pullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-
   location: location
 }
 
-resource acrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource acrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (assignAcrPullRole) {
   name: guid(registry.id, pullIdentity.id, 'acrpull')
   scope: registry
   properties: {
