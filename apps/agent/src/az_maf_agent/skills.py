@@ -198,5 +198,5 @@ def parse_control(content: bytes | str) -> dict:
 def read_control(path: Path) -> dict:
     try:
         return parse_control(read_regular(path, 16384))
-    except OSError:
+    except (OSError, ValueError):
         raise Denied("skill_control_unavailable") from None

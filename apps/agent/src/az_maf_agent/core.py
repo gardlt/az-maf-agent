@@ -422,7 +422,8 @@ class Service:
                         raise Denied("tools_disabled")
                     answer = result.text
             if skill is not None:
-                await asyncio.to_thread(self.skill_registry.check, skill)
+                async with asyncio.timeout(min(5.0, lim.call_seconds)):
+                    await asyncio.to_thread(self.skill_registry.check, skill)
             if (
                 self.expired(session)
                 or session.revision != revision

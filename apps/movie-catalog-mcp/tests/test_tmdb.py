@@ -176,3 +176,26 @@ async def test_fastmcp_exposes_only_tmdb_reads(monkeypatch):
             dispatcher.dispatch(server.MCP_RUNTIME, "put_movie", {"catalog_id": "tmdb_11"})
     finally:
         client.close()
+
+
+def test_forbidden_write_has_no_upstream_effect_and_preserves_record():
+    requests = []
+
+    def backend(request):
+        requests.append((request.method, request.url.path))
+        assert request.method == "GET"
+        return httpx.Response(200, json=sample())
+
+    client = make_client(backend)
+    dispatcher = TMDBDispatcher(client, frozenset({server.MCP_RUNTIME}))
+    try:
+        before = dispatcher.dispatch(server.MCP_RUNTIME, "get_movie", {"catalog_id": "tmdb_11"})
+        for args in [{"catalog_id": "tmdb_11"}, {"catalog_id": "tmdb_11", "approved": True}]:
+            with pytest.raises(Denied, match="tool_not_allowed"):
+                dispatcher.dispatch(server.MCP_RUNTIME, "put_movie", args)
+        assert len(requests) == 1
+        after = dispatcher.dispatch(server.MCP_RUNTIME, "get_movie", {"catalog_id": "tmdb_11"})
+        assert before == after
+        assert requests == [("GET", "/3/movie/11")] * 2
+    finally:
+        client.close()
