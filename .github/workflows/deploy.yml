@@ -81,6 +81,7 @@ jobs:
                   registryName="$MAF_REGISTRY_NAME" \
                   pullIdentityName="$pull_identity" \
                   logsName="$logs_name" \
+                  assignAcrPullRole=false \
                 --output none
             else
               az deployment sub create \
