@@ -30,7 +30,7 @@ if _hosted:
     _verifier = JWTVerifier(
         jwks_uri=f"https://login.microsoftonline.com/{_tenant}/discovery/v2.0/keys",
         issuer=f"https://login.microsoftonline.com/{_tenant}/v2.0",
-        audience=_audience,
+        audience=[_audience, f"api://{_audience}"],
         algorithm="RS256",
     )
 else:
