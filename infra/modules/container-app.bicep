@@ -49,10 +49,10 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
           { name: 'ENTRA_TENANT_ID', value: tenantId }
           { name: 'ENTRA_AUDIENCE', value: audience }
           { name: 'ENTRA_ALLOWED_USERS', value: allowedUsers }
-          { name: 'ENABLE_MOVIE_MCP', value: string(enableMovieMcp) }
+          { name: 'ENABLE_MOVIE_MCP', value: toLower(string(enableMovieMcp)) }
           { name: 'MCP_ENDPOINT', value: movieMcpEndpoint }
           { name: 'MCP_AUDIENCE', value: movieMcpAudience }
-          { name: 'ENABLE_MOVIE_MODEL_TOOLS', value: string(enableMovieModelTools) }
+          { name: 'ENABLE_MOVIE_MODEL_TOOLS', value: toLower(string(enableMovieModelTools)) }
         ]
         resources: { cpu: json('0.5'), memory: '1Gi' }
       }]
