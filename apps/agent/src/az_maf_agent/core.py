@@ -501,6 +501,8 @@ class Service:
             if session.active:
                 session.active.cancel()
         await self.transport.close()
+        if self.memory_service is not None:
+            await asyncio.to_thread(self.memory_service.close)
         if self.skill_registry is not None and self.skill_registry.control_reader is not None:
             await asyncio.to_thread(self.skill_registry.control_reader.close)
         if self.movie_client is not None:

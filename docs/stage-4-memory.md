@@ -2,8 +2,9 @@
 
 Stage 4 is in progress. The user approved explicitly saved movie genre/language
 preferences following the same authenticated user across sessions, with a 30-day
-expiry. `config/memory-policy.json` records that policy. Hosted storage selection,
-backup/deletion SLAs, and hosted acceptance are still open. No cloud memory resources
+expiry. `config/memory-policy.json` records that policy. The user selected Azure Blob Storage (one document per user) and approved dev
+cleanup within 24 hours with no backups or version history. Hosted wiring, scheduled
+cleanup, and deployed acceptance remain open. No cloud memory resources
 have been created, and the running app does not enable memory persistence.
 
 ## Contracts implemented
@@ -71,13 +72,13 @@ preference content. Delivery failure before access prevents storage effects. Pro
 hosted audit retention and reconciliation of ambiguous durable commits are still to
 be implemented with the durable backend.
 
-## Backend design proposal — not a product approval
+## Selected backend — Azure Blob Storage
 
 Start with exact structured records; there is no measured need for vectors, embeddings,
 graph traversal, or a hybrid store. This preserves simple consent, correction, and
 forget-all operations without introducing derived copies of personal data.
 
-My proposed hosted design is one bounded JSON document per user/purpose in Azure Blob
+The user-selected hosted design is one bounded JSON document per user/purpose in Azure Blob
 Storage. Its document contains the two preferences, namespace generation, and deletion
 metadata. Scope-derived object names avoid a broad listing query. Conditional ETag
 updates can implement the same optimistic-concurrency contract: Azure documents a
@@ -90,19 +91,19 @@ Data Contributor; the shared generation/forget-all contract would need a coordin
 row design. See [Microsoft's Table authorization documentation](https://learn.microsoft.com/en-us/azure/storage/tables/authorize-access-azure-active-directory).
 Microsoft recommends managed identities for storage data access where possible;
 [its authorization guide](https://learn.microsoft.com/en-us/azure/storage/common/authorize-data-access)
-describes the identity-based boundary. Neither product is provisioned or enabled by
+describes the identity-based boundary. The user selected Blob Storage; it is not yet provisioned or enabled by
 this checkpoint. Revisit a database/vector/graph option only when measured query or
 scale requirements justify it.
 
-The durable design still needs the approved environment endpoint/namespace/identity,
-encryption and access restrictions, a physical deletion/cleanup SLA, backup expiry
-and restore fencing, bounded network operations, and complete shared run accounting
-for model recall. The session-resumption backend remains a separate decision.
+The durable implementation still needs the deployed endpoint/namespace/identity,
+async request deadlines/cancellation, scheduled expiry cleanup within the approved
+24-hour bound, and complete shared run accounting for model recall. Dev has no
+backups or retained versions; enabling either later requires restore deletion fencing. The session-resumption backend remains a separate decision.
 
 ## Validation checkpoint
 
 Run `uv run --locked pytest -q` and `uv run --locked ruff check apps scripts`.
-The full suite currently passes **95 tests**, retaining the Stage 1–3 regressions.
+The full suite currently passes **106 tests**, retaining the Stage 1–3 regressions.
 The new tests cover consent/category denial before storage, user/tenant/session
 isolation, forged API scope, correction and expiry, deletion/stale-write fences,
 concurrent correction/delete and duplicate creates, audit failure, reset/counter
@@ -113,3 +114,37 @@ writes deny even with purported consent and that another user's records are not
 returned. Actual model-to-memory integration and durable/hosted versions of those
 cases remain mandatory Stage 4 acceptance work. No acceptance checkbox is closed on
 the strength of a fake model refusing an operation.
+
+
+## Blob adapter checkpoint
+
+`BlobMemoryStore` now implements the selected single-document design. A scope-derived
+hashed object name selects one user/purpose namespace before any read. It uses managed
+identity for the storage audience and pins the account/container; there are no model-
+supplied endpoints, wildcard queries, or listing operations. Stored documents are
+bounded to 16 KiB and validated for schema, scope, category/value, provenance, expiry,
+record count, and unique IDs/categories before use.
+
+The shared `PreferenceState` transition engine operates on an immutable-record snapshot.
+Creation uses `If-None-Match: *`; every existing-document update uses its exact ETag
+with `If-Match`. A 409/412 conflict is surfaced without an unconditional overwrite or
+blind retry. Forgetting retains an empty document with the advanced generation, rather
+than deleting the object and allowing an old create to see a fresh namespace. Expiry
+is excluded and persisted on inspection. A timed-out PUT is reported as ambiguous;
+inspection can reconcile the committed state without creating a duplicate record.
+An explicit audit callback is required to construct the durable service adapter.
+
+The storage module `infra/modules/memory-storage.bicep` and
+`infra/memory.dev.bicepparam` are prepared. The dev parameters disable versions, blob
+soft delete, and container soft delete according to the user's choice. The module
+requires HTTPS, TLS 1.2, storage encryption, no anonymous Blob access, and no Shared
+Key access. Optional operator bootstrap grants only container-scoped Blob Data
+Contributor to the specified workload. The module compiles; it has not been deployed.
+The existing hosted app still has no enabled memory backend.
+
+Blob tests use a deterministic HTTP fixture, not Azure. They cover adapter recreation,
+user isolation, ETag conflicts, empty generation persistence, missing consent/skill
+writes before any network access, redirects, failed/missing containers, oversized or
+corrupted documents, expiry cleanup, and a committed write whose reply is lost. Actual
+Azure identity, encryption configuration, periodic cleanup, hosted persistence, and
+model recall require the next implementation/deployment step.

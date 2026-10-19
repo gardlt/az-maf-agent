@@ -1,6 +1,6 @@
-"""Governed structured preference contracts and an explicitly non-durable test store.
+"""Governed preference contracts, shared state transitions, and the local test adapter.
 
-No hosted backend, model memory tools, transcript saving, or automatic recall is enabled.
+No model memory tools, transcript saving, or automatic recall are enabled here.
 """
 
 import hashlib
@@ -103,8 +103,8 @@ class MemoryRecord:
     untrusted: bool = True
 
 
-class FixtureMemoryStore:
-    """RAM-only test adapter. Locks implement atomic scoped operations, not durability.
+class PreferenceState:
+    """Shared in-memory transition engine, operating on one scoped snapshot.
 
     There is no broad lookup/query API, network client, derived index, or disk backup.
     Effect records and deletion markers contain no preference values.
@@ -197,12 +197,18 @@ class FixtureMemoryStore:
             return {**result, "generation": generation + 1}
 
 
+class FixtureMemoryStore(PreferenceState):
+    """Explicitly non-durable RAM adapter for tests. Never enabled by hosted defaults."""
+
+
 class MemoryService:
-    def __init__(
-        self, policy: MemoryPolicy, store: FixtureMemoryStore, clock=time.time, audit=None
-    ):
-        if type(store) is not FixtureMemoryStore:
-            raise ValueError("only the reviewed local fixture is implemented")
+    def __init__(self, policy: MemoryPolicy, store, clock=time.time, audit=None):
+        from .blob_memory import BlobMemoryStore
+
+        if type(store) not in (FixtureMemoryStore, BlobMemoryStore):
+            raise ValueError("only the reviewed local fixture or Blob adapter is supported")
+        if type(store) is BlobMemoryStore and audit is None:
+            raise ValueError("durable memory requires an explicit audit callback")
         self.policy, self.store, self.clock = policy, store, clock
         self.audit = audit or (lambda _: None)
 
@@ -254,6 +260,12 @@ class MemoryService:
             expected_generation=expected_generation,
             expected_revision=expected_revision,
         )
+
+    def close(self):
+        from .blob_memory import BlobMemoryStore
+
+        if type(self.store) is BlobMemoryStore:
+            self.store.close()
 
 
 def load_memory_policy(path: str) -> MemoryPolicy:

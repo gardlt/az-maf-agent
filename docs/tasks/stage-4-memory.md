@@ -2,7 +2,7 @@
 
 ## Current status
 
-Implementation in progress. The user approved explicit-consent movie genre/language preferences across owned sessions with a 30-day expiry. Typed contracts, authenticated API groundwork (disabled by default), a non-durable scoped fixture, consent/lifecycle controls, and isolation/race tests are implemented. The full suite passes 95 tests. Hosted backend selection and persistence, model recall integration, encryption/backup/deletion SLAs, and deployed acceptance remain open. See [the implementation and backend proposal](../stage-4-memory.md).
+Implementation in progress. The user approved explicit-consent movie genre/language preferences across owned sessions with a 30-day expiry. Typed contracts, authenticated API groundwork (disabled by default), a non-durable scoped fixture, consent/lifecycle controls, and isolation/race tests are implemented. The user selected Blob Storage with no dev backups/version history and expiry cleanup within 24 hours. The ETag-protected Blob adapter and undeployed infrastructure module are implemented; the full suite passes 106 tests. Hosted wiring, scheduled cleanup, model recall integration, and deployed acceptance remain open. See [the implementation and backend proposal](../stage-4-memory.md).
 
 ## Goal and outcome
 

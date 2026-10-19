@@ -2,6 +2,12 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-19 — Stage 4 Blob adapter and dev policy
+
+- The user selected one Blob document per user and approved no dev backups/version history, immediate expiry/deletion exclusion, and expired-record cleanup within 24 hours.
+- Implemented a managed-identity Blob adapter with pinned destinations, validated bounded documents, conditional creation/ETag updates, and persistent empty generation records after forgetting. Extracted the shared state transition engine from the RAM fixture; durable services require an explicit audit callback.
+- Added Blob fixture tests for scope/corruption, conditional conflicts, adapter recreation, expiry, and ambiguous commits; the suite passes 106 tests. Prepared and compiled the private-container storage module and explicit dev parameters. Hosted memory and the scheduled cleanup worker are not enabled yet.
+
 ## 2026-10-19 — Stage 4 memory groundwork
 
 - Recorded the user's policy choice: explicitly saved movie genre/language preferences follow the same user across sessions and expire after 30 days. The cloud storage product is still undecided.
