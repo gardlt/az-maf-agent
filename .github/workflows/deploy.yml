@@ -70,19 +70,33 @@ jobs:
             managed_environment="cae-maf-${env_name}-eus2-01"
             pull_identity="id-maf-${env_name}-eus2-01"
             logs_name="law-maf-${env_name}-eus2-01"
-            az deployment sub create \
-              --name "foundation-${env_name}-${GITHUB_RUN_ID}" \
-              --location "$AZURE_LOCATION" \
-              --template-file infra/modules/test-foundation.bicep \
-              --parameters \
-                resourceGroupName="$resource_group" \
-                location="$AZURE_LOCATION" \
-                environmentName="$managed_environment" \
-                registryName="$MAF_REGISTRY_NAME" \
-                pullIdentityName="$pull_identity" \
-                logsName="$logs_name" \
-              --subscription "$AZURE_SUBSCRIPTION_ID" \
-              --output none
+            if [[ "$env_name" == dev ]]; then
+              az deployment group create \
+                --name "foundation-${env_name}-${GITHUB_RUN_ID}" \
+                --resource-group "$resource_group" \
+                --template-file infra/modules/foundation.bicep \
+                --parameters \
+                  location="$AZURE_LOCATION" \
+                  environmentName="$managed_environment" \
+                  registryName="$MAF_REGISTRY_NAME" \
+                  pullIdentityName="$pull_identity" \
+                  logsName="$logs_name" \
+                --output none
+            else
+              az deployment sub create \
+                --name "foundation-${env_name}-${GITHUB_RUN_ID}" \
+                --location "$AZURE_LOCATION" \
+                --template-file infra/modules/test-foundation.bicep \
+                --parameters \
+                  resourceGroupName="$resource_group" \
+                  location="$AZURE_LOCATION" \
+                  environmentName="$managed_environment" \
+                  registryName="$MAF_REGISTRY_NAME" \
+                  pullIdentityName="$pull_identity" \
+                  logsName="$logs_name" \
+                --subscription "$AZURE_SUBSCRIPTION_ID" \
+                --output none
+            fi
 
       - name: Build and push digest-pinned images
         run: |
@@ -110,12 +124,20 @@ jobs:
           inlineScript: |
             set -euo pipefail
             env_name='${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}'
-            az deployment sub what-if \
-              --name "whatif-${env_name}-${GITHUB_RUN_ID}" \
-              --location "$AZURE_LOCATION" \
-              --parameters "infra/main.${env_name}.bicepparam" \
-              --subscription "$AZURE_SUBSCRIPTION_ID" \
-              --result-format ResourceIdOnly
+            if [[ "$env_name" == dev ]]; then
+              az deployment group what-if \
+                --name "whatif-${env_name}-${GITHUB_RUN_ID}" \
+                --resource-group "rg-maf-${env_name}-eus2-01" \
+                --parameters infra/main.dev.rg.bicepparam \
+                --result-format ResourceIdOnly
+            else
+              az deployment sub what-if \
+                --name "whatif-${env_name}-${GITHUB_RUN_ID}" \
+                --location "$AZURE_LOCATION" \
+                --parameters "infra/main.${env_name}.bicepparam" \
+                --subscription "$AZURE_SUBSCRIPTION_ID" \
+                --result-format ResourceIdOnly
+            fi
 
       - name: Deploy full environment
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.service == 'all' }}
@@ -125,12 +147,20 @@ jobs:
           inlineScript: |
             set -euo pipefail
             env_name='${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}'
-            az deployment sub create \
-              --name "deploy-${env_name}-${GITHUB_RUN_ID}" \
-              --location "$AZURE_LOCATION" \
-              --parameters "infra/main.${env_name}.bicepparam" \
-              --subscription "$AZURE_SUBSCRIPTION_ID" \
-              --output none
+            if [[ "$env_name" == dev ]]; then
+              az deployment group create \
+                --name "deploy-${env_name}-${GITHUB_RUN_ID}" \
+                --resource-group "rg-maf-${env_name}-eus2-01" \
+                --parameters infra/main.dev.rg.bicepparam \
+                --output none
+            else
+              az deployment sub create \
+                --name "deploy-${env_name}-${GITHUB_RUN_ID}" \
+                --location "$AZURE_LOCATION" \
+                --parameters "infra/main.${env_name}.bicepparam" \
+                --subscription "$AZURE_SUBSCRIPTION_ID" \
+                --output none
+            fi
 
       - name: Update selected service image
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.service != 'all' }}
