@@ -63,6 +63,8 @@ class ChatInput(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     text: str = Field(min_length=1, max_length=16384)
     revision: int = Field(ge=0)
+    skill_id: str | None = Field(default=None, pattern=r"^[a-z][a-z0-9-]{0,63}$")
+    skill_version: str | None = Field(default=None, pattern=r"^[0-9]+\.[0-9]+\.[0-9]+$")
 
 
 class BodyLimit:
@@ -157,7 +159,14 @@ def create_app(service: Service, verifier: EntraVerifier):
     @app.post("/sessions/{sid}/chat")
     async def chat(sid: str, body: ChatInput, who=Depends(principal)):
         try:
-            return await service.chat(who, sid, body.text, body.revision)
+            return await service.chat(
+                who,
+                sid,
+                body.text,
+                body.revision,
+                skill_id=body.skill_id,
+                skill_version=body.skill_version,
+            )
         except asyncio.CancelledError:
             return JSONResponse({"error": "run_cancelled"}, 409)
 
@@ -200,10 +209,33 @@ def from_env():
             audience=os.environ["MCP_AUDIENCE"],
             identity_client_id=os.environ.get("MCP_IDENTITY_CLIENT_ID"),
         )
+    skill_registry = None
+    skill_permissions = None
+    if os.environ.get("SKILL_BUNDLE"):
+        from pathlib import Path
+
+        from .skills import READ_TOOLS, reviewed_registry
+
+        # Both paths are operator configuration; no request can select them.
+        skill_registry = reviewed_registry(
+            Path(os.environ["SKILL_BUNDLE"]), Path(os.environ["SKILL_CONTROL"])
+        )
+        skill_users = frozenset(os.environ["SKILL_ALLOWED_USERS"].split(","))
+        tenant = os.environ["ENTRA_TENANT_ID"]
+
+        def skill_permissions(who):
+            return (
+                READ_TOOLS
+                if who.source == "entra" and who.tenant == tenant and who.user in skill_users
+                else frozenset()
+            )
+
     service = Service(
         settings,
         AzureTransport(settings) if settings.mode == "azure" else None,
         movie_client=movie_client,
         movie_model_tools=movie_model_tools,
+        skill_registry=skill_registry,
+        skill_permissions=skill_permissions,
     )
     return create_app(service, verifier)

@@ -37,6 +37,8 @@ async def run(args):
         raise Denied("live_requires_authenticated_api")
     if args.api and (not args.api.startswith("https://") or "@" in args.api):
         raise Denied("https_api_required")
+    if args.skill and not args.api:
+        raise Denied("skill_requires_configured_api")
     movie_client = None
     if args.movies and not args.api:
         from .movie_mcp import MovieMCPClient
@@ -113,7 +115,15 @@ async def run(args):
                         print("TMDB movie not found.")
                     continue
                 result = (
-                    await remote(f"/sessions/{sid}/chat", {"text": text, "revision": revision})
+                    await remote(
+                        f"/sessions/{sid}/chat",
+                        {
+                            "text": text,
+                            "revision": revision,
+                            "skill_id": args.skill,
+                            "skill_version": args.skill_version if args.skill else None,
+                        },
+                    )
                     if client
                     else await service.chat(LOCAL, sid, text, revision)
                 )
@@ -146,6 +156,8 @@ def main():
         "--api", help="Approved HTTPS API origin; uses an encrypted local Entra token cache"
     )
     parser.add_argument("--movies", action="store_true", help="Enable explicit movie catalog reads")
+    parser.add_argument("--skill", choices=["movie-research", "movie-night"])
+    parser.add_argument("--skill-version", default="1.0.0")
     args = parser.parse_args()
     # Do not allow third-party diagnostics to emit provider payloads.
     logging.getLogger("agent_framework").setLevel(logging.CRITICAL)

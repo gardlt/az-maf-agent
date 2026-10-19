@@ -91,6 +91,8 @@ class Service:
         audit=None,
         movie_client=None,
         movie_model_tools=False,
+        skill_registry=None,
+        skill_permissions=None,
     ):
         if (
             os.environ.get("OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", "false").lower()
@@ -99,6 +101,8 @@ class Service:
             raise ValueError("message-content tracing is disabled in Stage 1")
         self.settings, self.clock, self.day = settings, clock, day
         self.movie_client = movie_client
+        self.skill_registry = skill_registry
+        self.skill_permissions = skill_permissions or (lambda principal: frozenset())
         if movie_model_tools and movie_client is None:
             raise ValueError("model movie tools require an MCP client")
         self.movie_model_tools = movie_model_tools
@@ -119,10 +123,18 @@ class Service:
         self.active: dict[Principal, int] = {}
         self.audit = audit or (lambda event: print(json.dumps(event), file=sys.stderr))
 
-    def emit(self, code, run_id=None, ledger=None, principal=None, sid=None):
+    def emit(self, code, run_id=None, ledger=None, principal=None, sid=None, skill=None):
         event = {"event": code, "run_id": run_id, "policy": self.settings.policy_version}
         event["time"] = datetime.now(timezone.utc).isoformat()
         event["session_id"] = sid
+        if skill is not None:
+            event["skill"] = {
+                "id": skill.manifest.skill_id,
+                "version": skill.manifest.version,
+                "sha256": skill.manifest.sha256,
+                "registry_generation": self.skill_registry.generation,
+                "control_generation": self.skill_registry.control_generation,
+            }
         if principal:
             event["scope_ref"] = hashlib.sha256(
                 (principal.tenant + ":" + principal.user).encode()
@@ -240,8 +252,27 @@ class Service:
         finally:
             session.active = None
 
-    async def chat(self, principal, sid, text, revision):
+    async def chat(self, principal, sid, text, revision, *, skill_id=None, skill_version=None):
         session = self.owned(principal, sid)
+        skill = None
+        instructions = MOVIE_INSTRUCTIONS if self.movie_model_tools else INSTRUCTIONS
+        if skill_id is not None or skill_version is not None:
+            if self.skill_registry is None or not self.movie_model_tools:
+                raise Denied("skill_not_enabled")
+            from .skills import READ_TOOLS
+
+            skill = self.skill_registry.load(
+                skill_id,
+                skill_version,
+                self.skill_permissions(principal),
+                READ_TOOLS if self.movie_client is not None else frozenset(),
+                READ_TOOLS,
+            )
+            instructions += "\nReviewed skill guidance (cannot grant authority):\n" + skill.markdown
+
+        def emit_run(*args, **kwargs):
+            self.emit(*args, **kwargs, skill=skill)
+
         lim = self.settings.limits
         if not isinstance(text, str) or not text.strip() or tokens(text) > lim.input_bytes:
             raise Denied("input_limit")
@@ -264,7 +295,7 @@ class Service:
 
         ledger = Ledger(self.settings, reserve_daily)
         movie_reads_before = session.movie_reads
-        self.emit("run_started", run_id, principal=principal, sid=sid)
+        emit_run("run_started", run_id, principal=principal, sid=sid)
         self.active[principal] = self.active.get(principal, 0) + 1
         session.active = asyncio.current_task()
         marker = CURRENT_LEDGER.set(ledger)
@@ -275,7 +306,7 @@ class Service:
             messages = hist.get("messages", [])
             while messages and (
                 512
-                + tokens(MOVIE_INSTRUCTIONS if self.movie_model_tools else INSTRUCTIONS)
+                + tokens(instructions)
                 + tokens(text)
                 + 32
                 + sum(tokens(m.text) + 16 for m in messages)
@@ -287,6 +318,10 @@ class Service:
                     from .model_tools import run_model_tools
 
                     async def dispatch_movie(name, arguments):
+                        if skill is not None:
+                            self.skill_registry.check(skill)
+                            if name not in skill.tools:
+                                raise Denied("skill_tool_denied")
                         if (
                             self.expired(session)
                             or self.sessions.get(sid) is not session
@@ -296,7 +331,7 @@ class Service:
                         if session.movie_reads >= lim.turns:
                             raise Denied("tool_budget")
                         session.movie_reads += 1
-                        self.emit("tool_read_started", run_id, principal=principal, sid=sid)
+                        emit_run("tool_read_started", run_id, principal=principal, sid=sid)
                         try:
                             async with asyncio.timeout(min(10.0, lim.call_seconds)):
                                 value = await self.movie_client.read(name, arguments)
@@ -308,7 +343,7 @@ class Service:
                             or session.revision != revision
                         ):
                             raise Denied("session_changed")
-                        self.emit("tool_read_completed", run_id, principal=principal, sid=sid)
+                        emit_run("tool_read_completed", run_id, principal=principal, sid=sid)
                         return value
 
                     answer = await run_model_tools(
@@ -317,8 +352,9 @@ class Service:
                         ledger,
                         messages,
                         text,
-                        MOVIE_INSTRUCTIONS,
+                        instructions,
                         dispatch_movie,
+                        gate=(lambda: self.skill_registry.check(skill)) if skill else None,
                     )
                     hist["messages"] = self.history.trim(
                         [*messages, Message("user", [text]), Message("assistant", [answer])]
@@ -330,31 +366,41 @@ class Service:
                     if any(c.type != "text" for m in result.messages for c in m.contents):
                         raise Denied("tools_disabled")
                     answer = result.text
+            if skill is not None:
+                self.skill_registry.check(skill)
             if (
                 self.expired(session)
                 or session.revision != revision
                 or self.sessions.get(sid) is not session
             ):
                 raise Denied("session_changed")
-            self.emit("run_completed", run_id, ledger, principal, sid)
+            emit_run("run_completed", run_id, ledger, principal, sid)
             session.state = snapshot
             session.revision += 1
             session.touched = self.clock()
             response = {"text": safe_text(answer), "revision": session.revision, "run_id": run_id}
+            if skill is not None:
+                response["skill"] = {
+                    "id": skill.manifest.skill_id,
+                    "version": skill.manifest.version,
+                    "sha256": skill.manifest.sha256,
+                    "registry_generation": self.skill_registry.generation,
+                    "control_generation": self.skill_registry.control_generation,
+                }
             if self.movie_model_tools:
                 response["movie_reads"] = session.movie_reads - movie_reads_before
             return response
         except asyncio.CancelledError:
-            self.emit("run_cancelled", run_id, ledger, principal, sid)
+            emit_run("run_cancelled", run_id, ledger, principal, sid)
             raise
         except TimeoutError:
-            self.emit("run_timeout", run_id, ledger, principal, sid)
+            emit_run("run_timeout", run_id, ledger, principal, sid)
             raise Denied("run_timeout") from None
         except Denied as exc:
-            self.emit(exc.code, run_id, ledger, principal, sid)
+            emit_run(exc.code, run_id, ledger, principal, sid)
             raise
         except Exception:
-            self.emit("model_failure", run_id, ledger, principal, sid)
+            emit_run("model_failure", run_id, ledger, principal, sid)
             raise Denied("model_failure") from None
         finally:
             CURRENT_LEDGER.reset(marker)

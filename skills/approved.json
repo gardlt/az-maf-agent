@@ -1,0 +1,30 @@
+[
+  {
+    "skill_id": "movie-research",
+    "version": "1.0.0",
+    "owner": "agent-bones maintainers",
+    "purpose": "Compare movies using TMDB reads",
+    "inputs": "User movie question or preferences",
+    "outputs": "TMDB-attributed movie suggestions or comparison",
+    "filename": "movie-research.md",
+    "sha256": "9b7e6f3f472375cc99fbfe61a570647163310bf424058379074db711d4dbe337",
+    "tools": [
+      "search_movies",
+      "get_movie"
+    ]
+  },
+  {
+    "skill_id": "movie-night",
+    "version": "1.0.0",
+    "owner": "agent-bones maintainers",
+    "purpose": "Suggest a movie-night shortlist using TMDB reads",
+    "inputs": "User movie question or preferences",
+    "outputs": "TMDB-attributed movie suggestions or comparison",
+    "filename": "movie-night.md",
+    "sha256": "b013431d52c55e9fc091001fbc5387f579e0ff8783ff436937c127d171297761",
+    "tools": [
+      "search_movies",
+      "get_movie"
+    ]
+  }
+]

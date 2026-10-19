@@ -21,11 +21,13 @@ def _unique_object(pairs):
     return result
 
 
-async def _turn(transport, settings, ledger, messages):
+async def _turn(transport, settings, ledger, messages, gate=None):
     count = 512 + TOOL_SCHEMA_ALLOWANCE + tokens(json.dumps(messages, ensure_ascii=False))
     if count > settings.limits.context_tokens:
         raise Denied("context_limit")
     for attempt in range(settings.limits.retries + 1):
+        if gate is not None:
+            gate()
         ledger.reserve(count)
         try:
             async with asyncio.timeout(settings.limits.call_seconds):
@@ -42,7 +44,9 @@ async def _turn(transport, settings, ledger, messages):
             raise Denied("call_timeout") from None
 
 
-async def run_model_tools(transport, settings, ledger, history, user_text, instructions, dispatch):
+async def run_model_tools(
+    transport, settings, ledger, history, user_text, instructions, dispatch, gate=None
+):
     """Return final text after at most two validated, sequential catalog reads."""
     messages = [
         {"role": "system", "content": instructions},
@@ -51,7 +55,9 @@ async def run_model_tools(transport, settings, ledger, history, user_text, instr
     ]
     attempts = 0
     while True:
-        message, finish = await _turn(transport, settings, ledger, messages)
+        if gate is not None:
+            gate()
+        message, finish = await _turn(transport, settings, ledger, messages, gate)
         if not isinstance(message, dict) or message.get("role") != "assistant":
             raise Denied("provider_shape")
         calls = message.get("tool_calls")

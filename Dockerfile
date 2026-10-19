@@ -8,6 +8,7 @@ COPY apps/movie-catalog-mcp/pyproject.toml ./apps/movie-catalog-mcp/pyproject.to
 RUN uv sync --frozen --no-dev --package az-maf-agent --no-install-package az-maf-agent
 COPY apps/agent/src ./apps/agent/src
 COPY config ./config
+COPY skills ./skills
 RUN uv sync --frozen --no-dev --package az-maf-agent
 
 FROM python:3.12.12-slim@sha256:42f1689d6d6b906c7e829f9d9ec38491550344ac9adc01e464ff9a08df1ffb48
@@ -16,6 +17,7 @@ RUN useradd --uid 10001 --create-home appuser
 COPY --from=build --chown=10001:10001 /app/.venv /app/.venv
 COPY --from=build --chown=10001:10001 /build/apps/agent/src /app/src
 COPY --from=build --chown=10001:10001 /build/config /app/config
+COPY --from=build /build/skills /app/skills
 ENV PATH=/app/.venv/bin:$PATH PYTHONPATH=/app/src PYTHONUNBUFFERED=1
 USER 10001
 EXPOSE 8000

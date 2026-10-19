@@ -10,9 +10,9 @@ These task files track implementation against the [secure agent teaching specifi
 
 | Stage | Current state | Next acceptance work |
 | --- | --- | --- |
-| 1 — Chat | Local implementation remains; the hosted Stage 1 test deployment was retired on 2026-10-18. Some acceptance gates remain open. | Shared/resumable session behavior and deployed expired-token rejection require a new host. |
-| 2 — Movie MCP | Complete for the non-commercial TMDB teaching scope; the hosted agent and MCP were retired on 2026-10-18. Historical hosted reads, credits, and a controlled one-destination NSG egress test passed. | No Stage 2 teaching acceptance work remains; a new deployment requires fresh auth and runtime validation. See [validation evidence](../stage-2-validation.md). |
-| 3 — Markdown skills | Not started. | Select the teaching skill and begin Stage 3. |
+| 1 — Chat | Dev hosting is active; some Stage 1 acceptance gates remain open. | Shared/resumable session behavior and deployed expired-token rejection remain unverified. |
+| 2 — Movie MCP | Complete for the non-commercial TMDB teaching scope; dev agent/MCP hosting is active. The 50-query dev read test passed; earlier controlled egress evidence is historical. | No Stage 2 teaching acceptance work remains; runtime validation is recorded. See [validation evidence](../stage-2-validation.md). |
+| 3 — Markdown skills | Implementation in progress; both selected skills, loader, and core security tests implemented. | Complete operator controls, audit/race evidence, and hosted validation. |
 | 4 — Governed memory | Not started. | Complete Stage 3 and select a durable backend. |
 | 5 — Production guardrails | Not started. | Complete prior stages and select shared control-state hosting. |
 

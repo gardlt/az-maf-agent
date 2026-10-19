@@ -1,5 +1,9 @@
 # Stage 3 task — Approved Markdown skills
 
+## Current status
+
+Implementation started: both movie research and movie-night planning were selected by the user. The reviewed bundles, digest-pinned loader, capability intersection, chat integration, and deterministic boundary tests are implemented. A local operator tool supports persistent disable/revoke controls and rollback restrictions. The 60-test suite passes. Complete audit evidence, remaining race fixtures, and hosted enablement remain open. See [implementation checkpoint](../stage-3-skills.md).
+
 ## Goal and outcome
 
 Add reviewed Markdown skill guidance without granting new authority. Implement [Stage 3 of the specification](../secure-agent-teaching-spec.md) and preserve [shared conventions](README.md).
@@ -11,14 +15,14 @@ Approved skill registry/loader, capability intersection, integrity/revocation ga
 ## Prerequisites and dependencies
 
 - [Stage 2](stage-2-movie-mcp.md) read-only catalog, dispatcher, service permissions, budgets, and audit.
-- Select the actual teaching skill and approve its manifest/content. A movie-night planner is only an illustrative candidate, not a selected implementation.
+- Selected by the user: movie research assistant and movie-night planner, each limited to read-only TMDB tools. Bundles and digests are recorded in `skills/approved.json`.
 - Choose registry trust/integrity mechanism and bounded composition policy. No composition is required merely to test denial of recursion.
 
 ## Ordered work checklist
 
-1. [ ] Define validated metadata: stable ID/version, owner, purpose, capabilities/tools, input/output expectations, Markdown instructions, and pinned content digest.
+1. [x] Define validated metadata: stable ID/version, owner, purpose, capabilities/tools, input/output expectations, Markdown instructions, and pinned content digest.
 2. [ ] Load only approved versions/bundles; validate dependencies and safe paths. Reject oversized, unknown, revoked, unsigned/integrity-invalid artifacts under the chosen trust mechanism.
-3. [ ] Intersect authenticated principal, application, agent, and approved skill policies. Treat skill text as instructions/data, never authority; do not alter approval rules or catalog write permissions.
+3. [x] Intersect authenticated principal, application, agent, and approved skill policies. Treat skill text as instructions/data, never authority; do not alter approval rules or catalog write permissions.
 4. [ ] Prevent time-of-check/time-of-use races by verifying and consuming the same immutable bytes. Bind run use to version/digest; apply current revocation at load and subsequent gates under existing freshness/propagation and fencing rules.
 5. [ ] Deny unapproved files, other skills, URLs, and bundle escapes before access. If composition is approved, validate every child, intersect permissions, bound depth, and share run budgets/deadline/cancellation.
 6. [ ] Implement review/publication/rollback and disable-without-redeploy flow; rollback only to a currently approved, non-revoked artifact.
