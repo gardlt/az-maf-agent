@@ -55,3 +55,4 @@ jobs:
             az bicep build-params --file infra/main.bicepparam --stdout >/dev/null
             az bicep build-params --file infra/main.dev.bicepparam --stdout >/dev/null
             az bicep build-params --file infra/main.stage.bicepparam --stdout >/dev/null
+            az bicep build-params --file infra/main.prod.bicepparam --stdout >/dev/null

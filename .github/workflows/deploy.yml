@@ -13,11 +13,11 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: Higher-environment promotion target (main merges always deploy dev)
+        description: Promotion target (main merges always deploy dev)
         required: true
         type: choice
-        options: [dev, stage]
-        default: dev
+        options: [stage, prod, dev]
+        default: stage
       service:
         description: Service to update
         required: true
