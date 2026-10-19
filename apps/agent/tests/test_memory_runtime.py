@@ -207,8 +207,9 @@ def test_cleanup_rejects_unapproved_names_and_xml(body):
 async def test_reviewed_skill_cannot_read_memory_or_inherit_personalized_history(
     settings, tmp_path
 ):
-    from az_maf_agent.skills import READ_TOOLS
     from test_skills import bundle
+
+    from az_maf_agent.skills import READ_TOOLS
 
     memory, _ = memory_fixture()
     registry, _ = bundle(tmp_path)
