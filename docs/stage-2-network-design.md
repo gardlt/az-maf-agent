@@ -46,7 +46,7 @@ The broader alternative is a **new** workload-profiles Container Apps environmen
 
 Azure Firewall remains an option for a broader FQDN-based policy. Its SKU, expected test duration, data-processing estimate, and cleanup plan would need a separate current price review and Azure what-if before deployment. A NAT gateway alone supplies stable outbound addresses but does not satisfy the requirement to deny a named unapproved destination by an allow/deny policy.
 
-## Egress inventory before policy creation
+## Inventory for any broader policy
 
 The policy cannot be a guessed short allowlist. Record the actual destinations and protocol needs for the selected deployment, then compare them with Microsoft's [Azure Firewall dependency list](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall) and [VNet NSG guidance](https://learn.microsoft.com/en-us/azure/container-apps/firewall-integration). The initial inventory is:
 
@@ -64,9 +64,9 @@ The policy cannot be a guessed short allowlist. Record the actual destinations a
 
 Microsoft's guidance identifies `MicrosoftContainerRegistry` and `AzureFrontDoorFirstParty` for Artifact Registry, `AzureContainerRegistry` and `AzureActiveDirectory` for ACR, and `AzureActiveDirectory` for managed identity, depending on whether application or network rules are used. These broad service tags are platform dependencies; they are not evidence of an application-level allowlist. The exact policy and rule priorities remain to be designed and reviewed.
 
-## Acceptance evidence
+## Evidence criteria
 
-The deployed tests should record time, source app/revision, identity, destination, method, rule/policy version, and result without logging tokens or movie payloads:
+The [validation record](stage-2-validation.md) gives the redacted live results and their limits. These criteria guided the controlled run without logging tokens or movie payloads:
 
 1. An approved user can make a normal agent request; the agent obtains its own catalog token and reads through `/mcp`. Foundry inference and required platform dependencies remain healthy.
 2. The same network runtime attempts a request to the test-owned unapproved destination. The resolved IP must match the NSG's `/32` rule, the connection must fail after the network rule is applied, and a permitted control destination must still respond. A probe run before the rule or equivalent NSG evidence should distinguish network denial from application validation. The destination should confirm it received no request. An application-level URL validator denial alone does not satisfy this case.
@@ -76,10 +76,10 @@ The deployed tests should record time, source app/revision, identity, destinatio
 
 Do not infer a network deny from `401`, `403`, `404`, DNS failure alone, or an agent-dispatcher rejection. Correlate the NSG rule and before/after or control-destination observation with the application result. Preserve the actual rule identifiers, but redact bearer tokens and request bodies.
 
-## Rollout and cleanup sequence
+## Completed rollout and cleanup
 
-1. Recheck subscription quota, the selected CIDRs, the test-owned destination's current static IP and DNS, and actual billing. Review the already compiled and what-if-checked Bicep before creating the foundation.
-2. Deploy the separate environment, then digest-pinned agent and MCP test apps with the existing logical identity split. Use a private deployment parameter file for the rotated TMDB token and delete that file after use. Apply the three identity permissions listed above, then run approved TMDB and Foundry paths and an egress probe with a permitted control destination. Verify the NSG rule blocks the test-owned destination from the same subnet.
-3. Save redacted evidence, then delete the extra test apps and foundation if no longer needed. Keep the existing Stage 1 deployment intact.
+1. Rechecked the test-owned destination's static IP and DNS, compiled both templates, and reviewed Azure what-if before deployment.
+2. Deployed the separate environment and digest-pinned agent/MCP test apps with a private secure parameter file, which was deleted after deployment. Assigned temporary Foundry and `Catalog.Read` permissions to the new agent identity. Confirmed approved TMDB/Foundry paths and the controlled NSG allow-then-deny result.
+3. Saved redacted evidence. Deleted the temporary app-role and Foundry assignments, both duplicate apps, the environment, VNet/subnet, and NSG. Verified the resource group contained no `nettest` resources and the Azure-managed backing group was gone. The original Stage 1 hosted movie read still passed after cleanup.
 
 No production migration or cutover is implied. The existing Stage 1 deployment remains the current working test system.

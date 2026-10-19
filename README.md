@@ -72,7 +72,7 @@ Validate live tokens, real Easy Auth behavior, workload RBAC, endpoint compatibi
 - RAM history and trimming keep the local lesson small. Reconsider shared TTL storage for multiple replicas/resumption; reconsider summarization only after testing poisoning and budgets. Durable memory remains Stage 4.
 - JWT verification supplements Easy Auth to avoid relying on spoofable headers during local API tests or accidental alternate ingress. It adds a JWKS dependency; review a platform-only trust adapter only when its network boundary is demonstrably enforced.
 - A single configured Azure deployment is supported; model choice, API deployment/version, pricing, session backend, and distributed control product remain open. Foundry hosting, API Management, and runtime model routing remain future options.
-- The fake-mode image is in the private test registry and the API runs in Azure. Registry provenance beyond its recorded digest, distributed controls, egress enforcement, non-cooperative-worker termination, durable audit, secret rotation drills, signed-in hosted acceptance, and live-model evaluation are not demonstrated here.
+- The fake-mode image is in the private test registry and the API runs in Azure. Signed-in hosted acceptance, a TMDB secret rotation, and one controlled network-rule deny have been demonstrated. Registry provenance beyond its recorded digest, distributed controls, a production-wide egress policy, non-cooperative-worker termination, durable audit, and comprehensive live-model evaluation remain open.
 
 See [Stage 1 validation](docs/stage-1-validation.md) for evidence and incomplete gates. Subsequent stages must preserve these tests and the spec's read-only agent catalog policy.
 

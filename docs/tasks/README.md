@@ -11,8 +11,8 @@ These task files track implementation against the [secure agent teaching specifi
 | Stage | Current state | Next acceptance work |
 | --- | --- | --- |
 | 1 — Chat | Hosted live-model chat works; some acceptance gates remain open. | Shared/resumable session behavior and deployed expired-token rejection. |
-| 2 — Movie MCP | In progress. FastMCP reads, managed-identity service authentication, private ingress, and one hosted model-selected read passed. | Deployed admin/direct-identity PUT authorization and controlled outbound-network exercises. See [validation evidence](../stage-2-validation.md). |
-| 3 — Markdown skills | Not started. | Complete Stage 2 gates and select the teaching skill. |
+| 2 — Movie MCP | Complete for the non-commercial TMDB teaching scope. FastMCP reads, managed-identity service authentication, private ingress, hosted model-selected reads, credits, and a controlled one-destination NSG egress test passed. | No Stage 2 acceptance work remains; a broad production egress policy belongs to future hardening. See [validation evidence](../stage-2-validation.md). |
+| 3 — Markdown skills | Not started. | Select the teaching skill and begin Stage 3. |
 | 4 — Governed memory | Not started. | Complete Stage 3 and select a durable backend. |
 | 5 — Production guardrails | Not started. | Complete prior stages and select shared control-state hosting. |
 
@@ -20,4 +20,4 @@ Extend the agent application and its separately packaged services in one workspa
 
 The built-in deterministic fake model and local fixtures work without Azure credentials. The selected live inference path uses the configured `gpt-5` deployment in the existing Foundry account. Track local and hosted acceptance separately: passing mocks does not satisfy deployed networking or emergency-control gates. Skill, shared session/durable backend, network topology, and control-state choices block only their dependent work. Record rationale, alternatives, tradeoffs, and reconsideration triggers when resolving them; do not turn an example into an approved selection.
 
-For every task, retain versioned synthetic fixtures, exact test commands/results, configuration versions, redacted audit evidence, learner instructions, and residual limitations. Keep raw secrets, private memory, and unrestricted prompts/tool payloads out of evidence. A model refusal is not proof of enforcement; inspect backend effects. Apply the spec's OWASP-aligned threat model, dependency locking/integrity checks, SBOM/scanning, least privilege, and fail-closed rules throughout. Finite passing tests do not guarantee complete protection.
+For every task, retain versioned test fixtures, exact test commands/results, configuration versions, redacted audit evidence, learner instructions, and residual limitations. Keep raw secrets, private memory, and unrestricted prompts/tool payloads out of evidence. A model refusal is not proof of enforcement; inspect backend effects. Apply the spec's OWASP-aligned threat model, dependency locking/integrity checks, SBOM/scanning, least privilege, and fail-closed rules throughout. Finite passing tests do not guarantee complete protection.
