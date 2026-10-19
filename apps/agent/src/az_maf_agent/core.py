@@ -403,8 +403,14 @@ class Service:
             async with asyncio.timeout(lim.run_seconds):
                 recalled = None
                 memory_access = None
-                if self.memory_service is not None and "inspect" in self.memory_permissions(
-                    principal
+                # Reviewed Stage 3 skills have no memory capability, including inherited history.
+                if skill is not None and "memory_generation" in hist:
+                    messages = []
+                    hist.pop("memory_generation", None)
+                if (
+                    self.memory_service is not None
+                    and skill is None
+                    and "inspect" in self.memory_permissions(principal)
                 ):
                     from .memory import MemoryAccess
 

@@ -202,3 +202,42 @@ def test_cleanup_rejects_unapproved_names_and_xml(body):
     with pytest.raises(Denied):
         sweep(store, load_memory_policy("config/memory-policy.json"))
     store.close()
+
+
+async def test_reviewed_skill_cannot_read_memory_or_inherit_personalized_history(
+    settings, tmp_path
+):
+    from az_maf_agent.skills import READ_TOOLS
+    from test_skills import bundle
+
+    memory, _ = memory_fixture()
+    registry, _ = bundle(tmp_path)
+    transport = ToolTransport(
+        [
+            ({"role": "assistant", "content": "Personalized comedy answer"}, "stop", 20),
+            ({"role": "assistant", "content": "Catalog-only answer"}, "stop", 20),
+        ]
+    )
+    service = Service(
+        settings,
+        transport=transport,
+        movie_client=MovieClient(),
+        movie_model_tools=True,
+        memory_service=memory,
+        memory_permissions=lambda _: OPERATIONS,
+        skill_registry=registry,
+        skill_permissions=lambda _: READ_TOOLS,
+        audit=lambda _: None,
+    )
+    sid = service.create(LOCAL)["session_id"]
+    owner = MemoryAccess(LOCAL.tenant, LOCAL.user, sid, "user", OPERATIONS)
+    save(memory, owner)
+    result = await service.chat(LOCAL, sid, "Suggest a film", 0)
+    effects = list(memory.store.effects)
+    await service.chat(
+        LOCAL, sid, "Research a film", result["revision"], skill_id="test", skill_version="1.0.0"
+    )
+    assert memory.store.effects == effects
+    assert "comedy" not in json.dumps(transport.messages[1]).lower()
+    assert service.sessions[sid].memory_operations == 2
+    await service.close()
