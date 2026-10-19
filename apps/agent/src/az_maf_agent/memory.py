@@ -213,6 +213,7 @@ class MemoryService:
         self.policy, self.store, self.clock = policy, store, clock
         self.audit = audit or (lambda _: None)
         self.pending = {}
+        self.controls = {}
 
     def call(
         self,
@@ -280,9 +281,11 @@ class MemoryService:
             asyncio.to_thread(self.call, access, operation, control=control, **arguments)
         )
         self.pending[partition] = task
+        self.controls[partition] = control
 
         def settled(done):
             self.pending.pop(partition, None)
+            self.controls.pop(partition, None)
             if not done.cancelled():
                 done.exception()  # Consume failures even after request cancellation.
 
@@ -296,6 +299,11 @@ class MemoryService:
         except asyncio.CancelledError:
             control.set()
             raise
+
+    def cancel(self, access):
+        control = self.controls.get(access.partition(self.policy))
+        if control is not None:
+            control.set()
 
     async def aclose(self):
         if self.pending:

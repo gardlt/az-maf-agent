@@ -27,7 +27,7 @@ param tmdbApiReadAccessToken string
 @description('Enable governed movie preferences only for approved environments.')
 param enableMemory bool = false
 param memoryAccountName string = 'stmafmem${uniqueString(subscription().subscriptionId, agentAppName)}'
-param memoryCleanupJobName string = 'job-${agentAppName}-memory'
+param memoryCleanupJobName string = 'job-memory-${uniqueString(agentAppName)}'
 @description('Operator bootstrap only. Ordinary CI must leave false.')
 param bootstrapMemoryRoles bool = false
 

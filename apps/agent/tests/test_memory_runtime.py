@@ -242,3 +242,87 @@ async def test_reviewed_skill_cannot_read_memory_or_inherit_personalized_history
     assert "comedy" not in json.dumps(transport.messages[1]).lower()
     assert service.sessions[sid].memory_operations == 2
     await service.close()
+
+
+def test_cleanup_page_and_time_bounds_fail_closed():
+    body = b"<EnumerationResults><Blobs/><NextMarker>another-page</NextMarker></EnumerationResults>"
+    store = BlobMemoryStore(
+        "memoryfixture",
+        "preferences",
+        Credential(),
+        httpx.Client(transport=httpx.MockTransport(lambda _: httpx.Response(200, content=body))),
+    )
+    policy = load_memory_policy("config/memory-policy.json")
+    with pytest.raises(Denied, match="memory_cleanup_limit"):
+        sweep(store, policy, max_pages=1)
+    with pytest.raises(Denied, match="memory_cleanup_limit"):
+        sweep(store, policy, deadline_seconds=0)
+    store.close()
+
+
+async def test_expiry_invalidates_personalized_history_before_next_model_call(settings):
+    memory, now = memory_fixture()
+    transport = ToolTransport(
+        [
+            ({"role": "assistant", "content": "Comedy preference used."}, "stop", 20),
+            ({"role": "assistant", "content": "No saved preference."}, "stop", 20),
+        ]
+    )
+    service = Service(
+        settings,
+        transport=transport,
+        movie_client=MovieClient(),
+        movie_model_tools=True,
+        memory_service=memory,
+        memory_permissions=lambda _: OPERATIONS,
+        audit=lambda _: None,
+    )
+    sid = service.create(LOCAL)["session_id"]
+    owner = MemoryAccess(LOCAL.tenant, LOCAL.user, sid, "user", OPERATIONS)
+    record = save(memory, owner)["memory"]
+    result = await service.chat(LOCAL, sid, "Suggest a movie", 0)
+    now[0] = record["expires_at"]
+    after = await service.chat(LOCAL, sid, "Suggest again", result["revision"])
+    assert after["memory"]["records"] == 0
+    assert "comedy" not in json.dumps(transport.messages[1]).lower()
+    assert not memory.store._partitions[owner.partition(memory.policy)]
+    await service.close()
+
+
+async def test_explicit_cancel_fences_memory_write_before_dispatch():
+    entered, finish = threading.Event(), threading.Event()
+    server = BlobServer()
+
+    def paused(request):
+        if request.method == "GET":
+            entered.set()
+            assert finish.wait(5)
+        return server(request)
+
+    memory = MemoryService(
+        load_memory_policy("config/memory-policy.json"),
+        BlobMemoryStore(
+            "memoryfixture",
+            "preferences",
+            Credential(),
+            httpx.Client(transport=httpx.MockTransport(paused)),
+        ),
+        audit=lambda _: None,
+    )
+    owner = access()
+    task = asyncio.create_task(
+        memory.acall(
+            owner,
+            "save",
+            preference={"category": "preferred_genre", "value": "comedy"},
+            consent=True,
+            expected_generation=0,
+        )
+    )
+    assert await asyncio.to_thread(entered.wait, 5)
+    memory.cancel(owner)
+    finish.set()
+    with pytest.raises(Denied, match="memory_cancelled|memory_timeout"):
+        await task
+    assert not server.documents
+    await memory.aclose()

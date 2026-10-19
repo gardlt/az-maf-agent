@@ -240,6 +240,12 @@ class Service:
         # Containment must remain effective even if audit delivery fails.
         if session.active:
             session.active.cancel()
+        if self.memory_service is not None:
+            from .memory import MemoryAccess
+
+            self.memory_service.cancel(
+                MemoryAccess(principal.tenant, principal.user, sid, "user", frozenset({"inspect"}))
+            )
         session.revision += 1
         self.emit("cancel_requested", principal=principal, sid=sid)
         return {"session_id": sid, "revision": session.revision}
