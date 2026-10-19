@@ -13,8 +13,8 @@ from azure.identity import (
 )
 
 TENANT_ID = "c57afb80-6b3d-4bae-a466-e4d217bcb4a2"
-API_APP_ID = "e7898571-069f-49c7-91b5-4b08a9edcb30"
-CLI_APP_ID = "df915b12-fb46-48d7-a80f-6f2e8e9ef487"
+API_APP_ID = "67b8f4b9-71e4-4815-b8b5-a0a4fd7bc0d7"
+CLI_APP_ID = "d8bd0dd5-388c-4436-a64b-bdfcdbeebe7f"
 SCOPE = f"api://{API_APP_ID}/Chat.Access"
 
 # The platform encrypts this cache for the current OS user. Do not permit plaintext fallback.
