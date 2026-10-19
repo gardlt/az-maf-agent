@@ -183,7 +183,7 @@ def from_env():
     logging.getLogger("agent_framework").setLevel(logging.CRITICAL)
     logging.getLogger("azure").setLevel(logging.CRITICAL)
     settings = load_settings(os.environ["AGENT_CONFIG"])
-    movie_model_tools = os.environ.get("ENABLE_MOVIE_MODEL_TOOLS") == "true"
+    movie_model_tools = os.environ.get("ENABLE_MOVIE_MODEL_TOOLS", "").lower() == "true"
     if movie_model_tools and settings.mode != "azure":
         raise ValueError("model-selected movie tools require live model mode")
     verifier = EntraVerifier(
@@ -192,7 +192,7 @@ def from_env():
         set(os.environ["ENTRA_ALLOWED_USERS"].split(",")),
     )
     movie_client = None
-    if os.environ.get("ENABLE_MOVIE_MCP") == "true":
+    if os.environ.get("ENABLE_MOVIE_MCP", "").lower() == "true":
         from .movie_mcp import MovieMCPClient
 
         movie_client = MovieMCPClient(
