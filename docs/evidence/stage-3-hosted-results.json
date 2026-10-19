@@ -40,5 +40,33 @@
     "write_protocol_error": true,
     "before_after_record_unchanged": true
   },
-  "memory_case_4": "Deferred to Stage 4; unavailable memory operations already deny"
+  "memory_case_4": "Deferred to Stage 4; unavailable memory operations already deny",
+  "final_verification": {
+    "commit": "803a54727e14d3186fa2c293d831715d6780ca98",
+    "deployment_run": 39290605122,
+    "ci_run": 39290604915,
+    "revision": "ca-maf-agent-dev-eus2-01--0000017",
+    "agent_digest": "sha256:d0fd8605ea5308763ee915a2713d246bd67fffa70f2516e9dd1474ecc8e937ac",
+    "control_generation": 2,
+    "skills": [
+      {
+        "id": "movie-research",
+        "status": 200,
+        "movie_reads": 1,
+        "revision": 1,
+        "run_id": "454effd5-09eb-44a7-9989-61355d4128da",
+        "unknown_skill_status": 409,
+        "write_status": 403
+      },
+      {
+        "id": "movie-night",
+        "status": 200,
+        "movie_reads": 1,
+        "revision": 1,
+        "run_id": "1dfda034-4f6b-4327-93f6-4408b3796b4d",
+        "unknown_skill_status": 409,
+        "write_status": 403
+      }
+    ]
+  }
 }

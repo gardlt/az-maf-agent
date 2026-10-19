@@ -69,3 +69,17 @@ Use `scripts/skill_control_azure.py` for the operator steps and add `--skill mov
 --expect-disabled` to the hosted test while disabled. Always restore a temporarily
 disabled approved skill after the exercise. See [the operator guide](stage-3-skills.md)
 for publication, rollback, trust boundaries, and limits.
+
+## Final deployed regression
+
+The final code commit `803a547` passed [CI](https://github.com/gardlt/az-maf-agent/actions/runs/39290604915)
+and [dev deployment](https://github.com/gardlt/az-maf-agent/actions/runs/39290605122).
+Revision `ca-maf-agent-dev-eus2-01--0000017` is ready with agent digest
+`sha256:d0fd8605ea5308763ee915a2713d246bd67fffa70f2516e9dd1474ecc8e937ac`.
+The first two-skill probe on this revision passed after the cold-token timeout fix:
+both skills returned **200**, one MCP read, revision **1**, their exact approved digest,
+and control generation **2**. Each unknown-skill probe returned **409**, and each write
+proposal returned **403**. The run references were
+`454effd5-09eb-44a7-9989-61355d4128da` (research) and
+`1dfda034-4f6b-4327-93f6-4408b3796b4d` (movie-night). Generation 2 survived app revision
+replacement, confirming that deployment did not reset the operator's control state.
