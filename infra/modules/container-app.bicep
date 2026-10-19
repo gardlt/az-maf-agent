@@ -13,6 +13,12 @@ param apiClientId string
 param cliClientId string
 @secure()
 param authClientSecret string
+@description('Enable the private movie MCP integration.')
+param enableMovieMcp bool = false
+param movieMcpEndpoint string = ''
+param movieMcpAudience string = ''
+@description('Allow the live model to select the bounded movie read tools.')
+param enableMovieModelTools bool = false
 @description('Enable public HTTPS ingress only after private validation.')
 param externalIngress bool = false
 @description('Absolute path to an approved configuration file included in the container image.')
@@ -43,6 +49,10 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
           { name: 'ENTRA_TENANT_ID', value: tenantId }
           { name: 'ENTRA_AUDIENCE', value: audience }
           { name: 'ENTRA_ALLOWED_USERS', value: allowedUsers }
+          { name: 'ENABLE_MOVIE_MCP', value: string(enableMovieMcp) }
+          { name: 'MCP_ENDPOINT', value: movieMcpEndpoint }
+          { name: 'MCP_AUDIENCE', value: movieMcpAudience }
+          { name: 'ENABLE_MOVIE_MODEL_TOOLS', value: string(enableMovieModelTools) }
         ]
         resources: { cpu: json('0.5'), memory: '1Gi' }
       }]

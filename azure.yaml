@@ -1,0 +1,6 @@
+name: az-maf-agent
+
+infra:
+  provider: bicep
+  path: ./infra
+  module: main

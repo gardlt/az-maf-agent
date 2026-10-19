@@ -46,4 +46,4 @@ The existing environment has no VNet or workload profiles. A separate [network-t
 - Agent MCP contract, token acquisition, and result validation: `apps/agent/src/az_maf_agent/movie_mcp.py`.
 - Model-selected read loop: `apps/agent/src/az_maf_agent/model_tools.py`.
 - FastMCP server and read-only TMDB adapter: `apps/movie-catalog-mcp/src/movie_catalog_mcp/server.py` and `tmdb.py`.
-- Deployment definitions: `deploy/container-app.bicep`, `deploy/movie-mcp-app.bicep`, `deploy/stage2-egress-test-foundation.bicep`, and `deploy/stage2-egress-test-apps.bicep`.
+- Deployment definitions live under `infra/`. `infra/main.bicep` composes the reusable modules in `infra/modules/`; the stage-specific `.bicepparam` files provide reproducible dev and stage values. The short-lived network-test templates remain in `infra/modules/`.

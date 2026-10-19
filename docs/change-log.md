@@ -2,6 +2,12 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-18 — Reproducible Azure infrastructure layout
+
+- Renamed `deploy/` to `infra/` and added the Azure Developer CLI-style `azure.yaml` entrypoint with `infra/main.bicep` as the subscription-scoped composition root.
+- Moved reusable and test-specific Bicep templates under `infra/modules/`. Added environment-specific `main.dev.bicepparam` and `main.stage.bicepparam` files plus an azd-compatible environment-driven `main.bicepparam`. Secrets and deployment-specific identity values are read from environment variables and are not committed.
+- The composition root provisions the resource group, shared Container Apps foundation, agent, and private FastMCP app together, wiring the agent managed identity into the MCP authorization boundary.
+
 ## 2026-10-18 — Dedicated Stage 1/2 Azure teardown
 
 - At the user's direction, removed the dedicated `rg-az-maf-stage1` test foundation and both hosted apps (`ca-az-maf-stage1` and `ca-az-maf-movie-mcp`), including their Container Apps environment, registry, Log Analytics workspace, and image-pull identity. The separate short-lived Stage 2 network-test resources had already been removed.
