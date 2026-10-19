@@ -5,6 +5,7 @@ import json
 import os
 import re
 import stat
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -65,6 +66,7 @@ class SkillRegistry:
         self.revoked: set[tuple[str, str]] = set()
         self.generation = 0
         self.control_generation = None
+        self._generation_lock = threading.Lock()
 
     def publish(self, manifest: Manifest):
         key = (manifest.skill_id, manifest.version)
@@ -83,9 +85,13 @@ class SkillRegistry:
         if self.control_path is None and self.control_reader is None:
             return
         state = self.control_reader() if self.control_reader else read_control(self.control_path)
-        if self.control_generation is not None and state["generation"] < self.control_generation:
-            raise Denied("skill_control_stale")
-        self.control_generation = state["generation"]
+        with self._generation_lock:
+            if (
+                self.control_generation is not None
+                and state["generation"] < self.control_generation
+            ):
+                raise Denied("skill_control_stale")
+            self.control_generation = state["generation"]
         key = f"{skill_id}@{version}"
         if key in state["revoked"]:
             raise Denied("skill_revoked")

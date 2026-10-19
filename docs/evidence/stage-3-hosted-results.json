@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-19 America/Chicago",
+  "source": "Observed hosted test output; contains no tokens, prompts, or model text",
+  "revision": "ca-maf-agent-dev-eus2-01--0000014",
+  "skills": [
+    {
+      "id": "movie-research",
+      "version": "1.0.0",
+      "sha256": "9b7e6f3f472375cc99fbfe61a570647163310bf424058379074db711d4dbe337",
+      "run_id": "b29b2741-628d-4259-a9e8-1521c998d09b",
+      "status": 200,
+      "movie_reads": 1,
+      "revision": 1,
+      "control_generation": 0,
+      "unknown_skill_status": 409,
+      "write_status": 403
+    },
+    {
+      "id": "movie-night",
+      "version": "1.0.0",
+      "sha256": "b013431d52c55e9fc091001fbc5387f579e0ff8783ff436937c127d171297761",
+      "run_id": "36936d4c-c4b8-4091-a51d-290a06526e96",
+      "status": 200,
+      "movie_reads": 1,
+      "revision": 1,
+      "control_generation": 0,
+      "unknown_skill_status": 409,
+      "write_status": 403
+    }
+  ],
+  "operator_exercise": {
+    "disabled_generation": 1,
+    "disabled_status": 409,
+    "error": "skill_disabled",
+    "elapsed_seconds_after_update": 1.3,
+    "restored_generation": 2,
+    "app_revision_unchanged": true
+  },
+  "downstream_actual_workload": {
+    "write_protocol_error": true,
+    "before_after_record_unchanged": true
+  },
+  "memory_case_4": "Deferred to Stage 4; unavailable memory operations already deny"
+}

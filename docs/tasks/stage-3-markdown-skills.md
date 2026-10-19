@@ -2,7 +2,7 @@
 
 ## Current status
 
-Implementation started: both movie research and movie-night planning were selected by the user. The reviewed bundles, digest-pinned loader, capability intersection, chat integration, and deterministic boundary tests are implemented. A local operator tool supports persistent disable/revoke controls and rollback restrictions. The 60-test suite passes. Complete audit evidence, remaining race fixtures, and hosted enablement remain open. See [implementation checkpoint](../stage-3-skills.md).
+**Complete for the single-replica teaching scope.** Both user-selected skills are implemented and validated locally and in dev. All 81 local tests pass. Hosted skill reads, exact digest binding, downstream write denial, and disable-without-redeploy passed. Case 4 remains mandatory Stage 4 memory integration work. See [validation evidence](../stage-3-validation.md) and [the operator guide](../stage-3-skills.md).
 
 ## Goal and outcome
 
@@ -16,24 +16,24 @@ Approved skill registry/loader, capability intersection, integrity/revocation ga
 
 - [Stage 2](stage-2-movie-mcp.md) read-only catalog, dispatcher, service permissions, budgets, and audit.
 - Selected by the user: movie research assistant and movie-night planner, each limited to read-only TMDB tools. Bundles and digests are recorded in `skills/approved.json`.
-- Choose registry trust/integrity mechanism and bounded composition policy. No composition is required merely to test denial of recursion.
+- Selected trust: repository-reviewed approval index and SHA-256-pinned immutable bytes in the agent image. Composition/dependencies are disabled. Dev revocation uses operator-managed Azure tags with workload read-only access.
 
 ## Ordered work checklist
 
 1. [x] Define validated metadata: stable ID/version, owner, purpose, capabilities/tools, input/output expectations, Markdown instructions, and pinned content digest.
-2. [ ] Load only approved versions/bundles; validate dependencies and safe paths. Reject oversized, unknown, revoked, unsigned/integrity-invalid artifacts under the chosen trust mechanism.
+2. [x] Load only approved versions/bundles; validate dependencies and safe paths. Reject oversized, unknown, revoked, unsigned/integrity-invalid artifacts under the chosen trust mechanism.
 3. [x] Intersect authenticated principal, application, agent, and approved skill policies. Treat skill text as instructions/data, never authority; do not alter approval rules or catalog write permissions.
-4. [ ] Prevent time-of-check/time-of-use races by verifying and consuming the same immutable bytes. Bind run use to version/digest; apply current revocation at load and subsequent gates under existing freshness/propagation and fencing rules.
-5. [ ] Deny unapproved files, other skills, URLs, and bundle escapes before access. If composition is approved, validate every child, intersect permissions, bound depth, and share run budgets/deadline/cancellation.
-6. [ ] Implement review/publication/rollback and disable-without-redeploy flow; rollback only to a currently approved, non-revoked artifact.
-7. [ ] Run the boundary matrix below with deterministic model and backend fixtures, retain earlier regressions, and record Stage 4 follow-up explicitly.
+4. [x] Prevent time-of-check/time-of-use races by verifying and consuming the same immutable bytes. Bind run use to version/digest; apply current revocation at load and subsequent gates under existing freshness/propagation and fencing rules.
+5. [x] Deny unapproved files, other skills, URLs, and bundle escapes before access. If composition is approved, validate every child, intersect permissions, bound depth, and share run budgets/deadline/cancellation.
+6. [x] Implement review/publication/rollback and disable-without-redeploy flow; rollback only to a currently approved, non-revoked artifact.
+7. [x] Run the boundary matrix below with deterministic model and backend fixtures, retain earlier regressions, and record Stage 4 follow-up explicitly.
 
 ## Acceptance criteria
 
-- [ ] Approved selected skill works with chat and read-only catalog; unknown/tampered/revoked/path-escaping skills fail closed.
-- [ ] Cases 1–3 and 5–6 below pass now with absence-of-effects evidence. Case 4 is tracked as mandatory [Stage 4](stage-4-memory.md) integration work, not marked passed prematurely.
-- [ ] Unavailable durable-memory operations already deny in Stage 3; isolated Stage 1 session history continues working.
-- [ ] No policy expansion, unauthorized dispatch, private-file read, network fetch, or catalog mutation occurs in negative cases.
+- [x] Approved selected skill works with chat and read-only catalog; unknown/tampered/revoked/path-escaping skills fail closed.
+- [x] Cases 1–3 and 5–6 below pass now with absence-of-effects evidence. Case 4 is tracked as mandatory [Stage 4](stage-4-memory.md) integration work, not marked passed prematurely.
+- [x] Unavailable durable-memory operations already deny in Stage 3; isolated Stage 1 session history continues working.
+- [x] No policy expansion, unauthorized dispatch, private-file read, network fetch, or catalog mutation occurs in negative cases.
 
 ## Security and negative scenarios
 
@@ -54,4 +54,4 @@ Approved skill registry/loader, capability intersection, integrity/revocation ga
 
 ## Out of scope
 
-Unreviewed marketplace installation, arbitrary executable Markdown/code, permission escalation, agent PUT, automatic durable writes, required composition, or declaring the movie-night planner selected. No new model, network, or memory backend choice is implied.
+Unreviewed marketplace installation, arbitrary executable Markdown/code, permission escalation, agent PUT, automatic durable writes, required composition, or production shared-control guarantees. Both teaching skills were explicitly selected by the user. The existing approved Foundry model is reused; no durable memory backend is selected.

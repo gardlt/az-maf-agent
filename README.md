@@ -1,8 +1,8 @@
-# az-maf-agent — Stage 1 and Stage 2
+# az-maf-agent — Stages 1–3
 
-A Python CLI and Microsoft Agent Framework chat core with bounded, process-local session history. The deterministic offline default requires **no Azure account or credentials** after dependencies are installed. Stage 2 includes a separate FastMCP movie catalog and an explicit agent-side read path. Model-selected read tools are opt-in; skills, durable memory, command execution, and agent catalog writes remain disabled.
+A Python CLI and Microsoft Agent Framework chat core with bounded, process-local session history. The deterministic offline default requires **no Azure account or credentials** after dependencies are installed. Stage 2 includes a separate FastMCP movie catalog and an explicit agent-side read path. Stage 3 adds two approved Markdown skills with digest checks, read-only capability intersection, and operator revocation. Durable memory, command execution, and agent catalog writes remain unavailable.
 
-This is a teaching implementation, **not a production-ready service**. The Stage 1/2 Azure test deployment was retired on 2026-10-18: both hosted apps, their dedicated resource group, the dedicated Foundry project, and their Entra app registrations were removed. The offline app and local TMDB-backed FastMCP path remain available. The reproducible Azure layout follows the Azure Developer CLI convention in [azure.yaml](azure.yaml) and [infra/](infra/); use `main.dev.bicepparam` or `main.stage.bicepparam` for explicit environments. The [stage tasks](docs/tasks/README.md), [TMDB integration](docs/tmdb-integration.md), [architecture](docs/stage-2-architecture.md), [network design](docs/stage-2-network-design.md), and [validation record](docs/stage-2-validation.md) retain historical hosted evidence.
+This is a teaching implementation with an active dev agent and private MCP in Azure Container Apps. The earlier dedicated Stage 1/2 test deployment was retired; the reproducible dev deployment now hosts the Stage 3 skills. The Azure layout follows the Azure Developer CLI convention in [azure.yaml](azure.yaml) and [infra/](infra/). See [stage tasks](docs/tasks/README.md), [Stage 3 validation](docs/stage-3-validation.md), and [the skills/operator guide](docs/stage-3-skills.md). Production shared controls and durable memory are later-stage work.
 
 ## Run locally
 
@@ -54,15 +54,23 @@ Configure before hosted testing:
 
 API routes: `POST /sessions`, `POST /sessions/{id}/chat` with `{"text":"hello","revision":0}`, and `POST /sessions/{id}/reset` or `/cancel`. With Stage 2 enabled, `POST /sessions/{id}/movies/{tool_name}` adds only the pinned catalog reads. There are no operator, file, or memory routes. Request bodies and ingestion time are bounded. OpenAPI/docs routes are disabled. All functional routes require authentication; errors omit raw invalid input/provider payloads.
 
+## Stage 3 approved skills
+
+Use `agent-chat --api YOUR_APPROVED_HTTPS_API --skill movie-research` or
+`--skill movie-night`. Skills run with the existing authenticated chat and bounded
+movie tools. The response/audit binds the exact approved version and digest.
+[The skills guide](docs/stage-3-skills.md) covers review, publishing, rollback, operator
+disable/revoke, and the deferred Stage 4 memory boundary.
+
 ## Stage 2 catalog service
 
 `movie-catalog-mcp` exposes only `search_movies(query, limit)` and `get_movie(catalog_id)` through FastMCP. Its TMDB adapter calls the pinned search and details endpoints with an API Read Access Token from `TMDB_API_READ_ACCESS_TOKEN`. It uses `tmdb_<id>` identifiers and labels TMDB's vote average as `tmdb_rating`. It neither creates a TMDB user session nor exposes a movie write route. The agent validates tool names, arguments, results, and an 8 KiB result bound. Local use requires the token in the MCP subprocess environment; run `uv run --locked agent-chat --movies`, then `/search QUERY` or `/movie tmdb_<id>`. See [TMDB integration](docs/tmdb-integration.md) for the credential and attribution requirements.
 
-The retired hosted agent and private MCP ran digest-pinned TMDB-aware images. Signed-in hosted search, details, model-selected read, downstream authentication denials, Stage 1 regression, and an authenticated `/about` Credits page passed before teardown. A separate short-lived VNet/NSG environment demonstrated a network-rule deny to one test-owned destination while the TMDB and Foundry paths kept working; see the [Stage 2 validation](docs/stage-2-validation.md) for the exact evidence and limits. See the [Credits](docs/credits.md) page for TMDB attribution.
+The dev agent and private MCP run digest-pinned TMDB-aware images; the 50-query dev read test passed. Earlier dedicated test apps also ran these contracts. Signed-in hosted search, details, model-selected read, downstream authentication denials, Stage 1 regression, and an authenticated `/about` Credits page passed before teardown. A separate short-lived VNet/NSG environment demonstrated a network-rule deny to one test-owned destination while the TMDB and Foundry paths kept working; see the [Stage 2 validation](docs/stage-2-validation.md) for the exact evidence and limits. See the [Credits](docs/credits.md) page for TMDB attribution.
 
 After reprovisioning a hosted app and Entra registrations, update the client authentication configuration and run `uv run --locked python scripts/test_container_app.py --api https://YOUR_NEW_API`. The old endpoint and app IDs no longer work. The script checks unauthenticated rejection, session creation, chat, stale revision denial, and reset. It neither logs nor writes the bearer token.
 
-After reprovisioning, run `uv run --locked python scripts/test_movie_container_app.py --api https://YOUR_NEW_API` to check the hosted movie read and denial path with the same cached sign-in.
+Run `uv run --locked python scripts/test_movie_container_app.py --api https://YOUR_NEW_API` to check the hosted movie read and denial path with the same cached sign-in.
 
 Validate live tokens, real Easy Auth behavior, workload RBAC, endpoint compatibility, exported telemetry, and ingress restrictions in Azure before marking hosted acceptance passed. The local RSA-signed token tests prove application checks, not an Azure deployment. SDK/platform tracing must stay disabled or undergo the spec's sensitive-content review. Do not enable content capture. Library logging is suppressed by both entry points. Startup rejects explicit message-content capture; keep hosted diagnostic levels and platform trace settings under review.
 

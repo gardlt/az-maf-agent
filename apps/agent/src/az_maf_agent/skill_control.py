@@ -32,7 +32,7 @@ class AzureTagControl:
             + "/providers/Microsoft.Resources/tags/default?api-version=2021-04-01"
         )
         self.credential = credential or ManagedIdentityCredential(
-            connection_timeout=1, read_timeout=1, retry_total=0
+            connection_timeout=3, read_timeout=5, retry_total=0
         )
         self.http = http or httpx.Client(timeout=3.0, follow_redirects=False)
 

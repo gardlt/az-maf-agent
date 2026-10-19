@@ -2,6 +2,13 @@
 
 This log records material implementation, deployment, authentication, and hosted-test changes. It intentionally excludes credentials, bearer tokens, prompt content, and other sensitive values.
 
+## 2026-10-19 — Stage 3 approved Markdown skills
+
+- Implemented the user-selected movie research and movie-night skills, a reviewed digest-pinned registry, immutable bounded loader, permission intersection, and CLI/API selection. Updated CI/deployment triggers for skill bundles.
+- Added bounded read-only Azure tag control gates and separate operator disable/enable/revoke commands. Dev reuses its existing resource group and Foundry model; the app has Reader for control metadata and Foundry User for inference. No new Azure resource was created.
+- All 81 local tests pass, including injection, no-write effects, path/integrity, retry/final-response revocation, immutable content, budget, cancellation/reset, and control failure cases. Hosted skills each returned 200 with one MCP read and an exact manifest digest. Actual workload write proposals were denied downstream and the movie record stayed unchanged.
+- Live disable returned 409 within 1.3 seconds after the operator update and preserved the ready revision; the approved skill was restored. Stage 4 memory case 4 and Stage 5 production shared controls remain explicitly separate. See [Stage 3 validation](stage-3-validation.md).
+
 ## 2026-10-18 — Reproducible Azure infrastructure layout
 
 - Renamed `deploy/` to `infra/` and added the Azure Developer CLI-style `azure.yaml` entrypoint with `infra/main.bicep` as the subscription-scoped composition root.

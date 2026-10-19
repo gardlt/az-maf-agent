@@ -12,7 +12,7 @@ These task files track implementation against the [secure agent teaching specifi
 | --- | --- | --- |
 | 1 — Chat | Dev hosting is active; some Stage 1 acceptance gates remain open. | Shared/resumable session behavior and deployed expired-token rejection remain unverified. |
 | 2 — Movie MCP | Complete for the non-commercial TMDB teaching scope; dev agent/MCP hosting is active. The 50-query dev read test passed; earlier controlled egress evidence is historical. | No Stage 2 teaching acceptance work remains; runtime validation is recorded. See [validation evidence](../stage-2-validation.md). |
-| 3 — Markdown skills | Implementation in progress; both selected skills, loader, and core security tests implemented. | Complete operator controls, audit/race evidence, and hosted validation. |
+| 3 — Markdown skills | Complete for single-replica teaching: 81 local tests, both hosted skills, digest binding, read-only enforcement, and live disable passed. | Case 4 remains mandatory Stage 4 durable-memory integration; production shared controls belong to Stage 5. |
 | 4 — Governed memory | Not started. | Complete Stage 3 and select a durable backend. |
 | 5 — Production guardrails | Not started. | Complete prior stages and select shared control-state hosting. |
 
