@@ -18,6 +18,12 @@ on:
         type: choice
         options: [dev, stage]
         default: dev
+      service:
+        description: Service to update
+        required: true
+        type: choice
+        options: [agent, movie-mcp, all]
+        default: all
 
 permissions:
   contents: read
@@ -81,17 +87,23 @@ jobs:
       - name: Build and push digest-pinned images
         run: |
           set -euo pipefail
+          service='${{ github.event_name == 'workflow_dispatch' && inputs.service || 'all' }}'
           az acr login --name "$MAF_REGISTRY_NAME"
-          agent_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-agent:${GITHUB_SHA}"
-          mcp_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-movie-mcp:${GITHUB_SHA}"
-          docker build --platform linux/amd64 --file Dockerfile --tag "$agent_tag" .
-          docker build --platform linux/amd64 --file Dockerfile.mcp --tag "$mcp_tag" .
-          docker push "$agent_tag"
-          docker push "$mcp_tag"
-          echo "MAF_AGENT_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$agent_tag")" >> "$GITHUB_ENV"
-          echo "MAF_MCP_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$mcp_tag")" >> "$GITHUB_ENV"
+          if [[ "$service" == agent || "$service" == all ]]; then
+            agent_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-agent:${GITHUB_SHA}"
+            docker build --platform linux/amd64 --file Dockerfile --tag "$agent_tag" .
+            docker push "$agent_tag"
+            echo "MAF_AGENT_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$agent_tag")" >> "$GITHUB_ENV"
+          fi
+          if [[ "$service" == movie-mcp || "$service" == all ]]; then
+            mcp_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-movie-mcp:${GITHUB_SHA}"
+            docker build --platform linux/amd64 --file Dockerfile.mcp --tag "$mcp_tag" .
+            docker push "$mcp_tag"
+            echo "MAF_MCP_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$mcp_tag")" >> "$GITHUB_ENV"
+          fi
 
-      - name: Preview infrastructure changes
+      - name: Preview full environment changes
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.service == 'all' }}
         uses: azure/cli@v2
         with:
           azcliversion: latest
@@ -105,7 +117,8 @@ jobs:
               --subscription "$AZURE_SUBSCRIPTION_ID" \
               --result-format ResourceIdOnly
 
-      - name: Deploy application and MCP
+      - name: Deploy full environment
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.service == 'all' }}
         uses: azure/cli@v2
         with:
           azcliversion: latest
@@ -118,3 +131,29 @@ jobs:
               --parameters "infra/main.${env_name}.bicepparam" \
               --subscription "$AZURE_SUBSCRIPTION_ID" \
               --output none
+
+      - name: Update selected service image
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.service != 'all' }}
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            set -euo pipefail
+            env_name='${{ inputs.environment }}'
+            service='${{ inputs.service }}'
+            resource_group="rg-maf-${env_name}-eus2-01"
+            if [[ "$service" == agent ]]; then
+              az containerapp update \
+                --name "ca-maf-agent-${env_name}-eus2-01" \
+                --resource-group "$resource_group" \
+                --image "$MAF_AGENT_IMAGE" \
+                --subscription "$AZURE_SUBSCRIPTION_ID" \
+                --output none
+            else
+              az containerapp update \
+                --name "ca-maf-movie-mcp-${env_name}-eus2-01" \
+                --resource-group "$resource_group" \
+                --image "$MAF_MCP_IMAGE" \
+                --subscription "$AZURE_SUBSCRIPTION_ID" \
+                --output none
+            fi
