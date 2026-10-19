@@ -125,3 +125,19 @@ async def test_authenticated_movie_route_keeps_read_only_scope(api):
             assert forbidden.status_code == 403
     finally:
         await app.state.agent_service.close()
+
+
+async def test_about_credits_require_authentication(api):
+    app, auth, _ = api
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="https://test") as c:
+        assert (await c.get("/about")).status_code == 401
+        page = await c.get("/about", headers=auth())
+        assert page.status_code == 200
+        assert "text/html" in page.headers["content-type"]
+        assert (
+            "This product uses the TMDB API but is not endorsed or certified by TMDB." in page.text
+        )
+        assert (
+            "blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg"
+            in page.text
+        )

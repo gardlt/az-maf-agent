@@ -34,9 +34,9 @@ The agent API is still a single-replica teaching deployment. Its Stage 1 shared-
 
 ## Deployment and remaining boundary
 
-The MCP revision `ca-az-maf-movie-mcp--0000002` is healthy on image digest `sha256:8f0b79e3bf22f576acd4b3bfcf5be17d40bcbdb55522081905bd6c55a802890f`. Agent revision `ca-az-maf-stage1--0000011` is healthy on digest `sha256:4fe10a9dc7f8d19865987acd6da2d8ab66ab1dcedce2ea422fdebf6f6f6274bf`. Hosted signed-in search, details, model-selected read, denial, and Stage 1 regression checks passed as recorded in [validation](stage-2-validation.md).
+The MCP revision `ca-az-maf-movie-mcp--0000002` is healthy on image digest `sha256:8f0b79e3bf22f576acd4b3bfcf5be17d40bcbdb55522081905bd6c55a802890f`. Its TMDB secret was rotated on 2026-10-18. Agent revision `ca-az-maf-stage1--0000012` is healthy on digest `sha256:24f6ca06d1c9bd6f21dff0fc22b2ea5b42b452146d5dd1c0503ae9f9be7daa49`. Hosted signed-in search, details, model-selected read, denial, Stage 1 regression, and the authenticated `/about` Credits page checks passed as recorded in [validation](stage-2-validation.md).
 
-The existing environment has no VNet or workload profiles. Internal ingress, endpoint pinning, redirect refusal, and service authorization do not prove that an arbitrary unapproved outbound destination is blocked by a network rule. The proposed [network design](stage-2-network-design.md) requires separate review and deployment; controlled-egress acceptance remains open. A separately built hosted user interface must also display the [TMDB credits](credits.md).
+The existing environment has no VNet or workload profiles. Internal ingress, endpoint pinning, redirect refusal, and service authorization do not prove that an arbitrary unapproved outbound destination is blocked by a network rule. A separate [network-test foundation and duplicate apps](stage-2-network-design.md) are prepared but not deployed; controlled-egress acceptance remains open. Any future separately built hosted user interface must also display the [TMDB credits](credits.md).
 
 ## Implementation map
 
@@ -44,4 +44,4 @@ The existing environment has no VNet or workload profiles. Internal ingress, end
 - Agent MCP contract, token acquisition, and result validation: `apps/agent/src/az_maf_agent/movie_mcp.py`.
 - Model-selected read loop: `apps/agent/src/az_maf_agent/model_tools.py`.
 - FastMCP server and read-only TMDB adapter: `apps/movie-catalog-mcp/src/movie_catalog_mcp/server.py` and `tmdb.py`.
-- Deployment definitions: `deploy/container-app.bicep` and `deploy/movie-mcp-app.bicep`.
+- Deployment definitions: `deploy/container-app.bicep`, `deploy/movie-mcp-app.bicep`, `deploy/stage2-egress-test-foundation.bicep`, and `deploy/stage2-egress-test-apps.bicep`.

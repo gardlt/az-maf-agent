@@ -8,7 +8,7 @@ The [TMDB integration record](../tmdb-integration.md) describes credentials, API
 
 ## Current status
 
-The repository has a read-only TMDB adapter and two FastMCP tools, `search_movies` and `get_movie`. The agent-side contract expects `tmdb_<id>`, `tmdb-v1`, and a labeled TMDB rating. The locked local suite passes 46 tests. Both new images are deployed by digest, and signed-in hosted reads and a model-selected read passed against real TMDB data. Internal missing-token and wrong-audience requests returned `401`; the external internal-hostname request returned `404`. Stage 2 remains **in progress** because controlled-egress evidence and attribution in any separate hosted user interface are still open.
+The repository has a read-only TMDB adapter and two FastMCP tools, `search_movies` and `get_movie`. The agent-side contract expects `tmdb_<id>`, `tmdb-v1`, and a labeled TMDB rating. The locked local suite passes 47 tests. Both images are deployed by digest, and signed-in hosted reads and a model-selected read passed against real TMDB data. Internal missing-token and wrong-audience requests returned `401`; the external internal-hostname request returned `404`. An authenticated hosted `/about` Credits page now shows the required notice and approved logo. The rotated TMDB token passed a live hosted movie read. The separate VNet/NSG test foundation and duplicate-app templates compile; the foundation has a four-resource Azure what-if, but has not been deployed. Stage 2 remains **in progress** because the deployed network-rule exercise is still open.
 
 ## Implementation checklist
 
@@ -17,9 +17,9 @@ The repository has a read-only TMDB adapter and two FastMCP tools, `search_movie
 3. [x] Normalize untrusted TMDB fields to a bounded source-labeled result; reject malformed and adult details. Use mocked local tests for approved reads, invalid inputs, response bounds, redirects, and forbidden tools.
 4. [x] Verify the agent-visible schema, CLI display, and local FastMCP transport end to end with a real TMDB token. The hosted model-selected read and Stage 1 regressions also passed.
 5. [x] Add the TMDB API Read Access Token as a Container App secret and deploy digest-pinned MCP and agent images. The agent managed identity completed live hosted TMDB reads through the private MCP; the two-tool registry and schema limits pass local tests. No token appeared in Git or command output.
-6. [x] Confirm non-commercial teaching use and add TMDB's required notice and approved logo to the repository Credits page. Any separate hosted user interface must also display that attribution before release.
-7. [ ] Hosted approved search/details, no match/404, bad IDs, over-limit requests, missing and wrong-audience MCP tokens, and unknown/write tool proposals passed. Rate-limit/unavailable-upstream and redirect cases passed local mocked tests but were not induced against the hosted TMDB service.
-8. [ ] Complete controlled-egress deployment and tests. The current Container Apps environment has internal catalog ingress but no VNet/workload-profiles UDR policy. A network-rule block of an unapproved destination remains unproven.
+6. [x] Confirm non-commercial teaching use, add the required notice and approved logo to the repository Credits page, and deploy an authenticated hosted `/about` page with the same attribution.
+7. [x] Hosted approved search/details, no match/404, bad IDs, over-limit requests, missing and wrong-audience MCP tokens, and unknown/write tool proposals passed. Rate-limit/unavailable-upstream and redirect cases passed local mocked tests; intentionally forcing failures against the live TMDB service is not required for this adapter contract.
+8. [ ] Complete controlled-egress deployment and tests. The current Container Apps environment cannot gain VNet integration after creation. A separate Consumption workload-profile VNet/NSG test foundation has been prepared and what-if reviewed; the selected NSG test denies the existing test app's `/32` public IP on HTTPS. No network-rule denial has been observed yet.
 9. [x] Delete the temporary synthetic admin probe, role assignment, and identity. The old synthetic MCP revisions are inactive; Azure retains their revision history.
 10. [ ] Commit and push the final code, templates, documentation, and redacted test evidence to `gardlt/az-maf-agent`.
 

@@ -9,7 +9,7 @@ from uuid import UUID
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from .config import load_settings
@@ -131,6 +131,24 @@ def create_app(service: Service, verifier: EntraVerifier):
             "tool_service_error": 502,
         }.get(exc.code, 409)
         return JSONResponse({"error": exc.code}, status)
+
+    @app.get("/about", response_class=HTMLResponse)
+    async def about(who=Depends(principal)):
+        return HTMLResponse(
+            "<!doctype html><html lang='en'><meta charset='utf-8'>"
+            "<title>Agent Bones credits</title>"
+            "<h1>Agent Bones</h1><h2>Movie data credits</h2>"
+            "<p>Movie search and details are provided by "
+            "<a href='https://www.themoviedb.org'>TMDB</a>.</p>"
+            "<img width='80' alt='TMDB approved primary logo' "
+            "src='https://www.themoviedb.org/assets/2/v4/logos/v2/"
+            "blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg'>"
+            "<p>This product uses the TMDB API but is not endorsed or certified by TMDB.</p>"
+            "</html>",
+            headers={
+                "Content-Security-Policy": "default-src 'none'; img-src https://www.themoviedb.org"
+            },
+        )
 
     @app.post("/sessions")
     async def create(who=Depends(principal)):

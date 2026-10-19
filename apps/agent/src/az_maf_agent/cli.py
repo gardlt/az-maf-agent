@@ -72,6 +72,7 @@ async def run(args):
         if args.movies:
             print("Use /search QUERY or /movie tmdb_<id> for TMDB movie reads.")
             print("This product uses the TMDB API but is not endorsed or certified by TMDB.")
+            print("Credits: https://github.com/gardlt/az-maf-agent/blob/main/docs/credits.md")
         while True:
             # Blocking input is only used when no model operation is active.
             try:

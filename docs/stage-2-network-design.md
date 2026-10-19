@@ -1,6 +1,6 @@
 # Stage 2 network design and decision record
 
-**Status:** proposed design for review; no new network foundation has been deployed. TMDB is now the sole movie source, so the old synthetic admin PUT references in this document are superseded. This record separates network enforcement from MCP authorization. It complements the [Stage 2 architecture](stage-2-architecture.md) and [validation record](stage-2-validation.md).
+**Status:** separate workload-profile test foundation prepared and Azure what-if reviewed; it has not been deployed. On 2026-10-18 the user chose preparation of a lower-cost NSG test environment while keeping the current working apps unchanged. TMDB is the sole movie source. This record separates network enforcement from MCP authorization. It complements the [Stage 2 architecture](stage-2-architecture.md) and [validation record](stage-2-validation.md).
 
 ## Decision to make
 
@@ -8,7 +8,19 @@ Stage 2 requires a deployed test that permits the agent's approved MCP read and 
 
 Microsoft's [Container Apps networking overview](https://learn.microsoft.com/en-us/azure/container-apps/networking) lists user-defined routes for workload-profiles environments. Its [Azure Firewall integration guidance](https://learn.microsoft.com/en-us/azure/container-apps/use-azure-firewall) states that UDR and controlled egress require that environment type and that the route table is configured outside the Container Apps environment. The [VNet integration guide](https://learn.microsoft.com/en-us/azure/container-apps/vnet-custom) specifies a dedicated `/27` or larger subnet for a workload-profiles environment. These are design inputs, not evidence that this subscription has capacity or that a particular deployment will succeed.
 
-## Candidate topology
+## Selected narrow network test
+
+The [prepared Bicep template](../deploy/stage2-egress-test-foundation.bicep) creates a new Consumption workload-profile environment, dedicated delegated `/27` subnet, VNet, and NSG in the existing resource group. The NSG's priority-100 outbound rule denies HTTPS to `20.14.237.110/32`, the current static public IP of the test-owned Stage 1 agent. DNS for that agent hostname resolved to the same IP when reviewed. The default outbound rules remain in effect for other destinations so Foundry, Entra, ACR, TMDB, DNS, and telemetry can continue to work. Recheck the IP immediately before deployment. This is a **single-destination denial test**, not a general FQDN allowlist or production egress policy.
+
+The Bicep compiler passed. Azure what-if predicted exactly four creations—`cae-az-maf-stage2-nettest`, `nsg-az-maf-stage2-apps`, `vnet-az-maf-stage2-nettest`, and its delegated apps subnet—and no changes to the six existing resources it listed. The new environment would reuse the existing Log Analytics workspace. No resource was created by the what-if.
+
+The official [Container Apps billing guide](https://learn.microsoft.com/en-us/azure/container-apps/billing) says a Consumption-only workload profile has no dedicated-plan management charge; the monthly free grants are shared across the subscription. The [Azure retail price API](https://prices.azure.com/api/retail/prices) listed East US 2 active rates of $0.000024 per vCPU-second and $0.000003 per GiB-second on 2026-10-18. Two 0.5-vCPU, 1-GiB replicas continuously active for one hour would therefore be about **$0.11 before any remaining free grant**, plus public-IP, logging, data-transfer, and request charges if applicable. [Azure says VNets are free](https://azure.microsoft.com/en-us/pricing/details/virtual-network/); NSGs have no separate resource charge. Actual subscription billing must be checked after deployment. Keep the test short-lived and remove the extra apps and foundation after recording evidence.
+
+The [duplicate-app template](../deploy/stage2-egress-test-apps.bicep) also compiles. It prepares digest-pinned agent and TMDB MCP apps in the new environment, with private MCP ingress, the existing image-pull identity, and a secure TMDB token parameter. The new agent system identity must receive the same account-scoped Foundry inference role, project-scoped Foundry User role, and catalog API `Catalog.Read` app-role assignment as the working agent before the test can pass. The MCP accepts only that new agent principal. The duplicate agent has public HTTPS ingress with its own signed-Entra-token and user-allowlist application checks; the existing agent retains its separate Easy Auth boundary. Verify anonymous, wrong-audience, and forged-header denial on the duplicate agent before using it. No duplicate app has been created yet.
+
+An egress probe in the same subnet can demonstrate the deny rule by comparing reachability before and after the rule, or by using a second permitted test destination. Record the NSG rule ID, source revision, timestamp, DNS result, connection result, and destination observation. The existing public agent and private MCP remain active until the duplicate test passes.
+
+## Higher-assurance firewall alternative
 
 ```mermaid
 flowchart LR
@@ -30,9 +42,9 @@ flowchart LR
     FW -.->|Denied by policy| Unapproved[Test-owned unapproved destination]
 ```
 
-The proposed test foundation is a **new** workload-profiles Container Apps environment with VNet integration, a dedicated apps subnet, a route table that sends default outbound traffic to an Azure Firewall private IP, and a reviewed firewall policy. The agent and TMDB MCP would be deployed there as separate apps with the existing logical identity split and digest-pinned images. The MCP would retain internal ingress. No admin probe or write route is part of the new design.
+The broader alternative is a **new** workload-profiles Container Apps environment with VNet integration, a dedicated apps subnet, a route table that sends default outbound traffic to an Azure Firewall private IP, and a reviewed firewall policy. The agent and TMDB MCP would be deployed there as separate apps with the existing logical identity split and digest-pinned images. The MCP would retain internal ingress. No admin probe or write route is part of the new design. This is not the selected narrow test because its always-running firewall has a material cost.
 
-This is a candidate, not an instruction to modify the current environment. Azure Firewall has a material running cost, so its SKU, expected test duration, data-processing estimate, and cleanup plan need a current price review and Azure what-if before deployment. A NAT gateway alone supplies stable outbound addresses but does not satisfy the requirement to deny a named unapproved destination by an allow/deny policy.
+Azure Firewall remains an option for a broader FQDN-based policy. Its SKU, expected test duration, data-processing estimate, and cleanup plan would need a separate current price review and Azure what-if before deployment. A NAT gateway alone supplies stable outbound addresses but does not satisfy the requirement to deny a named unapproved destination by an allow/deny policy.
 
 ## Egress inventory before policy creation
 
@@ -57,17 +69,17 @@ Microsoft's guidance identifies `MicrosoftContainerRegistry` and `AzureFrontDoor
 The deployed tests should record time, source app/revision, identity, destination, method, rule/policy version, and result without logging tokens or movie payloads:
 
 1. An approved user can make a normal agent request; the agent obtains its own catalog token and reads through `/mcp`. Foundry inference and required platform dependencies remain healthy.
-2. The same runtime attempts a request to the test-owned unapproved destination. The route shows traffic traversed the firewall, the firewall log records a deny, and the destination confirms it received no request. An application-level URL validator denial alone does not satisfy this case.
+2. The same network runtime attempts a request to the test-owned unapproved destination. The resolved IP must match the NSG's `/32` rule, the connection must fail after the network rule is applied, and a permitted control destination must still respond. A probe run before the rule or equivalent NSG evidence should distinguish network denial from application validation. The destination should confirm it received no request. An application-level URL validator denial alone does not satisfy this case.
 3. The agent proposes an unknown or write tool and is denied before dispatch. A direct request to a guessed MCP write path finds no registered write operation. Confirm the MCP's TMDB token cannot authorize a TMDB user write; no user session or write credential is configured.
 4. The agent's pinned MCP client rejects a changed endpoint or redirect. A controlled redirect test must confirm no credential is forwarded to the new host. The network policy should independently deny an unapproved redirect destination when the test bypasses the application validator.
 5. A public caller cannot reach the internal MCP; an internal caller without a catalog token gets `401`. No alternative public API route bypasses authentication.
 
-Do not infer a network deny from `401`, `403`, `404`, DNS failure alone, or an agent-dispatcher rejection. Correlate firewall logs and destination observation with the application result. Preserve the actual rule identifiers, but redact bearer tokens and request bodies.
+Do not infer a network deny from `401`, `403`, `404`, DNS failure alone, or an agent-dispatcher rejection. Correlate the NSG rule and before/after or control-destination observation with the application result. Preserve the actual rule identifiers, but redact bearer tokens and request bodies.
 
 ## Rollout and cleanup sequence
 
-1. Confirm subscription quota, target region, IP ranges, DNS plan, and current pricing. Prepare Bicep for VNet/subnets, route table, firewall/policy, Log Analytics connection, and workload-profiles environment. Run validation and what-if; review monthly and short-lived test costs.
-2. Deploy the network foundation and app images with a permissive observation policy long enough to discover required platform traffic. Tighten to the reviewed policy, then run the five acceptance exercises above.
-3. If the foundation is only for a short exercise, delete its billable firewall and related resources after evidence is saved. Retain the architecture and redacted results in the repository.
+1. Recheck subscription quota, the selected CIDRs, the test-owned destination's current static IP and DNS, and actual billing. Review the already compiled and what-if-checked Bicep before creating the foundation.
+2. Deploy the separate environment, then digest-pinned agent and MCP test apps with the existing logical identity split. Use a private deployment parameter file for the rotated TMDB token and delete that file after use. Apply the three identity permissions listed above, then run approved TMDB and Foundry paths and an egress probe with a permitted control destination. Verify the NSG rule blocks the test-owned destination from the same subnet.
+3. Save redacted evidence, then delete the extra test apps and foundation if no longer needed. Keep the existing Stage 1 deployment intact.
 
-No production migration or cutover is implied by this proposal. The existing Stage 1 deployment remains the current working test system until a separate reviewed change replaces it.
+No production migration or cutover is implied. The existing Stage 1 deployment remains the current working test system.
