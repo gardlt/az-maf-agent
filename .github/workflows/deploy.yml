@@ -126,7 +126,7 @@ jobs:
           if [[ "$service" == movie-mcp || "$service" == all ]]; then
             mcp_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-movie-mcp:${GITHUB_SHA}"
             docker build --platform linux/amd64 --file Dockerfile.mcp --tag "$mcp_tag" .
-            docker run --rm --entrypoint python "$mcp_tag" -c "import movie_catalog_mcp.server"
+            docker run --rm --env MOVIE_MCP_MODE=stdio --entrypoint python "$mcp_tag" -c "import movie_catalog_mcp.server"
             bash scripts/scan_release_image.sh "docker:$mcp_tag" security-reports/movie-mcp
             docker push "$mcp_tag"
             echo "MAF_MCP_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$mcp_tag")" >> "$GITHUB_ENV"
