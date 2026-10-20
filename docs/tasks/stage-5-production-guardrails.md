@@ -30,13 +30,13 @@ These checks describe the completed scope only. They do not close the broader re
 - [x] Verify the isolated two-revision manual Azure stop drill in 2.299 seconds, with every known revision inactive, Stopped and at zero replicas. Runtime deactivate attempt returns 403. See [platform evidence](../validation/stage-5-evidence/manual-stop.json).
 - [x] Verify the shared-backend synthetic watchdog stop in 3.255 seconds with zero forbidden follow-ups. No real provider was dispatched by this fixture. See [watchdog evidence](../validation/stage-5-evidence/watchdog-stop.json).
 - [x] Reconcile two contained dev runs with unknown usage after independent platform verification; preserve all reservations and daily accounting without fabricated receipts or refunds. See [reconciliation evidence](../validation/stage-5-evidence/reconciliation.json).
-- [x] Verify shipped metadata-only spans in Azure Application Insights, rather than relying on exporter flush. Sensitive canary fields are absent. See [exported evidence](../validation/stage-5-evidence/shipped-exported-span.json). Agents view integration remains separate and open.
+- [x] Verify shipped metadata-only spans in Azure Application Insights, rather than relying on exporter flush. Sensitive canary fields are absent. See [exported evidence](../validation/stage-5-evidence/shipped-exported-span.json). The subsequent GenAI integration and user-confirmed Agents view visibility are recorded in the [acceptance report](../validation/stage-5-agent-id-observability.md).
 - [x] Record deployed rejection of a genuinely expired token, beyond clock skew, with HTTP 401. See [token rejection evidence](../validation/stage-5-evidence/expired-token.json).
 - [x] Execute the fixed 20-case live evaluation; frozen grader v3 reaches the predeclared 90% benign marker threshold. Preserve earlier failed reports. Full forbidden-effect and qualitative acceptance remain open. See [evaluation report](../validation/stage-5-live-evaluation.md).
 - [x] Deploy the approved parallel VNet/Basic Firewall foundation. Keep existing app traffic unchanged and the registry Basic as requested. See [deployment review](../stage-5-network-migration-review.md#latest-deployment-and-registry-decision). Final app cutover/network tests remain open.
 - [x] Produce the deployed-image SBOM and local vulnerability report; implement the user-selected High/Critical release gate with checksum-pinned scanners. The original blocked scan is preserved; both patched release images subsequently passed with zero High/Critical findings. See [current scan evidence](../validation/stage-5-evidence/agent-id-image-scans.json).
 - [x] Document independent stop, reconciliation, schema-compatible rollback and explicit recovery procedures in the [operator runbook](../stage-5-operator-runbook.md). Full hosted rollback/rotation rehearsal remains open.
-- [x] Add the requested [Entra Agent ID](../entra-agent-id.md) and [Azure Monitor Agents view](../azure-monitor-agents-view.md) integration plans and release tasks. Implementation of both remains open.
+- [x] Add the requested [Entra Agent ID](../entra-agent-id.md) and [Azure Monitor Agents view](../azure-monitor-agents-view.md) integration plans and release tasks. Both requested integrations are now complete for dev; see [hosted acceptance](../validation/stage-5-agent-id-observability.md).
 
 ## Remaining release blockers
 
@@ -46,7 +46,7 @@ These checks describe the completed scope only. They do not close the broader re
 - [ ] Complete an approved image-delivery/network design compatible with keeping ACR Basic, then run all five network cases under the final topology.
 - [ ] Complete protected dispatch/effect review, qualitative evaluation, Key Vault rotation and rollback/incident rehearsal.
 - [x] Provision and integrate Entra Agent ID in dev; prove actual downstream agent-token use for inference and MCP, plus runtime caching. See [acceptance evidence](../validation/stage-5-agent-id-observability.md).
-- [ ] Integrate generative AI tracing and verify correlated runs in Application Insights Agents (Preview).
+- [x] Integrate generative AI tracing and verify correlated runs in Azure ingestion; the user confirms the agent is visible in Application Insights Agents (Preview). See [acceptance evidence](../validation/stage-5-agent-id-observability.md).
 
 ## Ordered work checklist
 
@@ -59,7 +59,7 @@ These checks describe the completed scope only. They do not close the broader re
 7. [ ] Rehearse the independent manual stop drill, reconcile downstream outcomes, and prove persistent stop plus explicit authorized recovery/canary.
 8. [ ] Run full regression and controlled live-model quality/safety evaluations with thresholds approved in advance. Review supply-chain, identity/RBAC, Key Vault rotation, redaction, retention/deletion, rollout/rollback, and incident evidence before declaring readiness.
 9. [x] Integrate Microsoft Entra Agent ID in dev with a dedicated blueprint/agent identity, managed identity federation, scoped downstream grants and verified runtime token use. Environment-specific provisioning/configuration is reproducible; stage/prod rollout remains separate. See [identity acceptance evidence](../validation/stage-5-agent-id-observability.md).
-10. [ ] Integrate Azure Monitor Application Insights Agents (Preview) with correlated agent/model/MCP traces, observed usage and content-free exported evidence. Verify the hosted Agents view, not only generic control spans. See [monitoring integration plan](../azure-monitor-agents-view.md).
+10. [x] Integrate Azure Monitor Application Insights Agents (Preview) with correlated agent/model/MCP traces, observed usage and content-free exported evidence. Actual Azure correlation is verified and the user confirms visibility in the hosted Agents view. See [monitoring integration plan](../azure-monitor-agents-view.md).
 
 ## Acceptance criteria
 

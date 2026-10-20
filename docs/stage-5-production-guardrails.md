@@ -46,7 +46,7 @@ Telemetry uses an isolated explicit tracer and static resources, without HTTP/mo
 
 ## Remaining release evidence
 
-The [task checklist](tasks/stage-5-production-guardrails.md) now separates completed, evidence-backed milestones from open release gates. Remaining work includes actual cross-replica conversation/race acceptance, remaining hosted control/approval/outage cases, final network topology and bypass tests, full forbidden-effect review, Key Vault rotation and rollback rehearsal, and Application Insights Agents view portal validation. The latest dev release completed vulnerability clearance, maintenance recovery/canary and Entra Agent ID integration. Completed synthetic containment and exported-span checks do not substitute for these outstanding gates.
+The [task checklist](tasks/stage-5-production-guardrails.md) now separates completed, evidence-backed milestones from open release gates. Remaining work includes actual cross-replica conversation/race acceptance, remaining hosted control/approval/outage cases, final network topology and bypass tests, full forbidden-effect review, Key Vault rotation and rollback rehearsal. The latest dev release completed vulnerability clearance, maintenance recovery/canary, Entra Agent ID integration and GenAI tracing; the user subsequently confirmed Agents (Preview) visibility. Completed synthetic containment and exported-span checks do not substitute for these outstanding gates.
 
 
 ## Deployment checkpoint
@@ -101,11 +101,11 @@ The user requires Microsoft Entra Agent ID for this agent. Current managed ident
 
 ## Azure Monitor Agents view requirement
 
-The user also requires [Application Insights Agents (Preview)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/agents-view). The [integration plan](azure-monitor-agents-view.md) covers correlated agent/model/tool traces, observed usage, metadata-only export and hosted portal acceptance. Existing isolated control spans do not satisfy this requirement. Instrumentation and actual Azure ingestion are now verified in the latest checkpoint below; portal rendering remains open.
+The user also requires [Application Insights Agents (Preview)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/agents-view). The [integration plan](azure-monitor-agents-view.md) covers correlated agent/model/tool traces, observed usage, metadata-only export and hosted portal acceptance. Existing isolated control spans do not satisfy this requirement. Instrumentation and actual Azure ingestion are now verified in the latest checkpoint below; the user has confirmed agent visibility in Agents (Preview).
 
 
 ## Latest Agent ID / tracing checkpoint
 
 Release `e038ca3` deployed successfully to dev after both images passed the unresolved High/Critical gate. The agent is revision 30 and movie MCP revision 28. Explicit recovery advanced policy 5 → 6 without changing existing run records or daily reservations. A fresh authenticated canary completed two model calls and one MCP read with no unresolved outcome.
 
-Dev Entra Agent ID is provisioned and used by both downstream credential paths. Actual deployed tokens identify the agent and are cached; [selected claims](validation/stage-5-evidence/agent-id-runtime-token-claims.json) contain no raw tokens. Four actual Azure-ingested spans correlate agent invocation, model calls and MCP read, with observed usage and no sensitive canary/content attributes. The browser portal check for Agents (Preview) remains pending sign-in. See the [acceptance report](validation/stage-5-agent-id-observability.md). This checkpoint supersedes the earlier epoch-5 stop and old-image scan blockers; historical evidence is retained. Other Stage 5 gates remain open.
+Dev Entra Agent ID is provisioned and used by both downstream credential paths. Actual deployed tokens identify the agent and are cached; [selected claims](validation/stage-5-evidence/agent-id-runtime-token-claims.json) contain no raw tokens. Four actual Azure-ingested spans correlate agent invocation, model calls and MCP read, with observed usage and no sensitive canary/content attributes. The user confirmed the agent is visible in Agents (Preview). Correlation is established separately by the Azure-ingested trace; no automated browser inspection is claimed. See the [acceptance report](validation/stage-5-agent-id-observability.md). This checkpoint supersedes the earlier epoch-5 stop and old-image scan blockers; historical evidence is retained. Other Stage 5 gates remain open.

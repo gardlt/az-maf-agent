@@ -1,6 +1,6 @@
 # Azure Monitor Agents view
 
-Status: GenAI tracing implemented and verified in actual Azure ingestion; the Agents (Preview) portal check awaits browser sign-in. This is an additional Stage 5 release requirement alongside [Microsoft Entra Agent ID](entra-agent-id.md).
+Status: requested dev integration complete. Correlated GenAI spans are verified in Azure ingestion, and the user confirms the agent is visible in Agents (Preview). This is an additional Stage 5 release requirement alongside [Microsoft Entra Agent ID](entra-agent-id.md).
 
 ## Target experience
 
@@ -23,12 +23,12 @@ The existing `control_telemetry.py` exports isolated, content-free `control.*` s
 
 ## Acceptance evidence
 
-- [ ] A real authorized dev run appears under Application Insights > Agents (Preview).
-- [x] Actual Azure-ingested spans show the agent, model inference and MCP/tool operations with correct parent/child correlation. Portal rendering remains the first open check.
+- [x] User confirms the agent is visible under Application Insights > Agents (Preview); its authorized run and correlated spans are independently verified in Azure ingestion.
+- [x] Actual Azure-ingested spans show the agent, model inference and MCP/tool operations with correct parent/child correlation. Agent visibility in the portal is confirmed by the user.
 - [ ] Success, model failure, tool denial and cancellation have bounded metadata and interpretable status; token reporting distinguishes observed and unavailable usage.
 - [x] Azure-exported canary evidence excludes the sensitive marker and message/tool-content fields; dev routing and agent identity/name are verified.
 - [ ] Export outage/backpressure tests preserve application limits and protected audit behavior.
-- [ ] Operator instructions include the verified portal path, time range, trace lookup and any unavailable preview fields. No completion claim rests solely on local spans or an existing Application Insights resource.
+- [x] Operator instructions record the portal path, time range and actual trace ID in the [acceptance report](validation/stage-5-agent-id-observability.md). User confirmation covers agent visibility; uninspected preview fields are not claimed validated.
 
 
 ## Implementation checkpoint

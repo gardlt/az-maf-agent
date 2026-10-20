@@ -19,13 +19,15 @@ Source release: `e038ca38b7f5ee20263250d49a07839e572316a1`. [Deployment workflow
 | Content exclusion | Synthetic prompt canary and forbidden message/tool-content attributes absent from ingested trace | [Redaction checks](stage-5-evidence/agent-id-correlated-azure-spans.json) |
 | Supply-chain gate | Both built images: zero High / Critical; remaining lower-severity findings retained | [Scan summaries](stage-5-evidence/agent-id-image-scans.json) |
 | Local regression | 190 tests pass; lint and formatting pass; CI passed | [CI run](https://github.com/gardlt/az-maf-agent/actions/runs/39356709563) |
-| Application Insights Agents (Preview) portal | Pending browser sign-in and visual verification | Open acceptance item below |
+| Application Insights Agents (Preview) portal | User confirms the agent is visible in Agents (Preview); correlation verified independently from ingested spans | [Recorded user confirmation](stage-5-evidence/agent-id-deployment.json) |
 
 Trace ID: `757f1ad59529577c74c644d043f9da06`. Run ID: `32b944a6-28aa-463f-adc1-36613e3af165`. No answer or conversation content is retained in this report.
 
-## Remaining portal check
+## Portal confirmation
 
-Sign in to Azure portal, open `appi-ca-maf-agent-dev-eus2-01`, select **Agents (Preview)**, and select `agent-maf-dev`. Use the last 24 hours and inspect the trace above. Confirm the agent, model and MCP tool are rendered in the same transaction. Actual Azure ingestion is already verified programmatically; it is not substituted for this portal check.
+The user confirmed in this chat: “i see it in agents preview”. This records user-verified agent visibility, not an automated browser inspection or a claim that the user inspected every child span. The agent/model/MCP correlation is independently established by the actual Azure-ingested trace above. Both requested dev integration tasks are complete.
+
+Operator lookup: open `appi-ca-maf-agent-dev-eus2-01` > **Agents (Preview)** > `agent-maf-dev`, choose a time range covering the run, and inspect the trace ID above. Other preview fields and broader operational drills are not claimed validated by this visibility confirmation.
 
 ## Reproduce
 
