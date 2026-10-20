@@ -107,3 +107,8 @@ GPT-5 mini, while comparison/analysis and reviewed research use GPT-5. The same
 session can move between them without losing bounded history. Routes cannot add
 permissions or reset spending limits. See the [routing guide](docs/stage-6-model-routing.md)
 and [acceptance tasks](docs/tasks/stage-6-model-routing.md).
+
+
+## Architecture review package
+
+The local [architecture review package](docs/architecture-review/README.md) separates each stage/integration, records trust and data boundaries, and maps claims to versioned evidence and open review gates. It is a draft review submission, not production approval or a universal grounding guarantee.
