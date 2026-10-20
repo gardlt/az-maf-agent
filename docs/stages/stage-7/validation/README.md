@@ -1,10 +1,12 @@
 # Stage 7 validation plan and evidence register
 
-Status: **local foundation tested; hosted matrix not executed**. [Local results](local-quarantine-results.md) cover a limited implementation slice; [platform investigation](platform-investigation.md) records the documented Graph API. No hosted Stage 7 pass results exist. [Design](../README.md) · [Ordered tasks and gates](../../../tasks/stage-7-agent-containment.md).
+Status: **local foundation tested; hosted matrix not executed**. [Local results](local-quarantine-results.md) cover a limited implementation slice; [platform investigation](platform-investigation.md) records the documented Graph API. An [approved live identity drill](live-disable-drill-2026-10-20.md) verified disable/restoration and exposed cached-token and workload-identity access; automatic full containment is not proven. [Design](../README.md) · [Ordered tasks and gates](../../../tasks/stage-7-agent-containment.md).
+
+[Retained evidence files](evidence/README.md) include actual initial/final JUnit captures, selected live observations, restoration and the budget-blocked canary. Local tests now total **235**, including **20 containment cases**. Q01/Q02/Q06/Q07/Q09 have partial local evidence; Q03/Q05/Q10/Q11 have limited live observations. None establishes the complete end-to-end matrix.
 
 Use isolated synthetic agents A/B and authorized test resources. Freeze policy, fixtures and numerical maximums before execution. Record the tested runtime/controller image digests, configuration/rule versions, tenant, identity IDs, resource scopes, repeat count, clock accuracy, probe origins and all failures. Never retain raw access tokens or credentials in reports; hold test credentials only in private ephemeral storage and destroy them after the drill.
 
-## Adversarial QA matrix (all pending)
+## Adversarial QA matrix (full hosted acceptance remains open)
 
 | Case | Exercise | Required observation |
 | --- | --- | --- |

@@ -222,17 +222,37 @@ class GraphAgentDisabler:
         url = f"https://graph.microsoft.com/v1.0/servicePrincipals/{agent}/microsoft.graph.agentIdentity"
 
         def read():
-            response = self.http.get(url, headers=headers)
+            # A typed Graph cast may omit @odata.type/appId by default. Verify type
+            # on the base principal, and request blueprint binding on the typed view.
+            principal_url = url.removesuffix("/microsoft.graph.agentIdentity")
+            principal = self.http.get(
+                principal_url + "?$select=id,appId,accountEnabled", headers=headers
+            )
+            if principal.status_code != 200 or len(principal.content) > 65536:
+                raise Denied("containment_directory_read")
+            try:
+                base = principal.json()
+                if (
+                    base.get("id") != agent
+                    or base.get("appId") != app_id
+                    or base.get("@odata.type") != "#microsoft.graph.agentIdentity"
+                    or type(base.get("accountEnabled")) is not bool
+                ):
+                    raise Denied("containment_directory_binding")
+            except (ValueError, AttributeError):
+                raise Denied("containment_directory_read") from None
+            response = self.http.get(
+                url + "?$select=id,agentIdentityBlueprintId,accountEnabled", headers=headers
+            )
             if response.status_code != 200 or len(response.content) > 65536:
                 raise Denied("containment_directory_read")
             try:
                 data = response.json()
                 if (
                     data.get("id") != agent
-                    or data.get("appId") != app_id
                     or data.get("agentIdentityBlueprintId") != blueprint
-                    or data.get("@odata.type") != "#microsoft.graph.agentIdentity"
                     or type(data.get("accountEnabled")) is not bool
+                    or data["accountEnabled"] != base["accountEnabled"]
                 ):
                     raise Denied("containment_directory_binding")
                 return data["accountEnabled"]

@@ -1,0 +1,11 @@
+{
+  "command": "uv run --locked python scripts/test_agent_identity_observability.py --report /tmp/stage7-restored-canary.json",
+  "result": "failed_expected_200_got_429_shared_daily_budget",
+  "observed_http": 429,
+  "observed_code": "shared_daily_budget",
+  "exit_code": 1,
+  "successful_chat_recovery": false,
+  "report_file_created": false,
+  "accounting_reset_or_limit_increase": false,
+  "fresh_token_recovery_verified_separately": true
+}

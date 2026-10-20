@@ -39,3 +39,9 @@ Give new decisions an ID and state the concrete trigger, selected option, altern
 - [Routing tradeoffs and measurements](https://github.com/gardlt/az-maf-agent/blob/d65b5fc480a6eb8e593ac9fe0fd020dffd644b50/docs/validation/stage-6-model-routing.md)
 
 Related: [review index](README.md), [evidence register](09-evidence-register.md), [open review gates](10-review-gaps.md).
+
+## ADR13 — Per-agent containment (implementation started; hosted boundary open)
+
+Select the individual Entra Agent ID as the directory disable target, with independent quarantine and service-specific denial as separate required controls. Never disable a shared blueprint or shared managed identity to contain one agent. Manual emergency disable uses the Entra portal; automated disable uses a verified typed Graph identity and disabled readback. Recovery requires explicit operator authorization.
+
+The alternative of directory disable alone failed the all-resource objective in the [live drill](../stages/stage-7/validation/live-disable-drill-2026-10-20.md): cached Foundry/MCP tokens and native workload-identity Blob access continued. SQLite is a local development adapter only, not the selected hosted store. Reconsider isolation/broker/resource topology before controller deployment whenever credentials or services cannot meet the approved denial bound. Graph privilege scope, service enforcement and production backend are unresolved decisions, not board-approved architecture.

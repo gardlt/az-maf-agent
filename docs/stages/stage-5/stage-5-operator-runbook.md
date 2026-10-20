@@ -46,3 +46,7 @@ uv run --locked python -m az_maf_agent.control_operator --account stmafmemdevmak
 The command independently inventories all revisions, requires fresh evidence that they are inactive/stopped with zero replicas, writes protected operator/evidence references, and conditionally marks the run contained with unknown usage. It never refunds reservations or invents provider receipts. Review the evidence and retained accounting before explicitly recovering. Reactivating an Azure revision does not recover the stopped policy.
 
 Confirmed terminal provider rejections may have null usage receipts in shared schema 2. Unknown timeout/network/server outcomes remain unresolved. Deploy schema-2-compatible code while stopped; after schema 2 is written, a schema-1-only image cannot be used for rollback.
+
+## Stage 7 individual identity disable and recovery evidence
+
+Manual emergency identity disable is the individual agent's Disable action in the Entra admin center, not its shared blueprint. The [approved dev drill](../stage-7/validation/live-disable-drill-2026-10-20.md) verified directory disable and restoration but found cached Agent ID and separate Blob workload credentials remained usable. Do not treat the portal action as a replacement for Stage 5 runtime stop or independent resource enforcement. Verify each service and preserve uncertain reservations. Recovery is explicitly authorized; a shared_daily_budget denial must not be repaired by erasing accounting. [Containment architecture](../../architecture-review/14-agent-containment.md).

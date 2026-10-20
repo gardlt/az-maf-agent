@@ -1,0 +1,54 @@
+import asyncio,json,os,time,base64
+from pathlib import Path
+import httpx
+from azure.identity.aio import ManagedIdentityCredential
+from az_maf_agent.agent_identity import configured_agent_credential
+from fastmcp import Client
+from fastmcp.client.transports import StreamableHttpTransport
+PATH=Path('/tmp/stage7-approved-token-drill.json')
+async def main(phase):
+ assert os.environ['AGENT_IDENTITY_CLIENT_ID']=='94a137c6-e4fc-481c-b45d-f2a03d868ba4'
+ scopes={'foundry':'https://cognitiveservices.azure.com/.default','mcp':'api://'+os.environ['MCP_AUDIENCE']+'/.default'}
+ result={'phase':phase,'utc':time.time(),'fresh_tokens':{},'cached_access':{}}
+ cache={}
+ if phase!='baseline':cache=json.loads(PATH.read_text())
+ for name,scope in scopes.items():
+  credential=configured_agent_credential(os.environ,scopes={scope})
+  statuses=[]
+  async def response_hook(response):
+   await response.aread()
+   item={'http':response.status_code}
+   if response.status_code!=200:
+    try:item['error_codes']=response.json().get('error_codes',[])
+    except ValueError:pass
+   statuses.append(item)
+  credential.http.event_hooks['response']=[response_hook]
+  try:
+   token=await credential.get_token(scope)
+   claims=json.loads(base64.urlsafe_b64decode(token.token.split('.')[1]+'=='))
+   result['fresh_tokens'][name]={'issued':True,'exchange':statuses,'same_as_baseline_token':cache.get(name)==token.token,'claims':{k:claims.get(k) for k in ['oid','appid','azp','aud','iat','exp']}}
+   if phase=='baseline':cache[name]=token.token
+  except Exception as exc:result['fresh_tokens'][name]={'issued':False,'code':getattr(exc,'code','probe_failed'),'exchange':statuses}
+  finally:await credential.close()
+ if phase=='baseline':
+  native=ManagedIdentityCredential()
+  try:cache['blob']=(await native.get_token('https://storage.azure.com/.default')).token
+  finally:await native.close()
+  fd=os.open(PATH,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+  with os.fdopen(fd,'w') as handle:json.dump(cache,handle)
+ async with httpx.AsyncClient(timeout=15,follow_redirects=False) as http:
+  if 'foundry' in cache:
+   r=await http.get('https://aif-homelab-rv6t99la.openai.azure.com/openai/models?api-version=2024-06-01',headers={'Authorization':'Bearer '+cache['foundry']})
+   result['cached_access']['foundry_models_http']=r.status_code
+  if 'blob' in cache:
+   r=await http.head('https://stmafmemdevmako261019.blob.core.windows.net/guardrail-policy?restype=container',headers={'Authorization':'Bearer '+cache['blob'],'x-ms-version':'2023-11-03'})
+   result['cached_access']['blob_workload_identity_http']=r.status_code
+ if 'mcp' in cache:
+  try:
+   async with Client(StreamableHttpTransport(os.environ['MCP_ENDPOINT'],auth=cache['mcp']),timeout=20) as client:
+    tools=await client.list_tools()
+    result['cached_access']['mcp_tools_authorized']=True
+    result['cached_access']['mcp_tools_count']=len(tools)
+  except Exception:result['cached_access']['mcp_tools_authorized']=False
+ print('STAGE7_JSON '+json.dumps(result),flush=True)
+asyncio.run(main(PHASE))

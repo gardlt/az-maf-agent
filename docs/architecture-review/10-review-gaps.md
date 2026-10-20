@@ -53,6 +53,6 @@ No risky live exercise, new permission, changed cost limit or new platform depen
 
 Related: [review index](README.md), [evidence register](09-evidence-register.md), [open review gates](10-review-gaps.md).
 
-## Planned Stage 7 containment extension
+## Stage 7 containment extension — open
 
-[Stage 7 plan](../stages/stage-7/README.md) and [ordered tasks](../tasks/stage-7-agent-containment.md) track automatic/manual disable of one agent, resource-specific stale-token enforcement, independent controller authority and failure/recovery QA. Status is planned only. This adds no completion evidence and does not close R01–R05 or the existing identity/operations gates.
+[Stage 7 plan](../stages/stage-7/README.md) and [ordered tasks](../tasks/stage-7-agent-containment.md) track automatic/manual disable of one agent, resource-specific stale-token enforcement, independent controller authority and failure/recovery QA. The [architecture addendum](14-agent-containment.md) now records 235 local tests and the approved live identity disable/restore drill. New token requests were denied after propagation, while cached Foundry/MCP and workload-identity Blob access continued. Independent resource containment, hosted controller/alert integration and full recovery QA remain open; the drill does not close R01–R05 or the existing identity/operations gates.

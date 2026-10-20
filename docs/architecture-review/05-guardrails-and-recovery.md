@@ -60,3 +60,7 @@ Open **R01/R02/R03/R05/R06** cover final network denial, distinct-user/replica t
 - [Manual platform stop evidence](https://github.com/gardlt/az-maf-agent/blob/d65b5fc480a6eb8e593ac9fe0fd020dffd644b50/docs/validation/stage-5-evidence/manual-stop.json)
 
 Related: [review index](README.md), [evidence register](09-evidence-register.md), [open review gates](10-review-gaps.md).
+
+## Stage 7 containment extension
+
+[Stage 7](14-agent-containment.md) adds per-Agent-ID quarantine and directory disable beyond Stage 5 capability/global-stop controls. The local injectable gate cancels active work and preserves accounting; it is not enabled in the hosted app. The live identity drill proved directory disable/restoration while cached tokens and workload-identity Blob access remained usable. No inference is drawn that the existing 10-second runtime stop objective revokes all service credentials. Independent hosted controller, resource gates and explicit recovery remain required.

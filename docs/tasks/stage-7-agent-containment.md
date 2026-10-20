@@ -1,6 +1,6 @@
 # Stage 7 tasks — Automatic individual-agent containment
 
-Status: **implementation started locally; hosted acceptance remains open**, 2026-10-20. See [local foundation results](../stages/stage-7/validation/local-quarantine-results.md).
+Status: **implementation started locally; hosted acceptance remains open**, 2026-10-20. The [live identity drill](../stages/stage-7/validation/live-disable-drill-2026-10-20.md) verified disable/restoration but left resource containment open. See [local foundation results](../stages/stage-7/validation/local-quarantine-results.md).
 
 [Design and Microsoft references](../stages/stage-7/README.md) · [Validation matrix](../stages/stage-7/validation/README.md) · [Roadmap](README.md)
 
