@@ -1,0 +1,10 @@
+{
+  "previous_epoch": 5,
+  "recovered_epoch": 6,
+  "daily_accounting_unchanged": true,
+  "existing_run_accounting_unchanged": true,
+  "existing_runs": 187,
+  "fresh_canary_required": true,
+  "unresolved_runs_before_recovery": 0,
+  "previously_contained_unknown_usage_preserved": true
+}

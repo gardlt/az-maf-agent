@@ -20,12 +20,15 @@ def no_prompt(*args):
 
 def require(response, status):
     if response.status_code != status:
-        code = response.json().get("error", "unclassified")
+        try:
+            code = response.json().get("error", "unclassified")
+        except (ValueError, AttributeError):
+            code = "unclassified"
         # API errors are enumerated; do not print arbitrary response bodies.
         if not isinstance(code, str) or not code.replace("_", "").isalnum() or len(code) > 64:
             code = "unclassified"
         raise RuntimeError(f"expected_{status}_got_{response.status_code}_{code}")
-    return response.json()
+    return response.json() if status == 200 else {}
 
 
 def main():

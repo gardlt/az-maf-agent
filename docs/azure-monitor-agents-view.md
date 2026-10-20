@@ -1,6 +1,6 @@
 # Azure Monitor Agents view
 
-Status: explicit GenAI tracing implemented and locally tested; hosted ingestion and portal acceptance pending. This is an additional Stage 5 release requirement alongside [Microsoft Entra Agent ID](entra-agent-id.md).
+Status: GenAI tracing implemented and verified in actual Azure ingestion; the Agents (Preview) portal check awaits browser sign-in. This is an additional Stage 5 release requirement alongside [Microsoft Entra Agent ID](entra-agent-id.md).
 
 ## Target experience
 
@@ -24,9 +24,9 @@ The existing `control_telemetry.py` exports isolated, content-free `control.*` s
 ## Acceptance evidence
 
 - [ ] A real authorized dev run appears under Application Insights > Agents (Preview).
-- [ ] Its transaction shows the agent, actual model inference and MCP/tool operations with correct parent/child correlation.
+- [x] Actual Azure-ingested spans show the agent, model inference and MCP/tool operations with correct parent/child correlation. Portal rendering remains the first open check.
 - [ ] Success, model failure, tool denial and cancellation have bounded metadata and interpretable status; token reporting distinguishes observed and unavailable usage.
-- [ ] Azure-exported evidence contains none of the sensitive canaries or credentials. Environment routing and agent names are verified.
+- [x] Azure-exported canary evidence excludes the sensitive marker and message/tool-content fields; dev routing and agent identity/name are verified.
 - [ ] Export outage/backpressure tests preserve application limits and protected audit behavior.
 - [ ] Operator instructions include the verified portal path, time range, trace lookup and any unavailable preview fields. No completion claim rests solely on local spans or an existing Application Insights resource.
 
@@ -34,3 +34,5 @@ The existing `control_telemetry.py` exports isolated, content-free `control.*` s
 ## Implementation checkpoint
 
 The application-owned chat loop emits an isolated `invoke_agent` root, child `chat` spans for actual model requests and `execute_tool` spans for validated MCP reads. It shares the existing managed-identity Azure exporter without enabling global HTTP/model instrumentation or sensitive-data capture. Root responses expose a trace ID for operator lookup. Tests exercise concurrent root isolation, the actual service/transport/tool hierarchy, observed usage aggregation and failure redaction. Directory identity metadata is emitted only when Agent ID authentication is enabled. Generic control spans retain their separate context.
+
+See [hosted acceptance evidence](validation/stage-5-agent-id-observability.md) for the real trace ID, selected runtime token claims and scan/recovery results.

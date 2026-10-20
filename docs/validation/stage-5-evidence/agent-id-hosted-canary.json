@@ -1,0 +1,14 @@
+{
+  "observed_utc": "2026-10-20T02:09:04.191271+00:00",
+  "api": "https://ca-maf-agent-dev-eus2-01.kindisland-49d1cad2.eastus2.azurecontainerapps.io",
+  "unauthenticated_http": 401,
+  "authenticated_chat_http": 200,
+  "run_id": "32b944a6-28aa-463f-adc1-36613e3af165",
+  "trace_id": "757f1ad59529577c74c644d043f9da06",
+  "movie_reads": 1,
+  "run_status": "completed",
+  "calls": 2,
+  "tools": 1,
+  "unresolved": false,
+  "response_content_retained": false
+}

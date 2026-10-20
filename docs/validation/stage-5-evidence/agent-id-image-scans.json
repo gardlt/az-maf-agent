@@ -1,0 +1,256 @@
+{
+  "workflow": "https://github.com/gardlt/az-maf-agent/actions/runs/39356709651",
+  "commit": "e038ca38b7f5ee20263250d49a07839e572316a1",
+  "image_uploaded_to_scanner": false,
+  "release_policy": "block_unresolved_high_and_critical",
+  "images": [
+    {
+      "service": "agent",
+      "counts": {
+        "Medium": 14,
+        "Low": 1,
+        "Negligible": 1
+      },
+      "high_critical_gate": "passed",
+      "database": {
+        "status": {
+          "schemaVersion": "v6.1.10",
+          "from": "https://grype.anchore.io/databases/v6/vulnerability-db_v6.1.10_2026-10-19T00:32:50Z_1792391955.tar.zst?checksum=sha256%3A13a192236b248579678bbf06cefb2a07a5dcbd00da110cfb5c3e26eb68a7ce58",
+          "built": "2026-10-19T06:39:15Z",
+          "path": "/home/runner/.cache/grype/db/6/vulnerability.db",
+          "valid": true
+        },
+        "providers": {
+          "alma": {
+            "captured": "2026-10-19T00:32:51Z",
+            "input": "xxh64:5c542a957c117376"
+          },
+          "alpine": {
+            "captured": "2026-10-19T00:33:02Z",
+            "input": "xxh64:5f363779c674ada4"
+          },
+          "amazon": {
+            "captured": "2026-10-19T00:33:21Z",
+            "input": "xxh64:52a47ee649cc127e"
+          },
+          "arch": {
+            "captured": "2026-10-19T00:33:49Z",
+            "input": "xxh64:5f557552bade4ac3"
+          },
+          "bitnami": {
+            "captured": "2026-10-19T00:33:38Z",
+            "input": "xxh64:e6182d154b45ad72"
+          },
+          "chainguard": {
+            "captured": "2026-10-19T00:33:17Z",
+            "input": "xxh64:8eda0d0e268f8edf"
+          },
+          "chainguard-libraries": {
+            "captured": "2026-10-19T00:32:52Z",
+            "input": "xxh64:42950b1eccce3da8"
+          },
+          "debian": {
+            "captured": "2026-10-19T00:33:45Z",
+            "input": "xxh64:a122e93b1be7cc47"
+          },
+          "echo": {
+            "captured": "2026-10-19T00:33:11Z",
+            "input": "xxh64:98bb6f68e501aa41"
+          },
+          "eol": {
+            "captured": "2026-10-19T00:32:54Z",
+            "input": "xxh64:0771c1acc8382c98"
+          },
+          "epss": {
+            "captured": "2026-10-19T00:33:01Z",
+            "input": "xxh64:c38e4633ffebe443"
+          },
+          "fedora": {
+            "captured": "2026-10-19T00:33:00Z",
+            "input": "xxh64:c6007579e02c4d08"
+          },
+          "github": {
+            "captured": "2026-10-19T00:33:11Z",
+            "input": "xxh64:80b0f7c5ed9125cc"
+          },
+          "govulndb": {
+            "captured": "2026-10-19T00:32:56Z",
+            "input": "xxh64:d5aff9670480489c"
+          },
+          "hummingbird": {
+            "captured": "2026-10-19T00:36:36Z",
+            "input": "xxh64:e17745d368d13ff4"
+          },
+          "kev": {
+            "captured": "2026-10-19T00:32:58Z",
+            "input": "xxh64:0e36abba80f004a5"
+          },
+          "mariner": {
+            "captured": "2026-10-19T00:32:54Z",
+            "input": "xxh64:9875358e4f290aff"
+          },
+          "minimos": {
+            "captured": "2026-10-19T00:33:06Z",
+            "input": "xxh64:d74dd905a7d08bdb"
+          },
+          "nvd": {
+            "captured": "2026-10-19T00:34:25Z",
+            "input": "xxh64:50523c3038eff7c9"
+          },
+          "oracle": {
+            "captured": "2026-10-19T00:33:21Z",
+            "input": "xxh64:b4034548afc6165c"
+          },
+          "photon": {
+            "captured": "2026-10-19T00:33:35Z",
+            "input": "xxh64:f036afbc998077b9"
+          },
+          "rhel": {
+            "captured": "2026-10-19T00:34:49Z",
+            "input": "xxh64:7058a90e23573e8d"
+          },
+          "secureos": {
+            "captured": "2026-10-19T00:32:50Z",
+            "input": "xxh64:51c46a7d8bd2c9db"
+          },
+          "sles": {
+            "captured": "2026-10-19T00:35:40Z",
+            "input": "xxh64:dc04a98609632d1d"
+          },
+          "ubuntu": {
+            "captured": "2026-10-19T00:34:31Z",
+            "input": "xxh64:879416a4f22e3e89"
+          },
+          "wolfi": {
+            "captured": "2026-10-19T00:33:24Z",
+            "input": "xxh64:5847deacb68ce005"
+          }
+        }
+      }
+    },
+    {
+      "service": "movie-mcp",
+      "counts": {
+        "Medium": 14,
+        "Low": 1,
+        "Negligible": 1
+      },
+      "high_critical_gate": "passed",
+      "database": {
+        "status": {
+          "schemaVersion": "v6.1.10",
+          "from": "https://grype.anchore.io/databases/v6/vulnerability-db_v6.1.10_2026-10-19T00:32:50Z_1792391955.tar.zst?checksum=sha256%3A13a192236b248579678bbf06cefb2a07a5dcbd00da110cfb5c3e26eb68a7ce58",
+          "built": "2026-10-19T06:39:15Z",
+          "path": "/home/runner/.cache/grype/db/6/vulnerability.db",
+          "valid": true
+        },
+        "providers": {
+          "alma": {
+            "captured": "2026-10-19T00:32:51Z",
+            "input": "xxh64:5c542a957c117376"
+          },
+          "alpine": {
+            "captured": "2026-10-19T00:33:02Z",
+            "input": "xxh64:5f363779c674ada4"
+          },
+          "amazon": {
+            "captured": "2026-10-19T00:33:21Z",
+            "input": "xxh64:52a47ee649cc127e"
+          },
+          "arch": {
+            "captured": "2026-10-19T00:33:49Z",
+            "input": "xxh64:5f557552bade4ac3"
+          },
+          "bitnami": {
+            "captured": "2026-10-19T00:33:38Z",
+            "input": "xxh64:e6182d154b45ad72"
+          },
+          "chainguard": {
+            "captured": "2026-10-19T00:33:17Z",
+            "input": "xxh64:8eda0d0e268f8edf"
+          },
+          "chainguard-libraries": {
+            "captured": "2026-10-19T00:32:52Z",
+            "input": "xxh64:42950b1eccce3da8"
+          },
+          "debian": {
+            "captured": "2026-10-19T00:33:45Z",
+            "input": "xxh64:a122e93b1be7cc47"
+          },
+          "echo": {
+            "captured": "2026-10-19T00:33:11Z",
+            "input": "xxh64:98bb6f68e501aa41"
+          },
+          "eol": {
+            "captured": "2026-10-19T00:32:54Z",
+            "input": "xxh64:0771c1acc8382c98"
+          },
+          "epss": {
+            "captured": "2026-10-19T00:33:01Z",
+            "input": "xxh64:c38e4633ffebe443"
+          },
+          "fedora": {
+            "captured": "2026-10-19T00:33:00Z",
+            "input": "xxh64:c6007579e02c4d08"
+          },
+          "github": {
+            "captured": "2026-10-19T00:33:11Z",
+            "input": "xxh64:80b0f7c5ed9125cc"
+          },
+          "govulndb": {
+            "captured": "2026-10-19T00:32:56Z",
+            "input": "xxh64:d5aff9670480489c"
+          },
+          "hummingbird": {
+            "captured": "2026-10-19T00:36:36Z",
+            "input": "xxh64:e17745d368d13ff4"
+          },
+          "kev": {
+            "captured": "2026-10-19T00:32:58Z",
+            "input": "xxh64:0e36abba80f004a5"
+          },
+          "mariner": {
+            "captured": "2026-10-19T00:32:54Z",
+            "input": "xxh64:9875358e4f290aff"
+          },
+          "minimos": {
+            "captured": "2026-10-19T00:33:06Z",
+            "input": "xxh64:d74dd905a7d08bdb"
+          },
+          "nvd": {
+            "captured": "2026-10-19T00:34:25Z",
+            "input": "xxh64:50523c3038eff7c9"
+          },
+          "oracle": {
+            "captured": "2026-10-19T00:33:21Z",
+            "input": "xxh64:b4034548afc6165c"
+          },
+          "photon": {
+            "captured": "2026-10-19T00:33:35Z",
+            "input": "xxh64:f036afbc998077b9"
+          },
+          "rhel": {
+            "captured": "2026-10-19T00:34:49Z",
+            "input": "xxh64:7058a90e23573e8d"
+          },
+          "secureos": {
+            "captured": "2026-10-19T00:32:50Z",
+            "input": "xxh64:51c46a7d8bd2c9db"
+          },
+          "sles": {
+            "captured": "2026-10-19T00:35:40Z",
+            "input": "xxh64:dc04a98609632d1d"
+          },
+          "ubuntu": {
+            "captured": "2026-10-19T00:34:31Z",
+            "input": "xxh64:879416a4f22e3e89"
+          },
+          "wolfi": {
+            "captured": "2026-10-19T00:33:24Z",
+            "input": "xxh64:5847deacb68ce005"
+          }
+        }
+      }
+    }
+  ]
+}

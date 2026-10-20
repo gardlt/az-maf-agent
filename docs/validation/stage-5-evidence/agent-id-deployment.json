@@ -1,0 +1,13 @@
+{
+  "source_commit": "e038ca38b7f5ee20263250d49a07839e572316a1",
+  "workflow": "https://github.com/gardlt/az-maf-agent/actions/runs/39356709651",
+  "agent_revision": "ca-maf-agent-dev-eus2-01--0000030",
+  "agent_image": "crmafdevmako261018.azurecr.io/az-maf-agent@sha256:a38cd5ce84329f4f6575d4ee5c6e5bec264108e48797a203852440a85498c8fd",
+  "mcp_revision": "ca-maf-movie-mcp-dev-eus2-01--0000028",
+  "mcp_image": "crmafdevmako261018.azurecr.io/az-maf-movie-mcp@sha256:43421da06e7eaba9024a5c2f2abb4db75b2f86c15a59765fa9580d68155e1662",
+  "agent_identity_enabled": true,
+  "genai_tracing_enabled": true,
+  "agent_identity_client_id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+  "recovered_policy_epoch": 6,
+  "portal_visual_verification": "pending_browser_sign_in"
+}

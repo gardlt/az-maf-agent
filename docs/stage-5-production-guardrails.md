@@ -1,6 +1,6 @@
 # Stage 5 — containment and operator recovery
 
-Status: implementation and hosted validation in progress. Stage 5 is not complete. The dev app now runs shared controls and Blob sessions. The current maintenance policy is epoch 5 with global stop enabled pending a schema-aware release and explicit recovery. Production release gates remain open.
+Status: implementation and hosted validation in progress. Stage 5 is not complete. The dev app now runs shared controls and Blob sessions. The latest verified dev policy is epoch 6 with global stop disabled after a scanned, schema-compatible release and explicit recovery/canary. Production release gates remain open.
 
 ## Approved dev contract
 
@@ -18,7 +18,7 @@ The separate operator command initialized policy epoch **1**, **global_stop=true
 
 A probe inside the actual Stage 4 agent revision `ca-maf-agent-dev-eus2-01--0000024` verified the new identity boundary: policy GET 200, policy PUT 403, state GET 200, conditional same-content state PUT 201, audit create 201, audit GET 403, audit DELETE 403. The content-free `rbac-probe-*` audit record is an administrative permission test rather than a runtime event envelope and remains protected for the retention period. No preference or conversation content was read by this probe.
 
-Local validation reached **182 passing tests**, with lint passing. Operator publication failure, exact approval binding/cancellation, exported-span redaction, cleanup pagination/concurrent changes, and ambiguous Blob write outcomes have dedicated regression coverage.
+Local validation reached **190 passing tests**, with lint passing. Operator publication failure, exact approval binding/cancellation, exported-span redaction, cleanup pagination/concurrent changes, and ambiguous Blob write outcomes have dedicated regression coverage.
 
 ## Operator commands
 
@@ -46,7 +46,7 @@ Telemetry uses an isolated explicit tracer and static resources, without HTTP/mo
 
 ## Remaining release evidence
 
-The [task checklist](tasks/stage-5-production-guardrails.md) now separates completed, evidence-backed milestones from open release gates. Remaining work includes actual cross-replica conversation/race acceptance, remaining hosted control/approval/outage cases, final network topology and bypass tests, current maintenance recovery/canary, full forbidden-effect review, vulnerability clearance, Key Vault rotation and rollback rehearsal, Entra Agent ID integration, and Application Insights Agents view validation. Completed synthetic containment and exported-span checks do not substitute for these outstanding gates.
+The [task checklist](tasks/stage-5-production-guardrails.md) now separates completed, evidence-backed milestones from open release gates. Remaining work includes actual cross-replica conversation/race acceptance, remaining hosted control/approval/outage cases, final network topology and bypass tests, full forbidden-effect review, Key Vault rotation and rollback rehearsal, and Application Insights Agents view portal validation. The latest dev release completed vulnerability clearance, maintenance recovery/canary and Entra Agent ID integration. Completed synthetic containment and exported-span checks do not substitute for these outstanding gates.
 
 
 ## Deployment checkpoint
@@ -80,11 +80,11 @@ The user requested and approved the separately reviewed 11-resource phase-one VN
 
 ## Current release blockers and maintenance evidence
 
-The user selected **block unresolved High and Critical vulnerabilities**. The deployed agent digest `sha256:4e5502849017de2763d9774d1f05fdb9a59ed514b11f5b406576e7db09eb89d0` has 20 Critical and 202 High matches in the local Grype scan. It fails release. The image SBOM and [scan evidence](validation/stage-5-evidence/image-vulnerability-scan.json) are retained; image layers were not uploaded to a scanning service. Docker Scout remains skipped. A patched base and final rebuilt-image rescan are required; updating a Dockerfile alone does not satisfy the gate.
+The user selected **block unresolved High and Critical vulnerabilities**. The pre-remediation agent digest `sha256:4e5502849017de2763d9774d1f05fdb9a59ed514b11f5b406576e7db09eb89d0` has 20 Critical and 202 High matches in the local Grype scan. It fails release. The image SBOM and [scan evidence](validation/stage-5-evidence/image-vulnerability-scan.json) are retained; image layers were not uploaded to a scanning service. Docker Scout remains skipped. A patched base and final rebuilt-image rescan are required; updating a Dockerfile alone does not satisfy the gate.
 
-Two unknown provider outcomes were independently reconciled only after every known dev agent revision was verified inactive, stopped and at zero replicas. The operator classification preserves all reserved tokens/cost and observed receipts, and explicitly retains unknown provider usage. See [reconciliation evidence](validation/stage-5-evidence/reconciliation.json). The revision was reactivated, but policy remains stopped at epoch 5. No invoice cancellation or zero-usage claim is made.
+Two unknown provider outcomes were independently reconciled only after every known dev agent revision was verified inactive, stopped and at zero replicas. The operator classification preserves all reserved tokens/cost and observed receipts, and explicitly retains unknown provider usage. See [reconciliation evidence](validation/stage-5-evidence/reconciliation.json). At that checkpoint the revision was reactivated while policy remained stopped at epoch 5; subsequent recovery to epoch 6 is recorded below. No invoice cancellation or zero-usage claim is made.
 
-The pending provider-rejection change records confirmed terminal HTTP rejections separately from unknown transport outcomes. Null usage receipts require shared-state schema 2; no zero usage is fabricated and reservations remain intact. Keep global stop through rollout. After any schema-2 write, rollback must use code that validates schema 2. A schema-1-only image is not a compatible rollback target.
+The now-deployed provider-rejection change records confirmed terminal HTTP rejections separately from unknown transport outcomes. Null usage receipts require shared-state schema 2; no zero usage is fabricated and reservations remain intact. Keep global stop through rollout. After any schema-2 write, rollback must use code that validates schema 2. A schema-1-only image is not a compatible rollback target.
 
 The fixed live benign evaluation achieved 90% under the frozen grader; [results](validation/stage-5-live-evaluation.md) describe its limits. Shared-backend synthetic watchdog containment measured 3.255 seconds. Actual multi-replica conversation/reset validation and the final network topology remain open. Phase-one network foundation succeeded, but the user declined Premium ACR; app cutover requires another reviewed image-delivery design.
 
@@ -96,9 +96,16 @@ The deployment workflow now scans each built image locally with checksum-pinned 
 
 ## Microsoft Entra Agent ID requirement
 
-The user requires Microsoft Entra Agent ID for this agent. Current managed identities are not evidence of an Agent ID integration. [The integration plan](entra-agent-id.md) records environment isolation, federation, directory provisioning, runtime token use and validation. This is an open Stage 5 release requirement; no blueprint or agent identity has been provisioned by recording it.
+The user requires Microsoft Entra Agent ID for this agent. Current managed identities are not evidence of an Agent ID integration. [The integration plan](entra-agent-id.md) records environment isolation, federation, directory provisioning, runtime token use and validation. Dev provisioning and downstream runtime use are now verified in the latest checkpoint below; stage/prod rollout and the broader identity review remain separate.
 
 
 ## Azure Monitor Agents view requirement
 
-The user also requires [Application Insights Agents (Preview)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/agents-view). The [integration plan](azure-monitor-agents-view.md) covers correlated agent/model/tool traces, observed usage, metadata-only export and hosted portal acceptance. Existing isolated control spans do not satisfy this requirement. This remains open; no runtime instrumentation was changed by recording it.
+The user also requires [Application Insights Agents (Preview)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/agents-view). The [integration plan](azure-monitor-agents-view.md) covers correlated agent/model/tool traces, observed usage, metadata-only export and hosted portal acceptance. Existing isolated control spans do not satisfy this requirement. Instrumentation and actual Azure ingestion are now verified in the latest checkpoint below; portal rendering remains open.
+
+
+## Latest Agent ID / tracing checkpoint
+
+Release `e038ca3` deployed successfully to dev after both images passed the unresolved High/Critical gate. The agent is revision 30 and movie MCP revision 28. Explicit recovery advanced policy 5 → 6 without changing existing run records or daily reservations. A fresh authenticated canary completed two model calls and one MCP read with no unresolved outcome.
+
+Dev Entra Agent ID is provisioned and used by both downstream credential paths. Actual deployed tokens identify the agent and are cached; [selected claims](validation/stage-5-evidence/agent-id-runtime-token-claims.json) contain no raw tokens. Four actual Azure-ingested spans correlate agent invocation, model calls and MCP read, with observed usage and no sensitive canary/content attributes. The browser portal check for Agents (Preview) remains pending sign-in. See the [acceptance report](validation/stage-5-agent-id-observability.md). This checkpoint supersedes the earlier epoch-5 stop and old-image scan blockers; historical evidence is retained. Other Stage 5 gates remain open.

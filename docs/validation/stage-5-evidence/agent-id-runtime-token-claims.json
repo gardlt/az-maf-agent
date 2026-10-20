@@ -1,0 +1,28 @@
+{
+  "tokens": [
+    {
+      "scope": "https://cognitiveservices.azure.com/.default",
+      "oid": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+      "aud": "https://cognitiveservices.azure.com",
+      "tid": "c57afb80-6b3d-4bae-a466-e4d217bcb4a2",
+      "client_id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+      "roles": [],
+      "cached_token_reused": true,
+      "credential_type": "AgentIdentityCredential"
+    },
+    {
+      "scope": "api://f992b99b-25b8-4a99-8c00-7157b8edf4de/.default",
+      "oid": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+      "aud": "api://f992b99b-25b8-4a99-8c00-7157b8edf4de",
+      "tid": "c57afb80-6b3d-4bae-a466-e4d217bcb4a2",
+      "client_id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+      "roles": [
+        "Catalog.Read"
+      ],
+      "cached_token_reused": true,
+      "credential_type": "AgentIdentityCredential"
+    }
+  ],
+  "raw_tokens_retained": false,
+  "revision": "ca-maf-agent-dev-eus2-01--0000030"
+}

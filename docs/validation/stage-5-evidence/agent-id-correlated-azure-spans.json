@@ -1,0 +1,64 @@
+{
+  "trace_id": "757f1ad59529577c74c644d043f9da06",
+  "run_id": "32b944a6-28aa-463f-adc1-36613e3af165",
+  "azure_ingested": true,
+  "agent_model_mcp_correlated": true,
+  "sensitive_canary_present": false,
+  "content_attributes_present": false,
+  "spans": [
+    {
+      "name": "chat gpt-5",
+      "id": "935b5e186a1bbe39",
+      "parent_id": "b9c63acb980d6fa4",
+      "attributes": {
+        "gen_ai.system": "azure.ai.openai",
+        "gen_ai.provider.name": "azure.ai.openai",
+        "gen_ai.request.model": "gpt-5",
+        "gen_ai.operation.name": "chat",
+        "gen_ai.agent.name": "agent-maf-dev",
+        "gen_ai.agent.id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+        "gen_ai.usage.input_tokens": "238",
+        "gen_ai.usage.output_tokens": "27"
+      }
+    },
+    {
+      "name": "chat gpt-5",
+      "id": "285436a2ac91db77",
+      "parent_id": "b9c63acb980d6fa4",
+      "attributes": {
+        "gen_ai.system": "azure.ai.openai",
+        "gen_ai.provider.name": "azure.ai.openai",
+        "gen_ai.request.model": "gpt-5",
+        "gen_ai.operation.name": "chat",
+        "gen_ai.agent.name": "agent-maf-dev",
+        "gen_ai.agent.id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+        "gen_ai.usage.input_tokens": "379",
+        "gen_ai.usage.output_tokens": "20"
+      }
+    },
+    {
+      "name": "invoke_agent agent-maf-dev",
+      "id": "b9c63acb980d6fa4",
+      "parent_id": "757f1ad59529577c74c644d043f9da06",
+      "attributes": {
+        "gen_ai.operation.name": "invoke_agent",
+        "gen_ai.agent.name": "agent-maf-dev",
+        "gen_ai.agent.id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+        "agent.run_id": "32b944a6-28aa-463f-adc1-36613e3af165",
+        "gen_ai.usage.input_tokens": "617",
+        "gen_ai.usage.output_tokens": "47"
+      }
+    },
+    {
+      "name": "execute_tool get_movie",
+      "id": "d2965f5cc71e9776",
+      "parent_id": "b9c63acb980d6fa4",
+      "attributes": {
+        "gen_ai.tool.name": "get_movie",
+        "gen_ai.operation.name": "execute_tool",
+        "gen_ai.agent.name": "agent-maf-dev",
+        "gen_ai.agent.id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4"
+      }
+    }
+  ]
+}

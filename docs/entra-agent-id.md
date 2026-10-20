@@ -1,10 +1,10 @@
 # Microsoft Entra Agent ID integration
 
-Status: dev directory objects and scoped inference/MCP grants provisioned; runtime integration implemented and locally tested. Deployed downstream validation is pending. This is an additional Stage 5 release requirement.
+Status: completed for the selected dev deployment, including actual downstream inference/MCP use and cached agent tokens. Stage/prod rollout is separate. This is an additional Stage 5 release requirement.
 
-## Current identity paths
+## Identity paths before integration
 
-The Container Apps agent currently authenticates downstream using Azure managed identities. `model.py`, `movie_mcp.py`, `blob_memory.py`, `skill_control.py` and `control_telemetry.py` acquire managed-identity credentials. The API and CLI have separate Entra application registrations for incoming user authentication. None of these facts establishes that the agent has an Entra Agent ID blueprint or uses an agent identity.
+Before this integration, the Container Apps agent authenticated downstream using Azure managed identities. `model.py`, `movie_mcp.py`, `blob_memory.py`, `skill_control.py` and `control_telemetry.py` acquire managed-identity credentials. The API and CLI have separate Entra application registrations for incoming user authentication. None of these facts establishes that the agent has an Entra Agent ID blueprint or uses an agent identity.
 
 ## Proposed environment boundaries
 
@@ -51,4 +51,9 @@ Blueprint client ID: `cfb45dee-91b3-498e-b43b-11310e6ef473`. Agent client/object
 
 The credential adapter performs managed identity → blueprint token with `fmi_path` → agent resource token, caches tokens with early refresh and fences resource scopes. It never falls back to workload tokens. A real in-container exchange returned the new agent's `oid` and `appid` for the Cognitive Services audience; a minted token alone is not proof of downstream authorization. The configured runtime uses separate adapter instances for inference and MCP. Blob/control/monitoring/skill infrastructure access remains on workload identity.
 
-Dev GitHub environment variables enable the integration with non-secret identifiers; stage/prod default disabled until their objects and grants are provisioned. The pending release uses the existing High/Critical security gate. Stage/prod provisioning and expanded governance/licensing are not claimed complete.
+Dev GitHub environment variables enable the integration with non-secret identifiers; stage/prod default disabled until their objects and grants are provisioned. The deployed release passed the existing High/Critical security gate. Stage/prod provisioning and expanded governance/licensing are not claimed complete.
+
+
+## Hosted acceptance
+
+The [dev acceptance report](validation/stage-5-agent-id-observability.md) records the deployed image, real token claims, authorized inference and MCP call, caching, and accounting-preserving recovery. The runtime uses agent tokens for both inference and MCP. Generic Blob/control/telemetry infrastructure access remains on managed identity. Legacy grants are retained for rollback; full permission retirement and governance/revocation rehearsal remain separate Stage 5 identity-review work.
