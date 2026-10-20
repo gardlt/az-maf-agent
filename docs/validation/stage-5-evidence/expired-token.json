@@ -1,0 +1,5 @@
+{
+  "genuine_previously_issued_token": true,
+  "expired_beyond_five_minute_skew": true,
+  "http": 401
+}

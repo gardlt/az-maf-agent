@@ -211,3 +211,53 @@ async def test_authenticated_memory_lifecycle_uses_owned_scope(api):
         stale = await client.post(next_path, headers=auth(), json=body | {"expected_generation": 2})
         assert stale.status_code == 409
         assert (await client.get(next_path, headers=auth())).json()["memories"] == []
+
+
+async def test_simulator_api_keeps_approval_and_receipts_owner_scoped(api):
+    from pathlib import Path
+
+    from az_maf_agent.approval_ledger import issue_fixture_approval
+    from az_maf_agent.core import Principal
+    from az_maf_agent.guardrails import (
+        ControlPolicy,
+        FixtureControlBackend,
+        FixtureOperator,
+        RunControls,
+    )
+    from az_maf_agent.supervisor import SafetySupervisor
+
+    app, auth, other = api
+    service = app.state.agent_service
+    backend = FixtureControlBackend(
+        ControlPolicy.model_validate_json(Path("config/guardrail-policy.json").read_text())
+    )
+    operator = FixtureOperator(backend)
+    controls = RunControls(backend, service.settings)
+    service.safety = SafetySupervisor(controls)
+    arguments = {"operation": "simulation:credit", "account_ref": "classroom", "units": 3}
+    claims = jwt.decode(auth()["Authorization"][7:], options={"verify_signature": False})
+    owner = Principal(claims["tid"], claims["oid"], "entra")
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="https://test") as c:
+        request = await c.post("/simulations/requests", headers=auth(), json=arguments)
+        assert request.status_code == 200
+        run = request.json()
+        path = "/simulations/" + run["run_id"] + "/execute"
+        approval = issue_fixture_approval(
+            operator, owner, run["run_id"], arguments, now=time.time()
+        )
+        body = {"approval_id": approval.approval_id, "arguments": arguments}
+        assert (await c.post(path, headers=auth(oid=other), json=body)).status_code == 404
+        altered = {**body, "arguments": {**arguments, "units": 4}}
+        assert (await c.post(path, headers=auth(), json=altered)).status_code == 403
+        assert backend.snapshot()["receipts"] == {}
+        assert (await c.post(path, headers=auth(), json=body)).status_code == 200
+        assert (await c.post(path, headers=auth(), json=body)).status_code == 409
+        assert len(backend.snapshot()["receipts"]) == 1
+        receipt = "/simulations/receipts/" + approval.approval_id
+        assert (await c.get(receipt, headers=auth(oid=other))).status_code == 404
+        assert (await c.get(receipt, headers=auth())).status_code == 200
+        operator.publish(1, stop=True)
+        assert (
+            await c.post("/simulations/requests", headers=auth(), json=arguments)
+        ).status_code == 503
+    await service.safety.close()

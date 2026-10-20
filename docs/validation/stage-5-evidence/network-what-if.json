@@ -1,0 +1,50 @@
+{
+  "changes": [
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.App/managedEnvironments/cae-maf-dev-eus2-02"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/azureFirewalls/afw-maf-dev-eus2-01"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/azureFirewalls/afw-maf-dev-eus2-01/providers/Microsoft.Insights/diagnosticSettings/firewall-to-existing-workspace"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/firewallPolicies/afwp-maf-dev-eus2-01"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/firewallPolicies/afwp-maf-dev-eus2-01/ruleCollectionGroups/approved-egress"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/networkSecurityGroups/nsg-maf-apps-dev-eus2-01"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/publicIPAddresses/pip-afw-maf-dev-eus2-01"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/publicIPAddresses/pip-afw-maf-dev-eus2-01-mgmt"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/routeTables/rt-maf-apps-dev-eus2-01"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/virtualNetworks/vnet-maf-dev-eus2-01"
+    },
+    {
+      "change": "Create",
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.Network/virtualNetworks/vnet-maf-dev-eus2-01/subnets/snet-apps"
+    }
+  ],
+  "error": null,
+  "status": "Succeeded"
+}

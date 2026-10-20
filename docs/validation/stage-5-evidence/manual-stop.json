@@ -1,0 +1,29 @@
+{
+  "start_utc": "2026-10-19T20:05:22.401278+00:00",
+  "policy_epoch": 1,
+  "global_stop": true,
+  "active_revisions_before": [
+    "ca-maf-stop-dev-eus2-01--drill-a",
+    "ca-maf-stop-dev-eus2-01--drill-b"
+  ],
+  "replicas_before": {
+    "ca-maf-stop-dev-eus2-01--drill-a": 1,
+    "ca-maf-stop-dev-eus2-01--drill-b": 1
+  },
+  "verified_stopped": true,
+  "observed_seconds": 2.299,
+  "revisions_after": [
+    {
+      "name": "ca-maf-stop-dev-eus2-01--drill-a",
+      "active": false,
+      "replicas": 0,
+      "running": "Stopped"
+    },
+    {
+      "name": "ca-maf-stop-dev-eus2-01--drill-b",
+      "active": false,
+      "replicas": 0,
+      "running": "Stopped"
+    }
+  ]
+}

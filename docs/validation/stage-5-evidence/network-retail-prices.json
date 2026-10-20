@@ -1,0 +1,38 @@
+[
+  {
+    "serviceName": "Azure Firewall",
+    "productName": "Azure Firewall",
+    "skuName": "Basic",
+    "meterName": "Basic Data Processed",
+    "retailPrice": 0.065,
+    "unitOfMeasure": "1 GB",
+    "effectiveStartDate": "2023-03-01T00:00:00Z"
+  },
+  {
+    "serviceName": "Azure Firewall",
+    "productName": "Azure Firewall",
+    "skuName": "Basic",
+    "meterName": "Basic Deployment",
+    "retailPrice": 0.395,
+    "unitOfMeasure": "1 Hour",
+    "effectiveStartDate": "2023-03-01T00:00:00Z"
+  },
+  {
+    "serviceName": "Container Registry",
+    "productName": "Container Registry",
+    "skuName": "Basic",
+    "meterName": "Basic Registry Unit",
+    "retailPrice": 0.1666,
+    "unitOfMeasure": "1/Day",
+    "effectiveStartDate": "2018-01-01T00:00:00Z"
+  },
+  {
+    "serviceName": "Container Registry",
+    "productName": "Container Registry",
+    "skuName": "Premium",
+    "meterName": "Premium Registry Unit",
+    "retailPrice": 1.6666,
+    "unitOfMeasure": "1/Day",
+    "effectiveStartDate": "2018-01-01T00:00:00Z"
+  }
+]

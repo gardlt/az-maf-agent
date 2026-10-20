@@ -1,6 +1,6 @@
 # Stage 5 — containment and operator recovery
 
-Status: implementation and hosted validation in progress. Stage 5 is not complete. The working dev app remains on Stage 4; shared controls and shared sessions are disabled until hosted validation and an explicit recovery of the stopped policy.
+Status: implementation and hosted validation in progress. Stage 5 is not complete. The dev app now runs shared controls and Blob sessions. Policy recovery advanced to epoch 2 after stopped-ingress and stopped-restart checks. Production release gates remain open.
 
 ## Approved dev contract
 
@@ -18,7 +18,7 @@ The separate operator command initialized policy epoch **1**, **global_stop=true
 
 A probe inside the actual Stage 4 agent revision `ca-maf-agent-dev-eus2-01--0000024` verified the new identity boundary: policy GET 200, policy PUT 403, state GET 200, conditional same-content state PUT 201, audit create 201, audit GET 403, audit DELETE 403. The content-free `rbac-probe-*` audit record is an administrative permission test rather than a runtime event envelope and remains protected for the retention period. No preference or conversation content was read by this probe.
 
-Local validation reached **158 passing tests**, with lint passing. Operator publication failure, exact approval binding/cancellation, exported-span redaction, cleanup pagination/concurrent changes, and ambiguous Blob write outcomes have dedicated regression coverage.
+Local validation reached **161 passing tests**, with lint passing. Operator publication failure, exact approval binding/cancellation, exported-span redaction, cleanup pagination/concurrent changes, and ambiguous Blob write outcomes have dedicated regression coverage.
 
 ## Operator commands
 
@@ -54,3 +54,25 @@ The task checklist remains unchecked until complete evidence exists: hosted runt
 Commit `eee02a8` was pushed to `main`. CI, infrastructure checks, and the dev deployment passed. The resulting ready revision was `ca-maf-agent-dev-eus2-01--0000025`, image digest `sha256:8328ed26a40064381ddd47022aaaa1be061c45c47962ffd509eb5a61575f18ed`. Stage 5 remained disabled. Hosted exporter probes identified an empty-setting parse problem and the SDK's `timeout` keyword requirement; fixes and a real exporter-construction regression are included in the follow-up. A flush acknowledgement alone is not evidence of ingestion or redaction; the actual Azure span query remains pending.
 
 The fixed evaluation inputs and approved thresholds are in `config/stage5-evaluation.json`. Commit the dataset before live evaluation; do not change thresholds to accommodate results.
+
+
+## Hosted evidence collected
+
+The actual runtime's Azure deactivate attempt against the isolated fixture returned **403**. The independent Azure CLI operator then deactivated both fixture revisions. A corrected inventory explicitly included inactive revisions (`--all`): both `drill-a` and `drill-b` were observed `active=false`, `runningState=Stopped`, `replicas=0` in **2.299 seconds**. Each initially had one running replica. Persisted global stop remained enabled at epoch 1. This is a synthetic no-effect worker drill, not a claim that provider requests or billing are undone. See [manual stop evidence](validation/stage-5-evidence/manual-stop.json).
+
+Azure ingestion of a metadata-only `control.dispatch_authorized` span was verified in `AppDependencies`, not inferred from flush. The synthetic sensitive field was absent from exported properties. See [exported span evidence](validation/stage-5-evidence/exported-span.json). The initial candidate probe applied the timeout correction in its process; subsequent runtime release validation still checks the shipped path.
+
+Commit `547c88f` passed CI, infrastructure checks, and dev deployment. Ready revision `ca-maf-agent-dev-eus2-01--0000026` enables shared controls and sessions while the persistent policy remains globally stopped for negative tests.
+
+
+## Current validation and quality work
+
+Stopped ingress returned unauthenticated 401 and authorized 503/global_stop, including after a real revision restart. The independent operator recovered epoch 1 to epoch 2 without resetting quotas or enabling any disabled capability. Two actual running dev replicas were observed for shared-session validation. The protected audit envelope hash check passed, and an operator same-content overwrite was rejected with 409 under retention.
+
+A genuine previously issued access token, expired beyond five-minute skew, was rejected by deployed ingress with 401. The private temporary token was then deleted. No token is included in the evidence.
+
+The first fixed evaluation reported 60% with a title-only grader; four diagnostics confirmed valid year/ID-only answers requested by those prompts. Grader v2 scored 80%; it still incorrectly required the title for the second ID-only prompt and one benign request returned provider_shape. Both failed reports are retained. Grader v3 covers both requested IDs and the requested years, with the same dataset and 90% threshold. Do not count either earlier run as passing.
+
+A bounded operator compatibility canary verified that the existing GPT-5 deployment/API accepts minimal reasoning effort (19 observed tokens). The app configuration now requests that effort within the same 2,000-token output and existing spend limits, following [Azure's reasoning guidance](https://learn.microsoft.com/azure/foundry/openai/how-to/reasoning). The quality gate requires a fresh deployed run; this is not a threshold relaxation.
+
+The user requested and approved the separately reviewed 11-resource phase-one VNet/Basic Firewall foundation. Deployment `stage5-network-foundation` is in progress. Registry upgrade and app migration are excluded from that approval. See [migration and cost review](stage-5-network-migration-review.md). Existing dev app traffic remains in the original environment until the later reviewed cutover.

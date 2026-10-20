@@ -25,5 +25,6 @@
     "per_user_parallel": 2,
     "parallel": 10,
     "max_sessions": 1000
-  }
+  },
+  "reasoning_effort": "minimal"
 }

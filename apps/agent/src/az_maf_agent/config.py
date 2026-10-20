@@ -37,6 +37,7 @@ class Settings(BaseModel):
     endpoint: str | None = None
     deployment: str | None = None
     api_version: str | None = None
+    reasoning_effort: Literal["minimal", "low", "medium", "high"] | None = None
     input_usd_per_million: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     output_usd_per_million: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     model_context_tokens: int | None = Field(default=None, gt=0)

@@ -183,6 +183,8 @@ class AzureTransport:
         return total
 
     async def _request(self, payload, settings):
+        if settings.reasoning_effort is not None:
+            payload["reasoning_effort"] = settings.reasoning_effort
         try:
             token = await self.credential.get_token("https://cognitiveservices.azure.com/.default")
             url = (

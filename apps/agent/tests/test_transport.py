@@ -127,3 +127,29 @@ async def test_transient_without_payload_disclosure(configured):
         await t.complete([Message("user", ["x"])], cfg)
     assert "synthetic-secret" not in str(exc.value)
     await t.close()
+
+
+@pytest.mark.parametrize("tool_mode", [False, True])
+async def test_configured_reasoning_effort_keeps_existing_output_bound(configured, tool_mode):
+    def handler(request):
+        payload = json.loads(request.content)
+        assert payload["reasoning_effort"] == "minimal"
+        assert payload["max_completion_tokens"] == 2000
+        assert payload["store"] is False
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {"message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}
+                ],
+                "usage": {"total_tokens": 19, "completion_tokens": 2},
+            },
+        )
+
+    cfg, t = await transport(configured, handler)
+    cfg = cfg.model_copy(update={"reasoning_effort": "minimal"})
+    if tool_mode:
+        await t.complete_tool_turn([{"role": "user", "content": "movie"}], cfg)
+    else:
+        await t.complete([Message("user", ["hello"])], cfg)
+    await t.close()

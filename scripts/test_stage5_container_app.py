@@ -102,6 +102,7 @@ def main():
                     "id": case["id"],
                     "kind": case["kind"],
                     "http": response.status_code,
+                    "error": result.get("error") if not completed else None,
                     "seconds": elapsed,
                     "benign_success": meaningful,
                     "run_id": result.get("run_id"),
@@ -117,6 +118,7 @@ def main():
                     {
                         "id": case["id"],
                         "http": response.status_code,
+                        "error": result.get("error") if not completed else None,
                         "benign_success": meaningful,
                         "seconds": elapsed,
                     }
