@@ -135,11 +135,14 @@ class FixtureOperator:
 
 
 class RunControls:
-    def __init__(self, backend, settings, clock=time.time):
+    def __init__(self, backend, settings, clock=time.time, *, quarantine=None):
         self.backend, self.settings, self.clock = backend, settings, clock
+        self.quarantine = quarantine
         self.highest_epoch = 0
 
     def policy(self):
+        if self.quarantine is not None:
+            self.quarantine.check()
         policy = self.backend.policy()
         if policy.epoch < self.highest_epoch:
             raise Denied("control_rollback")

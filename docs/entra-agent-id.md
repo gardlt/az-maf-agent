@@ -57,3 +57,7 @@ Dev GitHub environment variables enable the integration with non-secret identifi
 ## Hosted acceptance
 
 The [dev acceptance report](stages/stage-5/validation/stage-5-agent-id-observability.md) records the deployed image, real token claims, authorized inference and MCP call, caching, and accounting-preserving recovery. The runtime uses agent tokens for both inference and MCP. Generic Blob/control/telemetry infrastructure access remains on managed identity. Legacy grants are retained for rollback; full permission retirement and governance/revocation rehearsal remain separate Stage 5 identity-review work.
+
+## Planned individual-agent containment
+
+[Stage 7](stages/stage-7/README.md) plans automatic and manual individual-Agent-ID disable, independent quarantine and per-resource enforcement. Existing Blob/control/telemetry managed-identity access and retained legacy grants are explicit bypass-investigation tasks. This plan does not establish token revocation, deploy a controller or close the Stage 5 identity-review gates.

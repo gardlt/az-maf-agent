@@ -1,0 +1,9 @@
+# Stage 7 platform investigation — first implementation slice
+
+Reviewed 2026-10-20. Documentation verification and local mocked HTTP tests only; no tenant permission changes or live disable probes.
+
+Microsoft documents typed individual-Agent-ID requests at `https://graph.microsoft.com/v1.0/servicePrincipals/{object-id}/microsoft.graph.agentIdentity`. The controller adapter reads the exact registered object before writing `accountEnabled: false`, then reads it again. It checks object ID, application ID, blueprint ID and Agent ID type. A 204 response without matching disabled readback is insufficient. The adapter has no enable, delete or blueprint-write method. [Update API](https://learn.microsoft.com/en-us/graph/api/agentidentity-update?view=graph-rest-1.0), [read API](https://learn.microsoft.com/en-us/graph/api/agentidentity-get?view=graph-rest-1.0).
+
+The update reference lists `AgentIdentity.EnableDisable.All` and `AgentIdentity.CreateAsManager` in its least-privileged application-permission row; the read reference lists `AgentIdentity.Read.All` and `AgentIdentity.CreateAsManager`. Confirm which permission alternative and ownership/manager relationship applies to the controller in this tenant before consent. Do not automatically grant either set, infer single-object scope from an application allowlist or use the broader `ReadWrite.All` shortcut. Narrow directory authority and any unavoidable wider blast radius remain unresolved release gates.
+
+Pending investigation: tenant support/licensing; effective controller scope and ownership; API response fields in live reads; propagation time; individual disable via portal/directory audits; shared-blueprint federation isolation; existing/exfiltrated resource tokens; direct managed-identity fallback; Foundry, Blob and all other service-specific enforcement. These local tests do not prove Azure resource denial.

@@ -10,6 +10,7 @@ These task files track implementation against the [secure agent teaching specifi
 4. [Stage 4: governed memory](stage-4-memory.md)
 5. [Stage 5: production guardrails](stage-5-production-guardrails.md)
 6. [Stage 6: application-controlled model routing](stage-6-model-routing.md)
+7. [Stage 7: automatic individual-agent containment](stage-7-agent-containment.md)
 
 | Stage | Current state | Next acceptance work |
 | --- | --- | --- |
@@ -19,6 +20,7 @@ These task files track implementation against the [secure agent teaching specifi
 | 4 — Governed memory | Complete for selected dev teaching scope: Blob preferences, bounded recall, lifecycle controls, hourly cleanup, monitoring, and 126 passing tests. | Restart persistence and stable hosted lifecycle passed. See [validation evidence](../stages/stage-4/validation/stage-4-validation.md); retain the documented operational bounds. |
 | 5 — Production guardrails | Implemented in dev with recorded milestones; broader release gates remain open. | Complete remaining hosted isolation/control cases, final network topology and operational rehearsals. |
 | 6 — Model routing | Complete for selected dev teaching scope: 215 tests, both actual model routes, 10/10 benign checks and 77.6% lower estimated routine inference cost. | No Stage 6 dev acceptance work remains; see [evidence and limits](../stages/stage-6/validation/stage-6-model-routing.md). Stage 5 production gates remain separate. |
+| 7 — Agent containment | Local quarantine/Graph adapter foundation tested (233 suite tests); not enabled or deployed. | Inventory identities/resources, verify individual disable and stale-token enforcement, implement independent controller/manual disable, then execute [adversarial QA](../stages/stage-7/validation/README.md). |
 
 Extend the agent application and its separately packaged services in one workspace; retain previous controls and tests at every stage. The retired hosted path was CLI → HTTPS Python API in Azure Container Apps → shared agent core, with Microsoft Entra Easy Auth for caller authentication and application code for permissions. The movie catalog MCP service remains a separate workspace package and deployment boundary. Workload identity is separate from caller identity. No API Management is required initially; Foundry hosting and API Management remain future alternatives. Stage 6 adds application-controlled routing among approved deployments from validated configuration, as requested by the user.
 
