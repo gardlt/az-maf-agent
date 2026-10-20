@@ -9,7 +9,7 @@ import sys
 import time
 import unicodedata
 import uuid
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, nullcontext
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -107,6 +107,7 @@ class Service:
         safety=None,
         session_repository=None,
         wall_clock=time.time,
+        agent_telemetry=None,
     ):
         if (
             os.environ.get("OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT", "false").lower()
@@ -115,6 +116,7 @@ class Service:
             raise ValueError("message-content tracing is disabled in Stage 1")
         self.settings, self.clock, self.day = settings, clock, day
         self.safety = safety
+        self.agent_telemetry = agent_telemetry
         self.session_repository = session_repository
         self.wall_clock = wall_clock
         if session_repository is not None and (safety is None or not movie_model_tools):
@@ -505,8 +507,23 @@ class Service:
             session.active = None
 
     async def chat(self, principal, sid, text, revision, *, skill_id=None, skill_version=None):
+        trace = self.agent_telemetry.invocation() if self.agent_telemetry else nullcontext()
+        with trace as span:
+            result = await self._chat(
+                principal, sid, text, revision, skill_id=skill_id, skill_version=skill_version
+            )
+            if span is not None:
+                result["trace_id"] = format(span.get_span_context().trace_id, "032x")
+            return result
+
+    async def _chat(self, principal, sid, text, revision, *, skill_id=None, skill_version=None):
         session = await self.owned_async(principal, sid)
         run_id = str(uuid.uuid4())
+        from .agent_telemetry import CURRENT_AGENT_SPAN
+
+        span = CURRENT_AGENT_SPAN.get()
+        if span is not None:
+            span.set_attribute("agent.run_id", run_id)
         skill = None
         instructions = MOVIE_INSTRUCTIONS if self.movie_model_tools else INSTRUCTIONS
         if skill_id is not None or skill_version is not None:
@@ -709,7 +726,12 @@ class Service:
                             emit_run("tool_read_started", run_id, principal=principal, sid=sid)
                             try:
                                 async with asyncio.timeout(min(10.0, lim.call_seconds)):
-                                    value = await self.movie_client.read(name, arguments)
+                                    from .agent_telemetry import operation
+
+                                    with operation(
+                                        "execute_tool", name, **{"gen_ai.tool.name": name}
+                                    ):
+                                        value = await self.movie_client.read(name, arguments)
                             except TimeoutError:
                                 raise Denied("tool_timeout") from None
                             if (

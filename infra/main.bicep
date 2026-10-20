@@ -45,6 +45,15 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   location: location
 }
 
+@description('Use the separately provisioned Entra Agent ID for inference and MCP reads.')
+param enableAgentIdentity bool = false
+param agentBlueprintClientId string = ''
+param agentIdentityClientId string = ''
+param agentIdentityObjectId string = ''
+@description('Emit explicit content-free generative AI traces to the existing Insights resource.')
+param enableAgentTracing bool = false
+param agentObservabilityName string = 'az-maf-agent'
+
 module foundation './modules/foundation.bicep' = {
   name: 'foundation'
   scope: resourceGroup
@@ -77,6 +86,11 @@ module agent './modules/container-app.bicep' = {
     enableMovieMcp: true
     movieMcpEndpoint: 'https://${movieMcpAppName}.internal.${foundation.outputs.environmentDefaultDomain}/mcp'
     movieMcpAudience: mcpAudience
+    enableAgentIdentity: enableAgentIdentity
+    agentBlueprintClientId: agentBlueprintClientId
+    agentIdentityClientId: agentIdentityClientId
+    enableAgentTracing: enableAgentTracing
+    agentObservabilityName: agentObservabilityName
     enableGuardrails: enableGuardrails
     controlAccountName: enableGuardrails ? controlAccountName : ''
     applicationInsightsConnectionString: enableGuardrails ? controlMonitoring!.outputs.connectionString : ''
@@ -99,7 +113,7 @@ module movieMcp './modules/movie-mcp-app.bicep' = {
     pullIdentityId: foundation.outputs.pullIdentityId
     tenantId: tenantId
     mcpAudience: mcpAudience
-    allowedAgentOid: foundation.outputs.pullIdentityPrincipalId
+    allowedAgentOid: enableAgentIdentity ? agentIdentityObjectId : foundation.outputs.pullIdentityPrincipalId
     tmdbApiReadAccessToken: tmdbApiReadAccessToken
     location: location
   }

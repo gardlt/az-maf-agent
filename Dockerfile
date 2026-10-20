@@ -1,4 +1,7 @@
-FROM python:3.12.15-slim-trixie@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1 AS build
+FROM python:3.12.15-alpine3.24@sha256:1b668429b3511ab407d8e00648891631b0b1a4d7e15e3ca70f38ab5b91ad4ab4 AS base
+RUN apk add --no-cache --upgrade zlib=1.3.2-r1
+
+FROM base AS build
 COPY --from=ghcr.io/astral-sh/uv:0.9.2@sha256:0178fbb205ada6c94ddbd45828f770a2d607cfa7c090276c69b8468a983da557 /uv /uvx /bin/
 WORKDIR /build
 ENV UV_PROJECT_ENVIRONMENT=/app/.venv
@@ -11,9 +14,9 @@ COPY config ./config
 COPY skills ./skills
 RUN uv sync --frozen --no-dev --package az-maf-agent
 
-FROM python:3.12.15-slim-trixie@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
+FROM base
 WORKDIR /app
-RUN useradd --uid 10001 --create-home appuser
+RUN addgroup -g 10001 appuser && adduser -D -u 10001 -G appuser appuser
 COPY --from=build --chown=10001:10001 /app/.venv /app/.venv
 COPY --from=build --chown=10001:10001 /build/apps/agent/src /app/src
 COPY --from=build --chown=10001:10001 /build/config /app/config

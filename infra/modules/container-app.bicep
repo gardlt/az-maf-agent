@@ -36,6 +36,13 @@ param applicationInsightsConnectionString string = ''
 param externalIngress bool = false
 @description('Absolute path to an approved configuration file included in the container image.')
 param agentConfigPath string = '/app/config/offline.json'
+@description('Use the separately provisioned Entra Agent ID for inference and MCP reads.')
+param enableAgentIdentity bool = false
+param agentBlueprintClientId string = ''
+param agentIdentityClientId string = ''
+@description('Emit explicit content-free generative AI traces to the existing Insights resource.')
+param enableAgentTracing bool = false
+param agentObservabilityName string = 'az-maf-agent'
 param location string = resourceGroup().location
 
 var entraBase = environment().authentication.loginEndpoint
@@ -74,6 +81,11 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
           { name: 'MEMORY_ALLOWED_USERS', value: memoryAllowedUsers }
           { name: 'AGENT_CONFIG', value: agentConfigPath }
           { name: 'ENTRA_TENANT_ID', value: tenantId }
+          { name: 'ENABLE_ENTRA_AGENT_ID', value: toLower(string(enableAgentIdentity)) }
+          { name: 'AGENT_BLUEPRINT_CLIENT_ID', value: agentBlueprintClientId }
+          { name: 'AGENT_IDENTITY_CLIENT_ID', value: agentIdentityClientId }
+          { name: 'ENABLE_AGENT_TRACING', value: toLower(string(enableAgentTracing)) }
+          { name: 'AGENT_OBSERVABILITY_NAME', value: agentObservabilityName }
           { name: 'ENTRA_AUDIENCE', value: audience }
           { name: 'ENTRA_ALLOWED_USERS', value: allowedUsers }
           { name: 'ENABLE_MOVIE_MCP', value: toLower(string(enableMovieMcp)) }

@@ -1,6 +1,6 @@
 # Microsoft Entra Agent ID integration
 
-Status: required by the user; design recorded, not provisioned or integrated. This is an additional Stage 5 release requirement.
+Status: dev directory objects and scoped inference/MCP grants provisioned; runtime integration implemented and locally tested. Deployed downstream validation is pending. This is an additional Stage 5 release requirement.
 
 ## Current identity paths
 
@@ -43,3 +43,12 @@ Agent ID creation and advanced governance have different licensing prerequisites
 ## Related observability requirement
 
 [Azure Monitor Agents view](azure-monitor-agents-view.md) is a separate required integration. Directory identity provisioning and runtime agent observability each require their own hosted validation.
+
+
+## Dev implementation checkpoint
+
+Blueprint client ID: `cfb45dee-91b3-498e-b43b-11310e6ef473`. Agent client/object ID: `94a137c6-e4fc-481c-b45d-f2a03d868ba4`. Existing agent system identity is the federated workload credential. The operator-only provisioner defaults to planning and was rerun successfully without duplicate objects. [Provisioning evidence](validation/stage-5-evidence/agent-id-provisioning.json) records identifiers and the scoped Catalog.Read assignment. The separately compiled Foundry access module applies only Foundry User on the existing account.
+
+The credential adapter performs managed identity → blueprint token with `fmi_path` → agent resource token, caches tokens with early refresh and fences resource scopes. It never falls back to workload tokens. A real in-container exchange returned the new agent's `oid` and `appid` for the Cognitive Services audience; a minted token alone is not proof of downstream authorization. The configured runtime uses separate adapter instances for inference and MCP. Blob/control/monitoring/skill infrastructure access remains on workload identity.
+
+Dev GitHub environment variables enable the integration with non-secret identifiers; stage/prod default disabled until their objects and grants are provisioned. The pending release uses the existing High/Critical security gate. Stage/prod provisioning and expanded governance/licensing are not claimed complete.

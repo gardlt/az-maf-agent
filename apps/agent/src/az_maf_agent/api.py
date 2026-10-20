@@ -143,6 +143,9 @@ def create_app(service: Service, verifier: EntraVerifier):
             fault_signal(exc.code)
         status = {
             "provider_rejected": 502,
+            "agent_token_unavailable": 503,
+            "agent_token_invalid": 503,
+            "agent_scope_forbidden": 403,
             "global_stop": 503,
             "control_unavailable": 503,
             "control_invalid": 503,
@@ -343,6 +346,8 @@ def from_env():
         os.environ["ENTRA_AUDIENCE"],
         set(os.environ["ENTRA_ALLOWED_USERS"].split(",")),
     )
+    from .agent_identity import configured_agent_credential
+
     movie_client = None
     if os.environ.get("ENABLE_MOVIE_MCP", "").lower() == "true":
         from .movie_mcp import MovieMCPClient
@@ -351,6 +356,9 @@ def from_env():
             endpoint=os.environ["MCP_ENDPOINT"],
             audience=os.environ["MCP_AUDIENCE"],
             identity_client_id=os.environ.get("MCP_IDENTITY_CLIENT_ID"),
+            credential=configured_agent_credential(
+                os.environ, scopes={f"api://{str(UUID(os.environ['MCP_AUDIENCE']))}/.default"}
+            ),
         )
     skill_registry = None
     skill_permissions = None
@@ -383,9 +391,12 @@ def from_env():
         raise ValueError("hosted memory recall requires the governed movie model loop")
     memory_service, memory_permissions = configured_memory(os.environ)
     safety, session_repository = configured_safety(os.environ, settings)
+    agent_credential = configured_agent_credential(
+        os.environ, scopes={"https://cognitiveservices.azure.com/.default"}
+    )
     service = Service(
         settings,
-        AzureTransport(settings) if settings.mode == "azure" else None,
+        AzureTransport(settings, credential=agent_credential) if settings.mode == "azure" else None,
         movie_client=movie_client,
         movie_model_tools=movie_model_tools,
         skill_registry=skill_registry,
@@ -394,8 +405,33 @@ def from_env():
         memory_permissions=memory_permissions,
         safety=safety,
         session_repository=session_repository,
+        agent_telemetry=configured_genai(os.environ, safety),
     )
     return create_app(service, verifier)
+
+
+def configured_genai(env, safety):
+    enabled = env.get("ENABLE_AGENT_TRACING", "false").lower()
+    if enabled not in {"true", "false"}:
+        raise ValueError("ENABLE_AGENT_TRACING must be true or false")
+    if enabled == "false":
+        return None
+    from .agent_telemetry import AgentTelemetry
+
+    if safety is None or safety.controls.backend.telemetry is None:
+        raise ValueError("agent tracing requires the configured Azure telemetry provider")
+    agent_id = (
+        env.get("AGENT_IDENTITY_CLIENT_ID")
+        if env.get("ENABLE_ENTRA_AGENT_ID", "false").lower() == "true"
+        else None
+    )
+    if agent_id:
+        agent_id = str(UUID(agent_id))
+    return AgentTelemetry(
+        safety.controls.backend.telemetry.provider,
+        env["AGENT_OBSERVABILITY_NAME"],
+        agent_id=agent_id,
+    )
 
 
 def configured_safety(env, settings):

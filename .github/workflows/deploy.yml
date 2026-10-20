@@ -42,6 +42,12 @@ jobs:
     env:
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      MAF_ENABLE_AGENT_IDENTITY: ${{ vars.MAF_ENABLE_AGENT_IDENTITY || 'false' }}
+      MAF_AGENT_BLUEPRINT_CLIENT_ID: ${{ vars.MAF_AGENT_BLUEPRINT_CLIENT_ID }}
+      MAF_AGENT_IDENTITY_CLIENT_ID: ${{ vars.MAF_AGENT_IDENTITY_CLIENT_ID }}
+      MAF_AGENT_IDENTITY_OBJECT_ID: ${{ vars.MAF_AGENT_IDENTITY_OBJECT_ID }}
+      MAF_ENABLE_AGENT_TRACING: ${{ vars.MAF_ENABLE_AGENT_TRACING || 'false' }}
+      MAF_AGENT_OBSERVABILITY_NAME: ${{ vars.MAF_AGENT_OBSERVABILITY_NAME || 'az-maf-agent' }}
       MAF_REGISTRY_NAME: ${{ vars.MAF_REGISTRY_NAME }}
       MAF_REGISTRY_SKU: ${{ vars.MAF_REGISTRY_SKU || 'Basic' }}
       MAF_TENANT_ID: ${{ vars.MAF_TENANT_ID }}
@@ -112,6 +118,7 @@ jobs:
           if [[ "$service" == agent || "$service" == all ]]; then
             agent_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-agent:${GITHUB_SHA}"
             docker build --platform linux/amd64 --file Dockerfile --tag "$agent_tag" .
+            docker run --rm --entrypoint python "$agent_tag" -c "import az_maf_agent.api, az_maf_agent.agent_identity, azure.identity.aio"
             bash scripts/scan_release_image.sh "docker:$agent_tag" security-reports/agent
             docker push "$agent_tag"
             echo "MAF_AGENT_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$agent_tag")" >> "$GITHUB_ENV"
@@ -119,6 +126,7 @@ jobs:
           if [[ "$service" == movie-mcp || "$service" == all ]]; then
             mcp_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-movie-mcp:${GITHUB_SHA}"
             docker build --platform linux/amd64 --file Dockerfile.mcp --tag "$mcp_tag" .
+            docker run --rm --entrypoint python "$mcp_tag" -c "import movie_catalog_mcp.server"
             bash scripts/scan_release_image.sh "docker:$mcp_tag" security-reports/movie-mcp
             docker push "$mcp_tag"
             echo "MAF_MCP_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$mcp_tag")" >> "$GITHUB_ENV"

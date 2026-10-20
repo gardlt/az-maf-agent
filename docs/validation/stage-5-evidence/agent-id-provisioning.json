@@ -1,0 +1,21 @@
+{
+  "environment": "dev",
+  "tenant_id": "c57afb80-6b3d-4bae-a466-e4d217bcb4a2",
+  "blueprint_name": "bp-maf-agent-dev",
+  "agent_name": "agent-maf-dev",
+  "sponsor_and_owner_id": "6e79f1d2-3af5-4b89-a2fa-66a915419a25",
+  "federated_managed_identity_principal_id": "7f34da38-85ae-4167-b08c-18ec7f055b01",
+  "blueprint_exists": true,
+  "agent_exists": true,
+  "apply": true,
+  "blueprint_object_id": "cfb45dee-91b3-498e-b43b-11310e6ef473",
+  "blueprint_client_id": "cfb45dee-91b3-498e-b43b-11310e6ef473",
+  "blueprint_principal_id": "85e372df-8230-4ae9-a24d-65737b4f7726",
+  "agent_object_id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+  "agent_client_id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+  "mcp_catalog_read_assignment": {
+    "resourceId": "999e3799-8415-4e1a-95e8-16de07807075",
+    "appRoleId": "b05a1d35-dbe6-4d31-a7e1-d0a0d3f8e8c1",
+    "principalId": "94a137c6-e4fc-481c-b45d-f2a03d868ba4"
+  }
+}

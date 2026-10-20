@@ -141,8 +141,10 @@ class FakeTransport:
 
 
 class AzureTransport:
-    def __init__(self, settings: Settings):
-        self.credential = ManagedIdentityCredential(client_id=settings.managed_identity_client_id)
+    def __init__(self, settings: Settings, *, credential=None):
+        self.credential = credential or ManagedIdentityCredential(
+            client_id=settings.managed_identity_client_id
+        )
         self.http = httpx.AsyncClient(follow_redirects=False, timeout=settings.limits.call_seconds)
 
     async def complete(self, messages, settings):
@@ -204,6 +206,29 @@ class AzureTransport:
         return total
 
     async def _request(self, payload, settings):
+        from .agent_telemetry import operation, record_usage
+
+        with operation(
+            "chat",
+            settings.deployment,
+            **{
+                "gen_ai.system": "azure.ai.openai",
+                "gen_ai.provider.name": "azure.ai.openai",
+                "gen_ai.request.model": settings.deployment,
+            },
+        ) as span:
+            result = await self._send_request(payload, settings)
+            # Only validated observed usage; reservations are not usage metrics.
+            try:
+                total = self._usage(result, settings)
+            except (KeyError, IndexError, TypeError, ValueError, Denied):
+                pass  # Existing response validation retains its original denial precedence.
+            else:
+                output = result["usage"]["completion_tokens"]
+                record_usage(span, {"prompt_tokens": total - output, "completion_tokens": output})
+            return result
+
+    async def _send_request(self, payload, settings):
         if settings.reasoning_effort is not None:
             payload["reasoning_effort"] = settings.reasoning_effort
         try:

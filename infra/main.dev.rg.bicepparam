@@ -27,3 +27,11 @@ param memoryCleanupAlertName = 'al-maf-memory-cleanup-dev-eus2-01'
 
 // Stage 5 stores/roles were bootstrapped separately. Policy starts globally stopped.
 param enableGuardrails = true
+
+// Directory objects and grants are bootstrapped separately; disabled until configured.
+param enableAgentIdentity = bool(readEnvironmentVariable('MAF_ENABLE_AGENT_IDENTITY', 'false'))
+param agentBlueprintClientId = readEnvironmentVariable('MAF_AGENT_BLUEPRINT_CLIENT_ID', '')
+param agentIdentityClientId = readEnvironmentVariable('MAF_AGENT_IDENTITY_CLIENT_ID', '')
+param agentIdentityObjectId = readEnvironmentVariable('MAF_AGENT_IDENTITY_OBJECT_ID', '')
+param enableAgentTracing = bool(readEnvironmentVariable('MAF_ENABLE_AGENT_TRACING', 'false'))
+param agentObservabilityName = readEnvironmentVariable('MAF_AGENT_OBSERVABILITY_NAME', 'az-maf-agent')
