@@ -65,8 +65,8 @@ The hosted CLI also supports reviewed skills such as `--skill movie-research`, e
 
 | Path | Purpose |
 | --- | --- |
-| [apps/agent/](apps/agent/) | CLI, API, agent core, model adapters, memory and governance |
-| [apps/movie-catalog-mcp/](apps/movie-catalog-mcp/) | Separately packaged FastMCP service and TMDB adapter |
+| [apps/agent/](apps/agent/README.md) | CLI, API, agent core, model adapters, memory and governance |
+| [apps/movie-catalog-mcp/](apps/movie-catalog-mcp/README.md) | Separately packaged FastMCP service and TMDB adapter |
 | [config/](config/) | Validated configuration, policies and fixed evaluation inputs |
 | [skills/](skills/) | Approved skill manifests and reviewed Markdown |
 | [infra/](infra/README.md) | One Bicep entry point, resource modules, application patterns and environment parameters |
