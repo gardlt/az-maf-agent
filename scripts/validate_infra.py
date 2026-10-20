@@ -270,7 +270,9 @@ def main():
             for pattern in ("patterns/agent.bicep", "patterns/movie-mcp.bicep")
             for r in compiled[pattern]["resources"]
         ]
-        assert len(app_deployments) == len(set(app_deployments)), "application_deployment_name_collision"
+        assert len(app_deployments) == len(set(app_deployments)), (
+            "application_deployment_name_collision"
+        )
         contracts = verify_resource_contracts(compiled)
         selectors = verify_selection(compiled["main.bicep"])
     print(
