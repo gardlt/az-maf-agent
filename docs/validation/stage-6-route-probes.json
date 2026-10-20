@@ -1,0 +1,29 @@
+[
+  {
+    "expected_route": "routine",
+    "run_id": "a5ad36e6-62bd-4647-ae39-958c540451ee",
+    "trace_id": "3e65b45c9c5c7965ca7f0c464c86cab9",
+    "history_marker_passed": true,
+    "calls": 2,
+    "tools": 1,
+    "unresolved": false
+  },
+  {
+    "expected_route": "reasoning",
+    "run_id": "4897d4ce-609c-462a-b0fe-9a6955a98c12",
+    "trace_id": "e0514b1c6d60a9fa1a923025410123aa",
+    "history_marker_passed": true,
+    "calls": 1,
+    "tools": 0,
+    "unresolved": false
+  },
+  {
+    "expected_route": "routine",
+    "run_id": "6e0ad4c7-f71c-4f0d-8565-9012786d6f55",
+    "trace_id": "e6c5e255f69f0c4e0db8dd72213975bc",
+    "history_marker_passed": true,
+    "calls": 1,
+    "tools": 0,
+    "unresolved": false
+  }
+]

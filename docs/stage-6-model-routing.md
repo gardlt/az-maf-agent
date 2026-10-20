@@ -2,6 +2,18 @@
 
 The Python application selects an approved Foundry deployment once per run. Routine movie reads use `gpt-5-mini`; comparison/analysis requests and an authorized, hash-verified `movie-research` skill use `gpt-5`. Conversation history stays in the application session, so a later run can change models without losing bounded context.
 
+```mermaid
+flowchart LR
+  U[Authenticated user] --> S[Owned session and current policy]
+  S --> R[Application routing policy]
+  R --> M[GPT-5 mini: routine]
+  R --> G[GPT-5: comparison or research]
+  M --> B[Same budget and dispatch controls]
+  G --> B
+  B --> T[Read-only movie MCP]
+  B --> H[Session commit and correlated traces]
+```
+
 ## Policy v1
 
 Selection order is: operator override, verified research skill, comparison/analysis keyword, routine default. The bounded whole-word expression recognizes compare, contrast, tradeoff/trade-off (including plurals), analyze/analyse and analysis, ignoring case. Ambiguous and non-English requests default to mini. This is a predictable teaching policy, not a semantic complexity classifier. A caller can request comparison work and thereby incur the approved stronger-model price within the same hard limits; this grants no additional capability. Names of models in a prompt do not select arbitrary deployments.
@@ -13,7 +25,7 @@ Selection order is: operator override, verified research skill, comparison/analy
 | routine | gpt-5-mini / 2025-08-07 | 400,000 | minimal | 0.25 / 2.00 |
 | reasoning | gpt-5 / 2025-08-07 | 400,000 | minimal | 1.25 / 10.00 |
 
-Rates are published list-price estimates, not an invoice or a contractual price. [Microsoft's published Foundry table](https://devblogs.microsoft.com/foundry/whats-new-in-azure-ai-foundry-august-2025/) and the [current model vendor pricing](https://developers.openai.com/api/docs/models/gpt-5-mini) agree on mini's rates. Azure's pricing page rendered placeholders and the queried retail API meters returned no matches during this check; review the subscription's effective rates before billing-sensitive promotion. Cached-input discounts are not assumed. For identical input/output token counts mini costs 80% less; actual savings also depend on token use, model choices and retries.
+Rates are published list-price estimates, not an invoice or a contractual price. [Microsoft's published Foundry table](https://devblogs.microsoft.com/foundry/whats-new-in-azure-ai-foundry-august-2025/) and the [current model vendor pricing](https://developers.openai.com/api/docs/models/gpt-5-mini) agree on mini's rates. Azure's pricing page rendered placeholders and the queried retail API meters returned no matches during this check; review the subscription's effective rates before billing-sensitive promotion. Cached-input discounts are not assumed. For identical input/output token counts mini costs 80% less; actual savings also depend on token use, model choices and retries. A cheaper model is not necessarily faster; compare request latency separately from cost and pacing.
 
 ## Enforcement and identity
 
@@ -40,4 +52,4 @@ For rollback, prefer a routing-capable image with `routing.mode=reasoning`. If r
 
 ## Acceptance
 
-Track tasks in [Stage 6](tasks/stage-6-model-routing.md). The frozen evaluation reuses `config/stage5-evaluation.json`, grader v3 and the existing 90% benign floor. Compare against a fresh GPT-5 baseline before changing the default. Inspect actual traces, protected dispatch events and before/after state; a refusal or HTTP 200 alone does not prove safety. The new route does not close remaining Stage 5 cross-user, network or operational release gates.
+Completed dev evidence: [Stage 6 acceptance](validation/stage-6-model-routing.md). Track tasks in [Stage 6](tasks/stage-6-model-routing.md). The frozen evaluation reuses `config/stage5-evaluation.json`, grader v3 and the existing 90% benign floor. Compare against a fresh GPT-5 baseline before changing the default. Inspect actual traces, protected dispatch events and before/after state; a refusal or HTTP 200 alone does not prove safety. The new route does not close remaining Stage 5 cross-user, network or operational release gates.

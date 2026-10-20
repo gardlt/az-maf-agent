@@ -48,7 +48,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--phase", choices=["stopped", "evaluate"], required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument(
+        "--pause-seconds",
+        type=float,
+        default=0,
+        help="Pace cases for deployment quota; excluded from request latency",
+    )
     args = parser.parse_args()
+    if not 0 <= args.pause_seconds <= 10:
+        parser.error("pause-seconds must be between 0 and 10")
     token = acquire_stage1_token(no_prompt)
     with httpx.Client(base_url=API, timeout=150, follow_redirects=False) as client:
         require(client.post("/sessions"), 401)
@@ -120,6 +128,7 @@ def main():
             )
             # Reset promptly discards test history; preserves aggregate accounting.
             require(client.post(f"/sessions/{sid}/reset"), 200)
+            time.sleep(args.pause_seconds)
             print(
                 json.dumps(
                     {

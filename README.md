@@ -79,7 +79,7 @@ Validate live tokens, real Easy Auth behavior, workload RBAC, endpoint compatibi
 - Python 3.12, Agent Framework core 1.22.0, FastAPI and a minimal text-only `BaseChatClient` are the Stage 1 foundation. Stage 2 model-selected reads use a separate application-owned Chat Completions loop with explicit tool validation and the same service budgets. An SDK provider client is an alternative if its automatic retries, history, tools, and telemetry can be bounded equivalently.
 - RAM history and trimming keep the local lesson small. Reconsider shared TTL storage for multiple replicas/resumption; reconsider summarization only after testing poisoning and budgets. Durable memory remains Stage 4.
 - JWT verification supplements Easy Auth to avoid relying on spoofable headers during local API tests or accidental alternate ingress. It adds a JWKS dependency; review a platform-only trust adapter only when its network boundary is demonstrably enforced.
-- A single configured Azure deployment is supported; model choice, API deployment/version, pricing, session backend, and distributed control product remain open. Foundry hosting, API Management, and runtime model routing remain future options.
+- [Stage 6 routing](docs/stage-6-model-routing.md) selects GPT-5 mini for routine work and GPT-5 for comparison/analysis or reviewed research. Both use the same identity, permissions and shared budgets; single-model configurations remain supported. Foundry hosting and API Management remain alternatives.
 - The private test registry and API were deleted with the dedicated resource group. Signed-in hosted acceptance, a TMDB secret rotation, and one controlled network-rule deny were demonstrated before teardown. Registry provenance beyond its recorded digest, distributed controls, a production-wide egress policy, non-cooperative-worker termination, durable audit, and comprehensive live-model evaluation remain open for any future deployment.
 
 See [Stage 1 validation](docs/stage-1-validation.md) for evidence and incomplete gates. Subsequent stages must preserve these tests and the spec's read-only agent catalog policy.
@@ -98,3 +98,12 @@ See the [memory learner/operator guide](docs/stage-4-memory.md) and
 [Stage 4 validation](docs/stage-4-validation.md). The Blob store is distinct from
 process-local chat sessions: durable preferences survive replica replacement while
 short-term sessions still require a fresh session after restart.
+
+
+## Stage 6 model routing
+
+The application selects the model; the CLI needs no model flag. Routine requests use
+GPT-5 mini, while comparison/analysis and reviewed research use GPT-5. The same
+session can move between them without losing bounded history. Routes cannot add
+permissions or reset spending limits. See the [routing guide](docs/stage-6-model-routing.md)
+and [acceptance tasks](docs/tasks/stage-6-model-routing.md).

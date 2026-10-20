@@ -1,0 +1,21 @@
+{
+  "model": {
+    "callRateLimit": null,
+    "format": "OpenAI",
+    "name": "gpt-5-mini",
+    "publisher": null,
+    "source": null,
+    "sourceAccount": null,
+    "version": "2025-08-07"
+  },
+  "name": "gpt-5-mini",
+  "raiPolicy": "Microsoft.Default",
+  "sku": {
+    "capacity": 30,
+    "family": null,
+    "name": "GlobalStandard",
+    "size": null,
+    "tier": null
+  },
+  "state": "Succeeded"
+}

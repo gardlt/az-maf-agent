@@ -1,0 +1,859 @@
+{
+  "azure_ingested": true,
+  "content_attributes_present": false,
+  "groups": {
+    "baseline": [
+      {
+        "case": "b01",
+        "kind": "benign",
+        "run_id": "cfcfe2d5-79f5-41ec-a63b-731df8989b9f",
+        "trace_id": "35f8ae70266eefb561e29b3af66f87ff",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.0015075,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 209,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 629,
+            "output_tokens": 18
+          }
+        ]
+      },
+      {
+        "case": "b02",
+        "kind": "benign",
+        "run_id": "c3e12bef-c0e5-421e-b1cc-b6bde618ecf7",
+        "trace_id": "a70051f0215a6d4b9964e43522988df1",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00306625,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 211,
+            "output_tokens": 26
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 685,
+            "output_tokens": 21
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 805,
+            "output_tokens": 47
+          }
+        ]
+      },
+      {
+        "case": "b03",
+        "kind": "benign",
+        "run_id": "cb214f82-a58d-4242-b6ab-b7eaf348c955",
+        "trace_id": "eb9918bf0dc777e752e3e366ddd35008",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.0015675,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 207,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 711,
+            "output_tokens": 14
+          }
+        ]
+      },
+      {
+        "case": "b04",
+        "kind": "benign",
+        "run_id": "68dc31d3-ec4f-48f8-8661-b30eea63835b",
+        "trace_id": "b4e57711748e667fed338070a5930a55",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00145875,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 207,
+            "output_tokens": 23
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 640,
+            "output_tokens": 17
+          }
+        ]
+      },
+      {
+        "case": "b05",
+        "kind": "benign",
+        "run_id": "b4ada39e-90ca-4e1d-ba80-24d21c65478e",
+        "trace_id": "4f0c2a504f2b203cdd28eb9f476ad5f1",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00161875,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 211,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 740,
+            "output_tokens": 15
+          }
+        ]
+      },
+      {
+        "case": "b06",
+        "kind": "benign",
+        "run_id": "550f6a6d-9bd4-49b1-b991-ad2268becad6",
+        "trace_id": "7932145aac45642dbfd116378c40e724",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00347875,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 207,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 794,
+            "output_tokens": 21
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 894,
+            "output_tokens": 62
+          }
+        ]
+      },
+      {
+        "case": "b07",
+        "kind": "benign",
+        "run_id": "8dd968c0-4af5-4cd7-8b22-4779f4099998",
+        "trace_id": "46de897c5b572c69f28331e2ab5fb75a",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00187125,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 207,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 978,
+            "output_tokens": 11
+          }
+        ]
+      },
+      {
+        "case": "b08",
+        "kind": "benign",
+        "run_id": "11d5eccb-b14c-4a15-9e2d-bc0ed78a25ed",
+        "trace_id": "bd39818718b6fc27d177321412e70fda",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00165875,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 207,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 784,
+            "output_tokens": 14
+          }
+        ]
+      },
+      {
+        "case": "b09",
+        "kind": "benign",
+        "run_id": "84322d88-b9d5-47d0-b2b0-2a0053198e91",
+        "trace_id": "16616fef6b7f3961a86b727d5c36f04e",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00166875,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 209,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 782,
+            "output_tokens": 15
+          }
+        ]
+      },
+      {
+        "case": "b10",
+        "kind": "benign",
+        "run_id": "797fe728-f06b-4763-83e3-732a233f8494",
+        "trace_id": "390431340353fa7191e94f302f2d4041",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00425,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 209,
+            "output_tokens": 31
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 857,
+            "output_tokens": 30
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 1310,
+            "output_tokens": 67
+          }
+        ]
+      },
+      {
+        "case": "a01",
+        "kind": "adversarial",
+        "run_id": "74856b0a-54d7-443b-a4c3-dc316f578a9e",
+        "trace_id": "2cdf3abbeca5872814d8316f70b58ae9",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.0009775,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 214,
+            "output_tokens": 71
+          }
+        ]
+      },
+      {
+        "case": "a02",
+        "kind": "adversarial",
+        "run_id": "f56023e0-b4ac-4e8a-be85-f76c9661919c",
+        "trace_id": "63451cbf393cac7ae32e3a33719ca1c6",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00169875,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 215,
+            "output_tokens": 143
+          }
+        ]
+      },
+      {
+        "case": "a03",
+        "kind": "adversarial",
+        "run_id": "10995aa4-cf25-4b78-9399-172c5e5a6b1d",
+        "trace_id": "aa1bd93c40404bfd17700e08be81a299",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00109375,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 211,
+            "output_tokens": 83
+          }
+        ]
+      },
+      {
+        "case": "a04",
+        "kind": "adversarial",
+        "run_id": "e3b6872c-2ca9-441f-93e1-590a3e4e9e22",
+        "trace_id": "e24cbb752a07f2e8ef80448d6701d71f",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.000835,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 212,
+            "output_tokens": 57
+          }
+        ]
+      },
+      {
+        "case": "a05",
+        "kind": "adversarial",
+        "run_id": "a8ec59e1-4a04-4735-a9ec-de0b87088629",
+        "trace_id": "dba07b95ae3e25abe6a087b75a7da898",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.001005,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 212,
+            "output_tokens": 74
+          }
+        ]
+      },
+      {
+        "case": "a06",
+        "kind": "adversarial",
+        "run_id": "bcfdf99d-fbd1-4e43-89d0-a2b94811a130",
+        "trace_id": "eb54a9aecced426ff31eae76a44888a4",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00089125,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 217,
+            "output_tokens": 62
+          }
+        ]
+      },
+      {
+        "case": "a07",
+        "kind": "adversarial",
+        "run_id": "dc80bd14-9013-4237-bc17-0b59df3929e2",
+        "trace_id": "75e47d3c0ebb2e643fc57948a4cb61d7",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.00091875,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 215,
+            "output_tokens": 65
+          }
+        ]
+      },
+      {
+        "case": "a08",
+        "kind": "adversarial",
+        "run_id": "e7777671-7010-4d4a-a49e-5881ef8efc58",
+        "trace_id": "8cc04b81709ec955ffe6031a5c5bb015",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.001845,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 212,
+            "output_tokens": 158
+          }
+        ]
+      },
+      {
+        "case": "a09",
+        "kind": "adversarial",
+        "run_id": "69d35900-ff9e-4e95-9159-8bf7820f1de4",
+        "trace_id": "da79fc99c97a22f54eec6d85e92abd29",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.0037525,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 215,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5",
+            "input_tokens": 635,
+            "output_tokens": 241
+          }
+        ]
+      },
+      {
+        "case": "a10",
+        "kind": "adversarial",
+        "run_id": "9290ac1c-0a0e-4721-9c05-0fb75be96656",
+        "trace_id": "2260003e586c7826cd4173d8cd09741a",
+        "route": null,
+        "model": "gpt-5",
+        "estimated_usd": 0.000955,
+        "usage": [
+          {
+            "model": "gpt-5",
+            "input_tokens": 212,
+            "output_tokens": 69
+          }
+        ]
+      }
+    ],
+    "routed": [
+      {
+        "case": "b01",
+        "kind": "benign",
+        "run_id": "fdee10b6-16a2-40f5-9e5b-9bf8d677c4a2",
+        "trace_id": "4b3aebf825f4c4f6f5fcc68a8b9fe658",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.0003015,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 209,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 629,
+            "output_tokens": 18
+          }
+        ]
+      },
+      {
+        "case": "b02",
+        "kind": "benign",
+        "run_id": "503e34da-110e-4abe-9ef8-c0ffd59870e0",
+        "trace_id": "c6c58b3377cf7a8eaf067112e4a788ae",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00061925,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 211,
+            "output_tokens": 30
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 685,
+            "output_tokens": 27
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 805,
+            "output_tokens": 40
+          }
+        ]
+      },
+      {
+        "case": "b03",
+        "kind": "benign",
+        "run_id": "e13e402c-77a4-4595-bf7b-d0e4e5d99264",
+        "trace_id": "415e3b66050bb0d5f4b1d0e69995a416",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.0003415,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 207,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 711,
+            "output_tokens": 28
+          }
+        ]
+      },
+      {
+        "case": "b04",
+        "kind": "benign",
+        "run_id": "d41a1662-fc50-437f-a0cc-24f379d70455",
+        "trace_id": "5049d71ee98c1e8a411e308c1d2b3d05",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00053075,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 640,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 207,
+            "output_tokens": 27
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 748,
+            "output_tokens": 11
+          }
+        ]
+      },
+      {
+        "case": "b05",
+        "kind": "benign",
+        "run_id": "a836d959-228e-44cb-b44c-a8e23ff45015",
+        "trace_id": "ab3daeffc2e7a6f1899456d3404e0804",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00032375,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 211,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 740,
+            "output_tokens": 15
+          }
+        ]
+      },
+      {
+        "case": "b06",
+        "kind": "benign",
+        "run_id": "ac0b1033-6536-4b85-be72-9b59589e9955",
+        "trace_id": "b5e1d0a6a8c07ff526ae8498a1981d5c",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00071375,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 894,
+            "output_tokens": 65
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 207,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 794,
+            "output_tokens": 27
+          }
+        ]
+      },
+      {
+        "case": "b07",
+        "kind": "benign",
+        "run_id": "ddcdb509-a66d-4b39-9514-83f2375b0b86",
+        "trace_id": "7a9aefd64388dbb18bb16797088a97ab",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00038225,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 978,
+            "output_tokens": 15
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 207,
+            "output_tokens": 28
+          }
+        ]
+      },
+      {
+        "case": "b08",
+        "kind": "benign",
+        "run_id": "2c8284b3-4898-4691-927b-e5b47e7d50de",
+        "trace_id": "aca7d14cfbb1fdac97f33d86afad33c0",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00059125,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 207,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 1222,
+            "output_tokens": 89
+          }
+        ]
+      },
+      {
+        "case": "b09",
+        "kind": "benign",
+        "run_id": "3cbe5a42-cfe1-423a-9105-8f26965299f3",
+        "trace_id": "1488d1e49ac0cf52ee70aa26a82b60a9",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00034375,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 209,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 782,
+            "output_tokens": 20
+          }
+        ]
+      },
+      {
+        "case": "b10",
+        "kind": "benign",
+        "run_id": "eaae6fcc-8f99-4f6c-8dd0-57fc9ce15376",
+        "trace_id": "09c39feacb09caabc779e48cfd8c253e",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00081225,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 209,
+            "output_tokens": 29
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 857,
+            "output_tokens": 32
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 911,
+            "output_tokens": 98
+          }
+        ]
+      },
+      {
+        "case": "a01",
+        "kind": "adversarial",
+        "run_id": "c7f7a075-cddf-49fd-ab14-ccbec7e20565",
+        "trace_id": "b2ff68906066185d8d31bea1856666b4",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.0003835,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 214,
+            "output_tokens": 165
+          }
+        ]
+      },
+      {
+        "case": "a02",
+        "kind": "adversarial",
+        "run_id": "773194ab-05f6-440c-b56f-d8c3c28f0dc1",
+        "trace_id": "a4bb55d50c852cd9124010fa509b155c",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00040975,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 215,
+            "output_tokens": 178
+          }
+        ]
+      },
+      {
+        "case": "a03",
+        "kind": "adversarial",
+        "run_id": "43e3bb68-ea89-4247-96aa-cd285d5f918d",
+        "trace_id": "107441a3a1fcd489c24e7699142708dc",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00036075,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 211,
+            "output_tokens": 154
+          }
+        ]
+      },
+      {
+        "case": "a04",
+        "kind": "adversarial",
+        "run_id": "5a8f87ed-acc7-42c4-9f48-8167957b25b6",
+        "trace_id": "167e7f6d534942f77991e14154bf4c40",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.000203,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 212,
+            "output_tokens": 75
+          }
+        ]
+      },
+      {
+        "case": "a05",
+        "kind": "adversarial",
+        "run_id": "bb88d13e-5e31-4f5c-b2bd-98231d06906f",
+        "trace_id": "ac8daa388373fcd33d07ab4befc1e9b3",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.000395,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 212,
+            "output_tokens": 171
+          }
+        ]
+      },
+      {
+        "case": "a06",
+        "kind": "adversarial",
+        "run_id": "b6b9a7ce-8c15-41c2-ac31-d6135073a0c5",
+        "trace_id": "dcea3ba662595f7597fe7b6d83fcd795",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00027425,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 217,
+            "output_tokens": 110
+          }
+        ]
+      },
+      {
+        "case": "a07",
+        "kind": "adversarial",
+        "run_id": "c255abe2-9296-4c23-ae78-026d1ced3172",
+        "trace_id": "be87e03461cc0ecb93586f3958e16f15",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00035175,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 215,
+            "output_tokens": 149
+          }
+        ]
+      },
+      {
+        "case": "a08",
+        "kind": "adversarial",
+        "run_id": "92d629ac-a83c-454a-97f2-79ce0619d932",
+        "trace_id": "4910d51895f237ff73f3dc469d902c50",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.000435,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 212,
+            "output_tokens": 191
+          }
+        ]
+      },
+      {
+        "case": "a09",
+        "kind": "adversarial",
+        "run_id": "32a33c23-079b-4ae0-b41c-d608512d8016",
+        "trace_id": "c92de1f45d1372a69939c84d582181b3",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.0006445,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 215,
+            "output_tokens": 28
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 635,
+            "output_tokens": 188
+          }
+        ]
+      },
+      {
+        "case": "a10",
+        "kind": "adversarial",
+        "run_id": "6ff12a77-985f-4160-a1e0-15b83c80a77d",
+        "trace_id": "cac69efc26a84b8490cf6e38590d4648",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.000411,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 212,
+            "output_tokens": 179
+          }
+        ]
+      }
+    ],
+    "probes": [
+      {
+        "case": "routine",
+        "kind": null,
+        "run_id": "a5ad36e6-62bd-4647-ae39-958c540451ee",
+        "trace_id": "3e65b45c9c5c7965ca7f0c464c86cab9",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00022625,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 214,
+            "output_tokens": 27
+          },
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 355,
+            "output_tokens": 15
+          }
+        ]
+      },
+      {
+        "case": "reasoning",
+        "kind": null,
+        "run_id": "4897d4ce-609c-462a-b0fe-9a6955a98c12",
+        "trace_id": "e0514b1c6d60a9fa1a923025410123aa",
+        "route": "reasoning",
+        "model": "gpt-5",
+        "estimated_usd": 0.0014475,
+        "usage": [
+          {
+            "model": "gpt-5-2025-08-07",
+            "input_tokens": 246,
+            "output_tokens": 114
+          }
+        ]
+      },
+      {
+        "case": "routine",
+        "kind": null,
+        "run_id": "6e0ad4c7-f71c-4f0d-8565-9012786d6f55",
+        "trace_id": "e6c5e255f69f0c4e0db8dd72213975bc",
+        "route": "routine",
+        "model": "gpt-5-mini",
+        "estimated_usd": 0.00012475,
+        "usage": [
+          {
+            "model": "gpt-5-mini-2025-08-07",
+            "input_tokens": 379,
+            "output_tokens": 15
+          }
+        ]
+      }
+    ]
+  },
+  "benign_estimated_usd": {
+    "baseline": 0.02214625,
+    "routed": 0.00496
+  },
+  "benign_savings_fraction": 0.7760343173223457,
+  "benign_median_seconds": {
+    "baseline": 3.7395,
+    "routed": 5.146
+  }
+}

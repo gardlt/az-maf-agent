@@ -1,3 +1,10 @@
+## 2026-10-20 — Stage 6 model routing completed in dev
+
+- Added deterministic application-owned GPT-5 mini/GPT-5 routing in both inference paths, strict approved profiles, model-specific shared accounting and bounded route telemetry/audit. Permissions, counters, cancellation and session fences are preserved; no automatic fallback is enabled.
+- Provisioned the approved mini deployment with reproducible Bicep parameters and deployed scanned images through the existing dev pipeline. Both images have zero High/Critical findings.
+- Passed 215 local tests and a frozen hosted comparison: both models pass 10/10 benign checks; routine estimated inference cost fell 77.6%, while median latency rose from 3.74s to 5.15s. Actual Azure model traces and mini → GPT-5 → mini history are verified.
+- Verified zero forbidden dispatches, unchanged sampled catalog/preferences/action receipts and retained aggregate reservations. See [acceptance evidence and limitations](validation/stage-6-model-routing.md). Stage 5 production gates remain open.
+
 ## 2026-10-19 — Stage 4 completed in dev
 
 - Deployed the approved Blob preference store, bounded model recall, hourly cleanup job, and content-free overdue-cleanup portal alert. Versions and both soft-delete features are disabled.

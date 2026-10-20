@@ -1,0 +1,30 @@
+{
+  "workflow_run": 39388288350,
+  "gate": "Unresolved High and Critical blocked, including unfixed findings",
+  "reports": [
+    {
+      "file": "agent/vulnerabilities.json",
+      "counts": {
+        "Medium": 14,
+        "Low": 1,
+        "Negligible": 1
+      },
+      "high_critical": 0,
+      "scanner": "grype",
+      "scanner_version": "0.121.0"
+    },
+    {
+      "file": "movie-mcp/vulnerabilities.json",
+      "counts": {
+        "Medium": 14,
+        "Low": 1,
+        "Negligible": 1
+      },
+      "high_critical": 0,
+      "scanner": "grype",
+      "scanner_version": "0.121.0"
+    }
+  ],
+  "release_record": "stage-6-release.json",
+  "sbom_and_full_reports_artifact": "image-security-39388288350"
+}

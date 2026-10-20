@@ -1,0 +1,22 @@
+{
+  "source_commit": "681e8407a4097a243156d3d184d14cf7f67e37d4",
+  "workflow_run": 39388288350,
+  "apps": [
+    {
+      "image": "crmafdevmako261018.azurecr.io/az-maf-agent@sha256:45e050b8bbd657b9413ccf8c5e60afdb3b7343271a645bd9c98d94695d5a9da1",
+      "name": "ca-maf-agent-dev-eus2-01",
+      "revision": "ca-maf-agent-dev-eus2-01--0000031",
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "image": "crmafdevmako261018.azurecr.io/az-maf-movie-mcp@sha256:66aa1ecad30baf1b38247de3fbf9e39d6a535b585e86e23f017cc242ce45e889",
+      "name": "ca-maf-movie-mcp-dev-eus2-01",
+      "revision": "ca-maf-movie-mcp-dev-eus2-01--0000029"
+    }
+  ]
+}

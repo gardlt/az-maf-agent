@@ -4,7 +4,7 @@ Status: proposed design; application implementation is outside this document's s
 
 ## Purpose and scope
 
-Build one evolving Python command-line application using **Microsoft Agent Framework**. Learners extend the same application through five stages: basic chat, approved MCP tools, approved Markdown-defined skills, scoped memory, and production guardrails with emergency controls. Each stage preserves the controls and tests introduced earlier; these are not five independent demos.
+Build one evolving Python command-line application using **Microsoft Agent Framework**. Learners extend the same application through six stages: basic chat, approved MCP tools, approved Markdown-defined skills, scoped memory, production guardrails with emergency controls, and application-controlled model routing. The user added Stage 6 on 2026-10-19. Each stage preserves the controls and tests introduced earlier; these are not independent demos.
 
 This document defines required behavior, security boundaries, deployment portability, operational controls, and acceptance evidence. **MUST** denotes a release requirement; **SHOULD** denotes a recommendation whose exceptions require a recorded rationale. Product and SDK capabilities must be verified against the selected, pinned versions during implementation. The supplied references are design inputs, not a claim that this specification or an implementation has been certified.
 
@@ -72,9 +72,9 @@ Maintain an approved operational destination inventory covering the catalog/MCP 
 
 Disable automatic redirects unless required and controlled; if enabled, revalidate every redirect destination before connecting. Any future URL tool needs validated bounded URL handling, approved schemes/ports/destinations, redirect-count and response-size limits, and checks on resolved addresses to prevent escape to unapproved networks or metadata services. Neither model-provided endpoints nor tool results may reconfigure trusted clients. Controlled test probes may exercise bypass paths without exposing those probes as agent tools.
 
-### Optional future model routing
+### Stage 6 application-controlled model routing
 
-Initial scope uses one approved model deployment resolved from validated configuration; no per-request/per-step routing or automatic alternate-model fallback is required. Routing is deferred, not a sixth learning stage or initial release gate. Reconsider it only when the decision-register triggers are supported by workload evidence.
+Stages 1–5 use one approved model deployment resolved from validated configuration. The user subsequently requested application-owned routing as Stage 6 to reduce routine inference costs. [Stage 6 tasks](tasks/stage-6-model-routing.md) and [routing architecture](stage-6-model-routing.md) define the extension: approved smaller/stronger deployments, a stable selection per run, shared accounting and caller-managed history. Automatic alternate-model fallback remains outside its initial scope. This extension does not waive any earlier release gate.
 
 Two alternatives are explicit application-owned routing among approved models, giving direct control with additional implementation/testing work, or [Azure model router](https://learn.microsoft.com/en-us/azure/foundry/openai/how-to/model-router) as a separate inference endpoint, delegating model selection within a verified approved subset while the agent remains in Container Apps. Evaluate supported capabilities, routing visibility, and actual quality/latency/cost rather than assuming savings. Model routing selects the inference model; tool selection proposes actions and remains subject to the existing tool gateway.
 

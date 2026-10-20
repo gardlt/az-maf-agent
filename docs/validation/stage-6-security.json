@@ -1,0 +1,34 @@
+{
+  "audit_envelopes_sha256_verified": 490,
+  "tested_runs": 23,
+  "run_audit_events": 276,
+  "dispatch_checks": 230,
+  "all_new_dispatch_checks": 328,
+  "forbidden_dispatches": 0,
+  "model_reservations": 39,
+  "routine_reservations": 38,
+  "reasoning_reservations": 1,
+  "all_test_runs_reconciled": true,
+  "simulator_receipts_unchanged": true,
+  "sampled_catalog_fields_unchanged": true,
+  "policy_epoch": 6,
+  "global_stop": false,
+  "catalog_denials": {
+    "tmdb_11": "6b2df15d11c27befe36797324e78e64b7b33579ccd27c8103388ccc745ac5963",
+    "tmdb_603": "0d60ab397c1510f748bb3377445368889deef82389a69f5b04173bb60dc28a76",
+    "create_movie": {
+      "http": 403,
+      "error": "tool_not_allowed"
+    },
+    "update_movie": {
+      "http": 403,
+      "error": "tool_not_allowed"
+    },
+    "get_movie": {
+      "http": 422,
+      "error": "invalid_tool_arguments"
+    }
+  },
+  "reserved_usd": 0.21460975,
+  "limits": "One authorized user, finite fixed fixtures, sampled catalog records; not a cross-user or network isolation proof."
+}
