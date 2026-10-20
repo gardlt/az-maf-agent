@@ -46,12 +46,12 @@ Telemetry uses an isolated explicit tracer and static resources, without HTTP/mo
 
 ## Remaining release evidence
 
-The task checklist remains unchecked until complete evidence exists: hosted runtime integration, live cross-replica and stop/recovery timing, protected-audit outage behavior, final deployed network cases, independent Azure stop of an isolated unresponsive worker, reconciliation, fresh recovery canary, real exported spans and alert verification, the predeclared benign/adversarial evaluation, supply-chain/secret review, and rollback/incident runbooks. Local fixtures and historical Stage 2 network tests do not satisfy these hosted gates.
+The [task checklist](tasks/stage-5-production-guardrails.md) now separates completed, evidence-backed milestones from open release gates. Remaining work includes actual cross-replica conversation/race acceptance, remaining hosted control/approval/outage cases, final network topology and bypass tests, current maintenance recovery/canary, full forbidden-effect review, vulnerability clearance, Key Vault rotation and rollback rehearsal, Entra Agent ID integration, and Application Insights Agents view validation. Completed synthetic containment and exported-span checks do not substitute for these outstanding gates.
 
 
 ## Deployment checkpoint
 
-Commit `eee02a8` was pushed to `main`. CI, infrastructure checks, and the dev deployment passed. The resulting ready revision was `ca-maf-agent-dev-eus2-01--0000025`, image digest `sha256:8328ed26a40064381ddd47022aaaa1be061c45c47962ffd509eb5a61575f18ed`. Stage 5 remained disabled. Hosted exporter probes identified an empty-setting parse problem and the SDK's `timeout` keyword requirement; fixes and a real exporter-construction regression are included in the follow-up. A flush acknowledgement alone is not evidence of ingestion or redaction; the actual Azure span query remains pending.
+Commit `eee02a8` was pushed to `main`. CI, infrastructure checks, and the dev deployment passed. The resulting ready revision was `ca-maf-agent-dev-eus2-01--0000025`, image digest `sha256:8328ed26a40064381ddd47022aaaa1be061c45c47962ffd509eb5a61575f18ed`. Stage 5 remained disabled. Hosted exporter probes identified an empty-setting parse problem and the SDK's `timeout` keyword requirement; fixes and a real exporter-construction regression are included in the follow-up. A flush acknowledgement alone is not evidence of ingestion or redaction; the actual Azure span query was pending at this checkpoint and is recorded as completed under Hosted evidence collected.
 
 The fixed evaluation inputs and approved thresholds are in `config/stage5-evaluation.json`. Commit the dataset before live evaluation; do not change thresholds to accommodate results.
 
@@ -73,9 +73,9 @@ A genuine previously issued access token, expired beyond five-minute skew, was r
 
 The first fixed evaluation reported 60% with a title-only grader; four diagnostics confirmed valid year/ID-only answers requested by those prompts. Grader v2 scored 80%; it still incorrectly required the title for the second ID-only prompt and one benign request returned provider_shape. Both failed reports are retained. Grader v3 covers both requested IDs and the requested years, with the same dataset and 90% threshold. Do not count either earlier run as passing.
 
-A bounded operator compatibility canary verified that the existing GPT-5 deployment/API accepts minimal reasoning effort (19 observed tokens). The app configuration now requests that effort within the same 2,000-token output and existing spend limits, following [Azure's reasoning guidance](https://learn.microsoft.com/azure/foundry/openai/how-to/reasoning). The quality gate requires a fresh deployed run; this is not a threshold relaxation.
+A bounded operator compatibility canary verified that the existing GPT-5 deployment/API accepts minimal reasoning effort (19 observed tokens). The app configuration now requests that effort within the same 2,000-token output and existing spend limits, following [Azure's reasoning guidance](https://learn.microsoft.com/azure/foundry/openai/how-to/reasoning). The subsequent fresh deployed run reached 90% with grader v3, as recorded below; the threshold was not relaxed.
 
-The user requested and approved the separately reviewed 11-resource phase-one VNet/Basic Firewall foundation. Deployment `stage5-network-foundation` is in progress. Registry upgrade and app migration are excluded from that approval. See [migration and cost review](stage-5-network-migration-review.md). Existing dev app traffic remains in the original environment until the later reviewed cutover.
+The user requested and approved the separately reviewed 11-resource phase-one VNet/Basic Firewall foundation. The first `stage5-network-foundation` attempt failed on the NSG DNS rule; the repaired `stage5-network-foundation-retry` succeeded. Registry upgrade and app migration are excluded from that approval. See [migration and cost review](stage-5-network-migration-review.md). Existing dev app traffic remains in the original environment until the later reviewed cutover.
 
 
 ## Current release blockers and maintenance evidence
@@ -92,3 +92,13 @@ The fixed live benign evaluation achieved 90% under the frozen grader; [results]
 Both Dockerfiles now pin the verified official Python 3.12.15 slim Trixie index digest. A local base-only comparison found zero Critical and 55 High matches for that candidate, versus three Critical and 79 High for the Bookworm candidate. These are base-image results, not a final application-image clearance. See [comparison evidence](validation/stage-5-evidence/python-base-scan-comparison.json). No unresolved findings are suppressed because their vendor status is `wont-fix` or `not-fixed`.
 
 The deployment workflow now scans each built image locally with checksum-pinned Syft 1.55.0 and Grype 0.121.0 before pushing it. `--fail-on high` blocks unresolved High/Critical findings, including findings without fixes; scanner/database failures also block rollout. SBOM and vulnerability reports are retained as workflow artifacts for 30 days. A passing application test suite does not bypass this gate.
+
+
+## Microsoft Entra Agent ID requirement
+
+The user requires Microsoft Entra Agent ID for this agent. Current managed identities are not evidence of an Agent ID integration. [The integration plan](entra-agent-id.md) records environment isolation, federation, directory provisioning, runtime token use and validation. This is an open Stage 5 release requirement; no blueprint or agent identity has been provisioned by recording it.
+
+
+## Azure Monitor Agents view requirement
+
+The user also requires [Application Insights Agents (Preview)](https://learn.microsoft.com/en-us/azure/azure-monitor/app/agents-view). The [integration plan](azure-monitor-agents-view.md) covers correlated agent/model/tool traces, observed usage, metadata-only export and hosted portal acceptance. Existing isolated control spans do not satisfy this requirement. This remains open; no runtime instrumentation was changed by recording it.
