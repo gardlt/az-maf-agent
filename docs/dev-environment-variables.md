@@ -99,4 +99,4 @@ settings; storage authentication uses each workload's managed identity.
 `infra/main.dev.bicepparam` also pins cleanup job and portal alert names. Operator
 bootstrap grants agent/job system identities container-scoped Blob Data Contributor.
 Ordinary CI leaves `bootstrapMemoryRoles=false` and cannot grant roles. See the
-[Stage 4 guide](stage-4-memory.md) for lifecycle policy, tests, and operations.
+[Stage 4 guide](stages/stage-4/stage-4-memory.md) for lifecycle policy, tests, and operations.

@@ -59,7 +59,7 @@ uv run --locked agent-chat --api https://YOUR_APPROVED_AGENT_API
 
 Hosted use requires the matching Entra client configuration and an authorized account. The CLI uses an encrypted, OS-user-scoped token cache and silently refreshes when authentication policy permits. Do not commit tokens or pass credentials as command-line arguments.
 
-The hosted CLI also supports reviewed skills such as `--skill movie-research`, explicit movie reads with `--movies`, and preference commands such as `/memory`, `/remember preferred_genre comedy` and `/forget all`. Ordinary chat does not consent to saving a preference. See the [skills guide](docs/stage-3-skills.md), [memory guide](docs/stage-4-memory.md) and [TMDB integration guide](docs/tmdb-integration.md) for setup and behavior.
+The hosted CLI also supports reviewed skills such as `--skill movie-research`, explicit movie reads with `--movies`, and preference commands such as `/memory`, `/remember preferred_genre comedy` and `/forget all`. Ordinary chat does not consent to saving a preference. See the [skills guide](docs/stages/stage-3/stage-3-skills.md), [memory guide](docs/stages/stage-4/stage-4-memory.md) and [TMDB integration guide](docs/tmdb-integration.md) for setup and behavior.
 
 ## Repository layout
 
@@ -72,7 +72,7 @@ The hosted CLI also supports reviewed skills such as `--skill movie-research`, e
 | [infra/](infra/README.md) | One Bicep entry point, resource modules, application patterns and environment parameters |
 | [.github/workflows/](.github/workflows/) | CI, infrastructure validation and environment deployment |
 | [scripts/](scripts/) | Operator utilities and bounded validation exercises |
-| [docs/](docs/) | Architecture, decisions, guides, roadmap and retained evidence |
+| [docs/](docs/README.md) | Architecture, decisions, guides, roadmap and retained evidence |
 
 Dependencies are locked in [uv.lock](uv.lock). The infrastructure layout follows Azure Developer CLI conventions through [azure.yaml](azure.yaml), with environment-specific settings kept separate from application code. See the [deployment guide](docs/github-actions-deployment.md) for dev automation and controlled stage/prod promotion.
 
@@ -84,7 +84,7 @@ uv run --locked ruff check apps scripts
 uv run --locked ruff format --check apps scripts
 ```
 
-Local fixtures and hosted tests establish different things. Use the [evidence register](docs/architecture-review/09-evidence-register.md) to find the tested release, environment, identities, outcomes and limitations. Live exercises must retain existing permissions and budgets; a model refusal or HTTP 200 alone is not proof of enforcement.
+Browse [validation results by stage](docs/stages/README.md) for guides, reports and supporting evidence. Local fixtures and hosted tests establish different things. Use the [evidence register](docs/architecture-review/09-evidence-register.md) to find the tested release, environment, identities, outcomes and limitations. Live exercises must retain existing permissions and budgets; a model refusal or HTTP 200 alone is not proof of enforcement.
 
 ## Scope and operating principles
 

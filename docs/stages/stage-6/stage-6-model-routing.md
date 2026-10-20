@@ -52,4 +52,4 @@ For rollback, prefer a routing-capable image with `routing.mode=reasoning`. If r
 
 ## Acceptance
 
-Completed dev evidence: [Stage 6 acceptance](validation/stage-6-model-routing.md). Track tasks in [Stage 6](tasks/stage-6-model-routing.md). The frozen evaluation reuses `config/stage5-evaluation.json`, grader v3 and the existing 90% benign floor. Compare against a fresh GPT-5 baseline before changing the default. Inspect actual traces, protected dispatch events and before/after state; a refusal or HTTP 200 alone does not prove safety. The new route does not close remaining Stage 5 cross-user, network or operational release gates.
+Completed dev evidence: [Stage 6 acceptance](validation/stage-6-model-routing.md). Track tasks in [Stage 6](../../tasks/stage-6-model-routing.md). The frozen evaluation reuses `config/stage5-evaluation.json`, grader v3 and the existing 90% benign floor. Compare against a fresh GPT-5 baseline before changing the default. Inspect actual traces, protected dispatch events and before/after state; a refusal or HTTP 200 alone does not prove safety. The new route does not close remaining Stage 5 cross-user, network or operational release gates.

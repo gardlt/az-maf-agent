@@ -47,7 +47,7 @@ Agent ID creation and advanced governance have different licensing prerequisites
 
 ## Dev implementation checkpoint
 
-Blueprint client ID: `cfb45dee-91b3-498e-b43b-11310e6ef473`. Agent client/object ID: `94a137c6-e4fc-481c-b45d-f2a03d868ba4`. Existing agent system identity is the federated workload credential. The operator-only provisioner defaults to planning and was rerun successfully without duplicate objects. [Provisioning evidence](validation/stage-5-evidence/agent-id-provisioning.json) records identifiers and the scoped Catalog.Read assignment. The separately compiled Foundry access module applies only Foundry User on the existing account.
+Blueprint client ID: `cfb45dee-91b3-498e-b43b-11310e6ef473`. Agent client/object ID: `94a137c6-e4fc-481c-b45d-f2a03d868ba4`. Existing agent system identity is the federated workload credential. The operator-only provisioner defaults to planning and was rerun successfully without duplicate objects. [Provisioning evidence](stages/stage-5/validation/stage-5-evidence/agent-id-provisioning.json) records identifiers and the scoped Catalog.Read assignment. The separately compiled Foundry access module applies only Foundry User on the existing account.
 
 The credential adapter performs managed identity → blueprint token with `fmi_path` → agent resource token, caches tokens with early refresh and fences resource scopes. It never falls back to workload tokens. A real in-container exchange returned the new agent's `oid` and `appid` for the Cognitive Services audience; a minted token alone is not proof of downstream authorization. The configured runtime uses separate adapter instances for inference and MCP. Blob/control/monitoring/skill infrastructure access remains on workload identity.
 
@@ -56,4 +56,4 @@ Dev GitHub environment variables enable the integration with non-secret identifi
 
 ## Hosted acceptance
 
-The [dev acceptance report](validation/stage-5-agent-id-observability.md) records the deployed image, real token claims, authorized inference and MCP call, caching, and accounting-preserving recovery. The runtime uses agent tokens for both inference and MCP. Generic Blob/control/telemetry infrastructure access remains on managed identity. Legacy grants are retained for rollback; full permission retirement and governance/revocation rehearsal remain separate Stage 5 identity-review work.
+The [dev acceptance report](stages/stage-5/validation/stage-5-agent-id-observability.md) records the deployed image, real token claims, authorized inference and MCP call, caching, and accounting-preserving recovery. The runtime uses agent tokens for both inference and MCP. Generic Blob/control/telemetry infrastructure access remains on managed identity. Legacy grants are retained for rollback; full permission retirement and governance/revocation rehearsal remain separate Stage 5 identity-review work.

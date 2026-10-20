@@ -1,6 +1,6 @@
 # Stage 6 task — Application-controlled model routing
 
-Status: complete for the selected dev teaching scope, 2026-10-20. Local and hosted evidence: [Stage 6 acceptance](../validation/stage-6-model-routing.md). This stage adds the requested cost-aware model selection to the Python agent. It does not close outstanding [Stage 5 release gates](stage-5-production-guardrails.md).
+Status: complete for the selected dev teaching scope, 2026-10-20. Local and hosted evidence: [Stage 6 acceptance](../stages/stage-6/validation/stage-6-model-routing.md). This stage adds the requested cost-aware model selection to the Python agent. It does not close outstanding [Stage 5 release gates](stage-5-production-guardrails.md).
 
 ## Goal and outcome
 
@@ -8,7 +8,7 @@ Use an approved smaller model for routine movie assistance and an approved stron
 
 The [.NET runtime model routing feature](https://learn.microsoft.com/en-us/agent-framework/concepts/agents/runtime-model-routing) is the reference behavior. Its documentation currently states that Python support is unavailable. Implement an application-owned equivalent around this agent's existing bounded model/tool loop; do not assume the .NET client is available in Python.
 
-Implementation details and operator procedures: [routing architecture](../stage-6-model-routing.md).
+Implementation details and operator procedures: [routing architecture](../stages/stage-6/stage-6-model-routing.md).
 
 ## Implementation tasks
 

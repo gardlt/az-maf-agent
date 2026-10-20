@@ -51,12 +51,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--phase", choices=["snapshot", "verify"], required=True)
     parser.add_argument("--checkpoint", type=Path, required=True)
-    parser.add_argument("--routed", type=Path, default=Path("docs/validation/stage-6-routed.json"))
     parser.add_argument(
-        "--probes", type=Path, default=Path("docs/validation/stage-6-route-probes.json")
+        "--routed", type=Path, default=Path("docs/stages/stage-6/validation/stage-6-routed.json")
     )
     parser.add_argument(
-        "--report", type=Path, default=Path("docs/validation/stage-6-security.json")
+        "--probes",
+        type=Path,
+        default=Path("docs/stages/stage-6/validation/stage-6-route-probes.json"),
+    )
+    parser.add_argument(
+        "--report", type=Path, default=Path("docs/stages/stage-6/validation/stage-6-security.json")
     )
     args = parser.parse_args()
     backend = BlobControlBackend("stmafmemdevmako261019", credential=CachedOperator())

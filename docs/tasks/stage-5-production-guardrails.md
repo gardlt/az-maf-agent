@@ -1,6 +1,6 @@
 # Stage 5 task — Production containment and operator recovery
 
-Implementation status and approved dev decisions: [Stage 5 implementation notes](../stage-5-production-guardrails.md). Completed milestones are checked below. Broad release gates stay open where hosted or final-topology evidence is still missing. Stage 5 is not complete.
+Implementation status and approved dev decisions: [Stage 5 implementation notes](../stages/stage-5/stage-5-production-guardrails.md). Completed milestones are checked below. Broad release gates stay open where hosted or final-topology evidence is still missing. Stage 5 is not complete.
 
 ## Goal and outcome
 
@@ -21,34 +21,34 @@ Aggregate budgets, shared control state, four shutdown layers, independent manua
 
 These checks describe the completed scope only. They do not close the broader release gates below.
 
-- [x] Record the approved Blob backend, budgets, 2-second policy polling, 10-second containment target, 30-second leases and 30-day content-free audit contract. See [approved contract](../stage-5-production-guardrails.md#approved-dev-contract).
-- [x] Deploy the private policy/state/audit/session containers and scoped operator/runtime/cleanup roles. Actual runtime probes verify policy writes and audit reads/deletes return 403. Audit retention is 30 days, Unlocked. See [foundation evidence](../stage-5-production-guardrails.md#deployed-foundation--2026-10-19).
+- [x] Record the approved Blob backend, budgets, 2-second policy polling, 10-second containment target, 30-second leases and 30-day content-free audit contract. See [approved contract](../stages/stage-5/stage-5-production-guardrails.md#approved-dev-contract).
+- [x] Deploy the private policy/state/audit/session containers and scoped operator/runtime/cleanup roles. Actual runtime probes verify policy writes and audit reads/deletes return 403. Audit retention is 30 days, Unlocked. See [foundation evidence](../stages/stage-5/stage-5-production-guardrails.md#deployed-foundation--2026-10-19).
 - [x] Implement shared accounting, fail-closed policy/lease checks, cancellation, late-result fencing and Blob session/reset handling; include local concurrency, accounting and reset regression coverage. Actual cross-replica conversation/race acceptance remains open.
 - [x] Implement and locally test the isolated classroom-credit approval ledger: exact arguments, expiry, single use, cancellation and atomic receipts. Hosted permitted-action acceptance remains open.
 - [x] Run the local regression suite: 190 tests pass; lint and formatting pass. Provider-rejection/schema-2-compatible changes are deployed in dev.
-- [x] Verify stopped ingress and persistence across an actual revision restart; record explicit earlier recovery without resetting quotas. See [stopped ingress](../validation/stage-5-stopped-ingress.md) and [restart evidence](../validation/stage-5-stopped-after-restart.md). Subsequent epoch-5 → 6 recovery and fresh hosted canary also passed; see [acceptance evidence](../validation/stage-5-agent-id-observability.md).
-- [x] Verify the isolated two-revision manual Azure stop drill in 2.299 seconds, with every known revision inactive, Stopped and at zero replicas. Runtime deactivate attempt returns 403. See [platform evidence](../validation/stage-5-evidence/manual-stop.json).
-- [x] Verify the shared-backend synthetic watchdog stop in 3.255 seconds with zero forbidden follow-ups. No real provider was dispatched by this fixture. See [watchdog evidence](../validation/stage-5-evidence/watchdog-stop.json).
-- [x] Reconcile two contained dev runs with unknown usage after independent platform verification; preserve all reservations and daily accounting without fabricated receipts or refunds. See [reconciliation evidence](../validation/stage-5-evidence/reconciliation.json).
-- [x] Verify shipped metadata-only spans in Azure Application Insights, rather than relying on exporter flush. Sensitive canary fields are absent. See [exported evidence](../validation/stage-5-evidence/shipped-exported-span.json). The subsequent GenAI integration and user-confirmed Agents view visibility are recorded in the [acceptance report](../validation/stage-5-agent-id-observability.md).
-- [x] Record deployed rejection of a genuinely expired token, beyond clock skew, with HTTP 401. See [token rejection evidence](../validation/stage-5-evidence/expired-token.json).
-- [x] Execute the fixed 20-case live evaluation; frozen grader v3 reaches the predeclared 90% benign marker threshold. Preserve earlier failed reports. Full forbidden-effect and qualitative acceptance remain open. See [evaluation report](../validation/stage-5-live-evaluation.md).
-- [x] Deploy the approved parallel VNet/Basic Firewall foundation. Keep existing app traffic unchanged and the registry Basic as requested. See [deployment review](../stage-5-network-migration-review.md#latest-deployment-and-registry-decision). Final app cutover/network tests remain open.
-- [x] Produce the deployed-image SBOM and local vulnerability report; implement the user-selected High/Critical release gate with checksum-pinned scanners. The original blocked scan is preserved; both patched release images subsequently passed with zero High/Critical findings. See [current scan evidence](../validation/stage-5-evidence/agent-id-image-scans.json).
-- [x] Document independent stop, reconciliation, schema-compatible rollback and explicit recovery procedures in the [operator runbook](../stage-5-operator-runbook.md). Full hosted rollback/rotation rehearsal remains open.
-- [x] Add the requested [Entra Agent ID](../entra-agent-id.md) and [Azure Monitor Agents view](../azure-monitor-agents-view.md) integration plans and release tasks. Both requested integrations are now complete for dev; see [hosted acceptance](../validation/stage-5-agent-id-observability.md).
+- [x] Verify stopped ingress and persistence across an actual revision restart; record explicit earlier recovery without resetting quotas. See [stopped ingress](../stages/stage-5/validation/stage-5-stopped-ingress.md) and [restart evidence](../stages/stage-5/validation/stage-5-stopped-after-restart.md). Subsequent epoch-5 → 6 recovery and fresh hosted canary also passed; see [acceptance evidence](../stages/stage-5/validation/stage-5-agent-id-observability.md).
+- [x] Verify the isolated two-revision manual Azure stop drill in 2.299 seconds, with every known revision inactive, Stopped and at zero replicas. Runtime deactivate attempt returns 403. See [platform evidence](../stages/stage-5/validation/stage-5-evidence/manual-stop.json).
+- [x] Verify the shared-backend synthetic watchdog stop in 3.255 seconds with zero forbidden follow-ups. No real provider was dispatched by this fixture. See [watchdog evidence](../stages/stage-5/validation/stage-5-evidence/watchdog-stop.json).
+- [x] Reconcile two contained dev runs with unknown usage after independent platform verification; preserve all reservations and daily accounting without fabricated receipts or refunds. See [reconciliation evidence](../stages/stage-5/validation/stage-5-evidence/reconciliation.json).
+- [x] Verify shipped metadata-only spans in Azure Application Insights, rather than relying on exporter flush. Sensitive canary fields are absent. See [exported evidence](../stages/stage-5/validation/stage-5-evidence/shipped-exported-span.json). The subsequent GenAI integration and user-confirmed Agents view visibility are recorded in the [acceptance report](../stages/stage-5/validation/stage-5-agent-id-observability.md).
+- [x] Record deployed rejection of a genuinely expired token, beyond clock skew, with HTTP 401. See [token rejection evidence](../stages/stage-5/validation/stage-5-evidence/expired-token.json).
+- [x] Execute the fixed 20-case live evaluation; frozen grader v3 reaches the predeclared 90% benign marker threshold. Preserve earlier failed reports. Full forbidden-effect and qualitative acceptance remain open. See [evaluation report](../stages/stage-5/validation/stage-5-live-evaluation.md).
+- [x] Deploy the approved parallel VNet/Basic Firewall foundation. Keep existing app traffic unchanged and the registry Basic as requested. See [deployment review](../stages/stage-5/stage-5-network-migration-review.md#latest-deployment-and-registry-decision). Final app cutover/network tests remain open.
+- [x] Produce the deployed-image SBOM and local vulnerability report; implement the user-selected High/Critical release gate with checksum-pinned scanners. The original blocked scan is preserved; both patched release images subsequently passed with zero High/Critical findings. See [current scan evidence](../stages/stage-5/validation/stage-5-evidence/agent-id-image-scans.json).
+- [x] Document independent stop, reconciliation, schema-compatible rollback and explicit recovery procedures in the [operator runbook](../stages/stage-5/stage-5-operator-runbook.md). Full hosted rollback/rotation rehearsal remains open.
+- [x] Add the requested [Entra Agent ID](../entra-agent-id.md) and [Azure Monitor Agents view](../azure-monitor-agents-view.md) integration plans and release tasks. Both requested integrations are now complete for dev; see [hosted acceptance](../stages/stage-5/validation/stage-5-agent-id-observability.md).
 
-- [x] Run the fixed 50-session hosted behavior exercise with 20 movie-write attempts, deterministic 403/422 tool/schema denials, protected-audit verification and sampled before/after checks. See [results and limits](../validation/movie-agent-50-users.md). This uses one Entra identity and does not replace distinct-user/replica acceptance.
+- [x] Run the fixed 50-session hosted behavior exercise with 20 movie-write attempts, deterministic 403/422 tool/schema denials, protected-audit verification and sampled before/after checks. See [results and limits](../stages/stage-5/validation/movie-agent-50-users.md). This uses one Entra identity and does not replace distinct-user/replica acceptance.
 
 ## Remaining release blockers
 
-- [x] Clear the release-blocking High/Critical findings for both rebuilt dev images; the existing gate passed. See [acceptance evidence](../validation/stage-5-agent-id-observability.md).
-- [x] Deploy the schema-compatible provider-rejection fix under stop, explicitly recover epoch 5 to 6 without resetting accounting, and pass a fresh hosted canary. See [recovery and canary evidence](../validation/stage-5-agent-id-observability.md).
+- [x] Clear the release-blocking High/Critical findings for both rebuilt dev images; the existing gate passed. See [acceptance evidence](../stages/stage-5/validation/stage-5-agent-id-observability.md).
+- [x] Deploy the schema-compatible provider-rejection fix under stop, explicitly recover epoch 5 to 6 without resetting accounting, and pass a fresh hosted canary. See [recovery and canary evidence](../stages/stage-5/validation/stage-5-agent-id-observability.md).
 - [ ] Complete actual cross-replica conversation, concurrency and reset-race acceptance, plus remaining hosted control/approval/outage cases.
 - [ ] Complete an approved image-delivery/network design compatible with keeping ACR Basic, then run all five network cases under the final topology.
 - [ ] Complete protected dispatch/effect review, qualitative evaluation, Key Vault rotation and rollback/incident rehearsal.
-- [x] Provision and integrate Entra Agent ID in dev; prove actual downstream agent-token use for inference and MCP, plus runtime caching. See [acceptance evidence](../validation/stage-5-agent-id-observability.md).
-- [x] Integrate generative AI tracing and verify correlated runs in Azure ingestion; the user confirms the agent is visible in Application Insights Agents (Preview). See [acceptance evidence](../validation/stage-5-agent-id-observability.md).
+- [x] Provision and integrate Entra Agent ID in dev; prove actual downstream agent-token use for inference and MCP, plus runtime caching. See [acceptance evidence](../stages/stage-5/validation/stage-5-agent-id-observability.md).
+- [x] Integrate generative AI tracing and verify correlated runs in Azure ingestion; the user confirms the agent is visible in Application Insights Agents (Preview). See [acceptance evidence](../stages/stage-5/validation/stage-5-agent-id-observability.md).
 
 ## Ordered work checklist
 
@@ -60,7 +60,7 @@ These checks describe the completed scope only. They do not close the broader re
 6. [ ] Execute the rogue scenarios and all deployed network tests below, including races, dependency outages, restarts, overlapping revisions, and unresponsive workers.
 7. [ ] Rehearse the independent manual stop drill, reconcile downstream outcomes, and prove persistent stop plus explicit authorized recovery/canary.
 8. [ ] Run full regression and controlled live-model quality/safety evaluations with thresholds approved in advance. Review supply-chain, identity/RBAC, Key Vault rotation, redaction, retention/deletion, rollout/rollback, and incident evidence before declaring readiness.
-9. [x] Integrate Microsoft Entra Agent ID in dev with a dedicated blueprint/agent identity, managed identity federation, scoped downstream grants and verified runtime token use. Environment-specific provisioning/configuration is reproducible; stage/prod rollout remains separate. See [identity acceptance evidence](../validation/stage-5-agent-id-observability.md).
+9. [x] Integrate Microsoft Entra Agent ID in dev with a dedicated blueprint/agent identity, managed identity federation, scoped downstream grants and verified runtime token use. Environment-specific provisioning/configuration is reproducible; stage/prod rollout remains separate. See [identity acceptance evidence](../stages/stage-5/validation/stage-5-agent-id-observability.md).
 10. [x] Integrate Azure Monitor Application Insights Agents (Preview) with correlated agent/model/MCP traces, observed usage and content-free exported evidence. Actual Azure correlation is verified and the user confirms visibility in the hosted Agents view. See [monitoring integration plan](../azure-monitor-agents-view.md).
 
 ## Acceptance criteria
@@ -89,7 +89,7 @@ Reuse memory poisoning, six skill-boundary cases, secret canaries, stale control
 
 ### Independent manual Azure stop drill
 
-- [x] Make an isolated synthetic worker deliberately unresponsive to application cancellation. Inventory both active revisions and their replicas; the fixture has no downstream effect queue. See [drill evidence](../validation/stage-5-evidence/manual-stop.json).
+- [x] Make an isolated synthetic worker deliberately unresponsive to application cancellation. Inventory both active revisions and their replicas; the fixture has no downstream effect queue. See [drill evidence](../stages/stage-5/validation/stage-5-evidence/manual-stop.json).
 - [ ] A separate authenticated operator uses Azure control-plane operations outside the agent/API process to stop or isolate every affected worker across all active revisions and prevent replacement work. Agent/MCP identities cannot invoke this authority or access its credentials.
 - [ ] Verify actual platform state, containment, and persisted kill state; test restart while stopped. Keep management/audit access available. A submitted stop request is not completion.
 - [ ] Reconcile already accepted downstream actions and unknown outcomes before retries/compensation; require separate authorization for consequential compensation. Do not claim instant termination or undo of committed effects.

@@ -50,7 +50,7 @@ The four targeted regressions listed below passed when this scenario was recorde
 - [test_memory.py](apps/agent/tests/test_memory.py): cross-user and cross-tenant preference partitions; foreign correction/deletion denied.
 - [test_shared_sessions.py](apps/agent/tests/test_shared_sessions.py): foreign-owner session lookup denied without disclosing or recreating it.
 
-The earlier [50-session exercise](docs/validation/movie-agent-50-users.md) used one Entra identity. It does **not** complete this two-user scenario.
+The earlier [50-session exercise](docs/stages/stage-5/validation/movie-agent-50-users.md) used one Entra identity. It does **not** complete this two-user scenario.
 
 ## SEC-002 — Coerce the agent into adding or editing a movie
 
@@ -59,6 +59,6 @@ The earlier [50-session exercise](docs/validation/movie-agent-50-users.md) used 
 - [x] Run 20 add/edit/bypass prompts among 50 virtual chat sessions.
 - [x] Probe invented create/update tools and write-shaped arguments in valid read tools; observe 403/422 denials.
 - [x] Verify protected audit shows zero forbidden dispatches and sampled movie/preference checks remain unchanged.
-- [x] Preserve load failures and limits in the [results report](docs/validation/movie-agent-50-users.md).
+- [x] Preserve load failures and limits in the [results report](docs/stages/stage-5/validation/movie-agent-50-users.md).
 
 The current MCP has only `search_movies` and `get_movie`, and its TMDB transport sends GET. This scenario validates that existing read-only boundary; it does not exercise a privileged write capability.

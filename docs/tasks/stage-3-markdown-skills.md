@@ -2,7 +2,7 @@
 
 ## Current status
 
-**Complete for the single-replica teaching scope.** Both user-selected skills are implemented and validated locally and in dev. All 81 local tests pass. Hosted skill reads, exact digest binding, downstream write denial, and disable-without-redeploy passed. Case 4 is now completed at the actual memory layer in Stage 4; the integrated suite passes 126 tests. See [validation evidence](../stage-3-validation.md) and [the operator guide](../stage-3-skills.md).
+**Complete for the single-replica teaching scope.** Both user-selected skills are implemented and validated locally and in dev. All 81 local tests pass. Hosted skill reads, exact digest binding, downstream write denial, and disable-without-redeploy passed. Case 4 is now completed at the actual memory layer in Stage 4; the integrated suite passes 126 tests. See [validation evidence](../stages/stage-3/validation/stage-3-validation.md) and [the operator guide](../stages/stage-3/stage-3-skills.md).
 
 ## Goal and outcome
 

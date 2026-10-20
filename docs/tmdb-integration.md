@@ -1,6 +1,6 @@
 # TMDB movie data integration
 
-TMDB is the sole movie source for the MCP. The hosted agent and MCP ran TMDB-aware images before the dedicated deployment was retired on 2026-10-18. A live local search/details check and hosted agent-to-MCP reads passed before teardown; see the [validation record](stage-2-validation.md). The repository implementation uses `movie_catalog_mcp.tmdb.TMDBClient` for the two MCP read tools, and its local tests use mocked HTTP responses.
+TMDB is the sole movie source for the MCP. The hosted agent and MCP ran TMDB-aware images before the dedicated deployment was retired on 2026-10-18. A live local search/details check and hosted agent-to-MCP reads passed before teardown; see the [validation record](stages/stage-2/validation/stage-2-validation.md). The repository implementation uses `movie_catalog_mcp.tmdb.TMDBClient` for the two MCP read tools, and its local tests use mocked HTTP responses.
 
 ## API and credential
 

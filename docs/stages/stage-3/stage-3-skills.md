@@ -4,7 +4,7 @@ Stage 3 is implemented for the single-replica, non-commercial teaching environme
 Both user-selected skills are enabled in dev: `movie-research@1.0.0` compares movies,
 and `movie-night@1.0.0` builds a shortlist from session preferences. Each adds reviewed
 guidance to the same bounded TMDB tools. Neither grants authority or durable memory.
-See [validation evidence](stage-3-validation.md).
+See [validation evidence](validation/stage-3-validation.md).
 
 ## Trust and selection decisions
 
@@ -116,7 +116,7 @@ Unknown skill requests are represented by a hash; known loader denials include t
 approved manifest binding. Backend invocation counts and unchanged-record comparisons
 provide absence-of-effects evidence, independently of model refusal.
 
-Case 4 is completed in [Stage 4 validation](stage-4-validation.md): actual memory-layer
+Case 4 is completed in [Stage 4 validation](../stage-4/validation/stage-4-validation.md): actual memory-layer
 tests show no other-user disclosure and no skill write effects. Reviewed skills still
 have no memory capability and cannot inherit earlier personalized history. Stage 1's
 remaining shared-session and expired-ingress-token gates are tracked separately.

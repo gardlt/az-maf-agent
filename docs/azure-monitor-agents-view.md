@@ -28,11 +28,11 @@ The existing `control_telemetry.py` exports isolated, content-free `control.*` s
 - [ ] Success, model failure, tool denial and cancellation have bounded metadata and interpretable status; token reporting distinguishes observed and unavailable usage.
 - [x] Azure-exported canary evidence excludes the sensitive marker and message/tool-content fields; dev routing and agent identity/name are verified.
 - [ ] Export outage/backpressure tests preserve application limits and protected audit behavior.
-- [x] Operator instructions record the portal path, time range and actual trace ID in the [acceptance report](validation/stage-5-agent-id-observability.md). User confirmation covers agent visibility; uninspected preview fields are not claimed validated.
+- [x] Operator instructions record the portal path, time range and actual trace ID in the [acceptance report](stages/stage-5/validation/stage-5-agent-id-observability.md). User confirmation covers agent visibility; uninspected preview fields are not claimed validated.
 
 
 ## Implementation checkpoint
 
 The application-owned chat loop emits an isolated `invoke_agent` root, child `chat` spans for actual model requests and `execute_tool` spans for validated MCP reads. It shares the existing managed-identity Azure exporter without enabling global HTTP/model instrumentation or sensitive-data capture. Root responses expose a trace ID for operator lookup. Tests exercise concurrent root isolation, the actual service/transport/tool hierarchy, observed usage aggregation and failure redaction. Directory identity metadata is emitted only when Agent ID authentication is enabled. Generic control spans retain their separate context.
 
-See [hosted acceptance evidence](validation/stage-5-agent-id-observability.md) for the real trace ID, selected runtime token claims and scan/recovery results.
+See [hosted acceptance evidence](stages/stage-5/validation/stage-5-agent-id-observability.md) for the real trace ID, selected runtime token claims and scan/recovery results.

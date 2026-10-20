@@ -2,7 +2,7 @@
 
 **Deployment status:** The dedicated agent and FastMCP Container Apps and their environment were retired on 2026-10-18. This diagram records the tested architecture, not a currently running deployment.
 
-The user selected TMDB as the sole movie source for this non-commercial teaching project. The agent and separate FastMCP service ran as two Container Apps in the `cae-az-maf-stage1` environment in East US 2. The MCP had internal ingress only. The older synthetic catalog and admin PUT implementation have been removed from repository code. [Stage 2 validation](stage-2-validation.md) separates TMDB results from the historical synthetic experiment.
+The user selected TMDB as the sole movie source for this non-commercial teaching project. The agent and separate FastMCP service ran as two Container Apps in the `cae-az-maf-stage1` environment in East US 2. The MCP had internal ingress only. The older synthetic catalog and admin PUT implementation have been removed from repository code. [Stage 2 validation](validation/stage-2-validation.md) separates TMDB results from the historical synthetic experiment.
 
 ```mermaid
 flowchart LR
@@ -32,13 +32,13 @@ For explicit and model-selected movie reads, the agent validates the tool name a
 
 The MCP checks its own reader allowlist and revocation state, then uses the TMDB adapter. The adapter accepts only bounded queries or `tmdb_<id>` IDs; it calls `GET /3/search/movie` or `GET /3/movie/{id}` at `https://api.themoviedb.org`, disables redirects, applies a five-second timeout and 128 KiB upstream-response cap, excludes adult results, and returns source-labeled bounded records. It handles missing movies and rate limits without returning upstream bodies or credentials. There is no generic URL, filesystem, arbitrary API path, admin PUT, or write MCP tool.
 
-The agent API is still a single-replica teaching deployment. Its Stage 1 shared-session and budget limitations remain documented in the [teaching specification](secure-agent-teaching-spec.md); Stage 2 movie data is read-only and is not stored as mutable catalog state.
+The agent API is still a single-replica teaching deployment. Its Stage 1 shared-session and budget limitations remain documented in the [teaching specification](../../secure-agent-teaching-spec.md); Stage 2 movie data is read-only and is not stored as mutable catalog state.
 
 ## Deployment and remaining boundary
 
-The MCP revision `ca-az-maf-movie-mcp--0000002` is healthy on image digest `sha256:8f0b79e3bf22f576acd4b3bfcf5be17d40bcbdb55522081905bd6c55a802890f`. Its TMDB secret was rotated on 2026-10-18. Agent revision `ca-az-maf-stage1--0000013` is healthy on digest `sha256:dd7c5bfd78a079538050cad3da83466cce82427869da1e9a5d0d90d1b47180f5`, rebuilt with the secret file excluded from the image-build archive. Hosted signed-in search, details, model-selected read, denial, Stage 1 regression, and the authenticated `/about` Credits page checks passed as recorded in [validation](stage-2-validation.md).
+The MCP revision `ca-az-maf-movie-mcp--0000002` is healthy on image digest `sha256:8f0b79e3bf22f576acd4b3bfcf5be17d40bcbdb55522081905bd6c55a802890f`. Its TMDB secret was rotated on 2026-10-18. Agent revision `ca-az-maf-stage1--0000013` is healthy on digest `sha256:dd7c5bfd78a079538050cad3da83466cce82427869da1e9a5d0d90d1b47180f5`, rebuilt with the secret file excluded from the image-build archive. Hosted signed-in search, details, model-selected read, denial, Stage 1 regression, and the authenticated `/about` Credits page checks passed as recorded in [validation](validation/stage-2-validation.md).
 
-The existing environment has no VNet or workload profiles. A separate [network-test foundation and duplicate apps](stage-2-network-design.md) demonstrated an NSG deny to one test-owned public IP while the approved TMDB and Foundry paths remained healthy. This closes the Stage 2 **controlled test-destination** acceptance check; it does not turn the existing Stage 1 environment into a production outbound allowlist. Any future separately built hosted user interface must also display the [TMDB credits](credits.md).
+The existing environment has no VNet or workload profiles. A separate [network-test foundation and duplicate apps](stage-2-network-design.md) demonstrated an NSG deny to one test-owned public IP while the approved TMDB and Foundry paths remained healthy. This closes the Stage 2 **controlled test-destination** acceptance check; it does not turn the existing Stage 1 environment into a production outbound allowlist. Any future separately built hosted user interface must also display the [TMDB credits](../../credits.md).
 
 ## Implementation map
 

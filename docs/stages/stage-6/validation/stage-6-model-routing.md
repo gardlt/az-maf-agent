@@ -48,10 +48,10 @@ uv run --locked ruff check apps scripts
 uv run --locked ruff format --check apps scripts
 # Before evaluating the routed deployment, retain a metadata checkpoint locally:
 uv run --locked python scripts/verify_stage6_security.py --phase snapshot --checkpoint /tmp/stage6-checkpoint.json
-uv run --locked python scripts/test_stage5_container_app.py --phase evaluate --pause-seconds 6 --report docs/validation/stage-6-routed.md
-uv run --locked python scripts/test_stage6_routes.py --report docs/validation/stage-6-route-probes.json
+uv run --locked python scripts/test_stage5_container_app.py --phase evaluate --pause-seconds 6 --report docs/stages/stage-6/validation/stage-6-routed.md
+uv run --locked python scripts/test_stage6_routes.py --report docs/stages/stage-6/validation/stage-6-route-probes.json
 uv run --locked python scripts/verify_stage6_security.py --phase verify --checkpoint /tmp/stage6-checkpoint.json
-uv run --locked python scripts/verify_stage6_traces.py --workspace 244ef22a-576b-4e7d-a41e-d64884fb7def --baseline docs/validation/stage-6-baseline.json --routed docs/validation/stage-6-routed.json --probes docs/validation/stage-6-route-probes.json --report docs/validation/stage-6-traces.json
+uv run --locked python scripts/verify_stage6_traces.py --workspace 244ef22a-576b-4e7d-a41e-d64884fb7def --baseline docs/stages/stage-6/validation/stage-6-baseline.json --routed docs/stages/stage-6/validation/stage-6-routed.json --probes docs/stages/stage-6/validation/stage-6-route-probes.json --report docs/stages/stage-6/validation/stage-6-traces.json
 ```
 
 Use the matching baseline release or an explicitly deployed reasoning-only configuration to obtain a fresh baseline. Baseline run IDs in this record refer to this acceptance window; the trace verifier queries the last day. Allow Azure ingestion to complete before checking new traces. Use cached caller login and the separate operator identity for audit reads; runtime cannot read protected audit. Keep checkpoints outside Git. Never reset quotas or weaken scan/quality gates to obtain a pass. See the [routing guide](../stage-6-model-routing.md) for configuration and schema-compatible rollback.

@@ -3,7 +3,7 @@
 - Added deterministic application-owned GPT-5 mini/GPT-5 routing in both inference paths, strict approved profiles, model-specific shared accounting and bounded route telemetry/audit. Permissions, counters, cancellation and session fences are preserved; no automatic fallback is enabled.
 - Provisioned the approved mini deployment with reproducible Bicep parameters and deployed scanned images through the existing dev pipeline. Both images have zero High/Critical findings.
 - Passed 215 local tests and a frozen hosted comparison: both models pass 10/10 benign checks; routine estimated inference cost fell 77.6%, while median latency rose from 3.74s to 5.15s. Actual Azure model traces and mini → GPT-5 → mini history are verified.
-- Verified zero forbidden dispatches, unchanged sampled catalog/preferences/action receipts and retained aggregate reservations. See [acceptance evidence and limitations](validation/stage-6-model-routing.md). Stage 5 production gates remain open.
+- Verified zero forbidden dispatches, unchanged sampled catalog/preferences/action receipts and retained aggregate reservations. See [acceptance evidence and limitations](stages/stage-6/validation/stage-6-model-routing.md). Stage 5 production gates remain open.
 
 ## 2026-10-19 — Stage 4 completed in dev
 
@@ -41,14 +41,14 @@ This log records material implementation, deployment, authentication, and hosted
 
 - Recorded the user's policy choice: explicitly saved movie genre/language preferences follow the same user across sessions and expire after 30 days. The cloud storage product is still undecided.
 - Added typed preference/provenance contracts, owner/purpose-scoped storage operations, consent/category checks, optimistic generations/revisions, inspect/correct/forget APIs, and session operation budgets. The API is disabled by default; only an injected RAM fixture is implemented.
-- The 95-test local suite covers consent before effects, cross-scope access, expiry, deletion races, concurrent creates, forged API scope, skill-origin denial, and ordinary chat never granting durable consent. No cloud memory resource or model recall path was enabled. See [the Stage 4 checkpoint](stage-4-memory.md).
+- The 95-test local suite covers consent before effects, cross-scope access, expiry, deletion races, concurrent creates, forged API scope, skill-origin denial, and ordinary chat never granting durable consent. No cloud memory resource or model recall path was enabled. See [the Stage 4 checkpoint](stages/stage-4/stage-4-memory.md).
 
 ## 2026-10-19 — Stage 3 approved Markdown skills
 
 - Implemented the user-selected movie research and movie-night skills, a reviewed digest-pinned registry, immutable bounded loader, permission intersection, and CLI/API selection. Updated CI/deployment triggers for skill bundles.
 - Added bounded read-only Azure tag control gates and separate operator disable/enable/revoke commands. Dev reuses its existing resource group and Foundry model; the app has Reader for control metadata and Foundry User for inference. No new Azure resource was created.
 - All 81 local tests pass, including injection, no-write effects, path/integrity, retry/final-response revocation, immutable content, budget, cancellation/reset, and control failure cases. Hosted skills each returned 200 with one MCP read and an exact manifest digest. Actual workload write proposals were denied downstream and the movie record stayed unchanged.
-- Live disable returned 409 within 1.3 seconds after the operator update and preserved the ready revision; the approved skill was restored. Stage 4 memory case 4 and Stage 5 production shared controls remain explicitly separate. See [Stage 3 validation](stage-3-validation.md).
+- Live disable returned 409 within 1.3 seconds after the operator update and preserved the ready revision; the approved skill was restored. Stage 4 memory case 4 and Stage 5 production shared controls remain explicitly separate. See [Stage 3 validation](stages/stage-3/validation/stage-3-validation.md).
 
 ## 2026-10-18 — Reproducible Azure infrastructure layout
 
@@ -66,7 +66,7 @@ This log records material implementation, deployment, authentication, and hosted
 
 - The user approved a short-lived separate Consumption workload-profile test environment and cleanup. Foundation what-if predicted four new resources; app what-if predicted two new Container Apps; neither predicted changes to the working Stage 1 apps. Deployed `stage2-egress-foundation-20261018` and `stage2-egress-apps-20261018` with an NSG rule for the test-owned Stage 1 public IP `20.14.237.110/32`.
 - Duplicate agent revision `ca-az-maf-agent-nettest--imlae64` and private MCP revision `ca-az-maf-mcp-nettest--5m66ed5` were healthy on digest-pinned images. The duplicate agent received temporary Foundry account/project roles and only the catalog API's `Catalog.Read` app role. Signed-in movie read and live Foundry chat/reset checks passed with the NSG deny active. Missing and wrong-audience tokens, forged headers, and write proposals failed; the private MCP was not publicly reachable.
-- From the same agent replica, a direct HTTPS request to the test-owned destination returned `401` while the NSG rule was temporarily Allow. After switching that rule to Deny, a fresh direct connection timed out in 8.1 seconds; a direct TMDB control request still returned `401` in 0.3 seconds. This proves the selected one-destination network test, not a general outbound allowlist. The existing Log Analytics workspace recorded 28 agent and 29 MCP system events. [Validation](stage-2-validation.md) records the exact rule and scope.
+- From the same agent replica, a direct HTTPS request to the test-owned destination returned `401` while the NSG rule was temporarily Allow. After switching that rule to Deny, a fresh direct connection timed out in 8.1 seconds; a direct TMDB control request still returned `401` in 0.3 seconds. This proves the selected one-destination network test, not a general outbound allowlist. The existing Log Analytics workspace recorded 28 agent and 29 MCP system events. [Validation](stages/stage-2/validation/stage-2-validation.md) records the exact rule and scope.
 - Rebuilt and deployed the working agent from the pushed source with `.tdb-token` excluded from the Azure source archive. Revision `ca-az-maf-stage1--0000013`, digest `sha256:dd7c5bfd78a079538050cad3da83466cce82427869da1e9a5d0d90d1b47180f5`, passed the signed-in movie read and hosted Credits checks.
 - Removed the temporary `Catalog.Read` app-role assignment, both Foundry role assignments, both duplicate Container Apps, the test environment, VNet/subnet, and NSG. Azure resource listing showed no `nettest` resources in `rg-az-maf-stage1`, and the Azure-managed backing resource group no longer existed. The original hosted agent and MCP passed a signed-in movie read after cleanup.
 
@@ -91,7 +91,7 @@ This log records material implementation, deployment, authentication, and hosted
 
 ## 2026-10-18 — Hosted catalog admin PUT
 
-- Added [Stage 2 architecture](stage-2-architecture.md) and [network design](stage-2-network-design.md) records covering service topology, trust boundaries, read/write flows, deployment identities, network limits, and the remaining hosted acceptance plan. The network design is a proposal; it does not authorize or deploy a new foundation.
+- Added [Stage 2 architecture](stages/stage-2/stage-2-architecture.md) and [network design](stages/stage-2/stage-2-network-design.md) records covering service topology, trust boundaries, read/write flows, deployment identities, network limits, and the remaining hosted acceptance plan. The network design is a proposal; it does not authorize or deploy a new foundation.
 - Mounted a separately authenticated FastAPI admin PUT route beside the two FastMCP read tools, with a shared in-memory catalog. The route requires a signed Entra v2 token for the catalog API, the configured tenant and admin object ID, and the `Catalog.Admin` application role. Local invalid-token, reader-denial, and read-after-write tests passed; the full suite reached 54 tests.
 - Added `Catalog.Admin` to the existing catalog API registration and assigned it to dedicated admin test identity `id-az-maf-catalog-admin-test`. Deployed catalog image digest `sha256:209edec91beb1da58fd028601f7ea5a3a576c7f8d270f2d41f5963258c2b771d` as healthy revision `ca-az-maf-movie-mcp--0000001` with internal ingress.
 - Deployed temporary ingress-free `ca-az-maf-catalog-admin-probe` and used its admin managed identity to replace synthetic record `movie_000101`. The direct downstream PUT returned `200` and catalog revision `1`. The temporary title is *Brass Comet Admin Test*; it must be restored to *Brass Comet* after read verification.

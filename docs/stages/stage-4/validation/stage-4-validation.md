@@ -87,7 +87,7 @@ does not assign roles. No additional storage secret is required.
   `--phase save`, restart the replica, then `--phase verify` to repeat persistence.
   The script refuses to replace existing preferences. It uses the encrypted auth
   cache and redacts identifiers, tokens, records, and model responses from output.
-- Redacted machine-readable results: [stage-4-hosted-results.json](evidence/stage-4-hosted-results.json).
+- Redacted machine-readable results: [stage-4-hosted-results.json](stage-4-hosted-results.json).
 
 Stage 4 does not close Stage 1's shared/resumable-session or deployed expired-token
 acceptance gaps. Short-term sessions remain process-local; multi-replica session,

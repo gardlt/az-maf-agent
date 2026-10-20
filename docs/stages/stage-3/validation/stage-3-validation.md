@@ -4,7 +4,7 @@
 Durable-memory integration case 4 is deferred to Stage 4; production shared controls
 remain Stage 5 work. These results do not close those later gates.
 
-[Redacted hosted result metadata](evidence/stage-3-hosted-results.json) retains the observed run/digest/control references.
+[Redacted hosted result metadata](stage-3-hosted-results.json) retains the observed run/digest/control references.
 
 ## Local verification
 
@@ -67,7 +67,7 @@ uv run --locked python scripts/test_skill_container_app.py --api https://ca-maf-
 
 Use `scripts/skill_control_azure.py` for the operator steps and add `--skill movie-night
 --expect-disabled` to the hosted test while disabled. Always restore a temporarily
-disabled approved skill after the exercise. See [the operator guide](stage-3-skills.md)
+disabled approved skill after the exercise. See [the operator guide](../stage-3-skills.md)
 for publication, rollback, trust boundaries, and limits.
 
 ## Final deployed regression
@@ -91,4 +91,4 @@ The deferred memory boundary is now validated at the actual memory layer: no
 other-user disclosure, no skill writes (including claimed consent), and no backend
 I/O for denied writes. Reviewed skills cannot receive saved preferences or prior
 personalized history. The integrated 126-test suite passes; see
-[Stage 4 validation](stage-4-validation.md) for fixtures and hosted lifecycle evidence.
+[Stage 4 validation](../../stage-4/validation/stage-4-validation.md) for fixtures and hosted lifecycle evidence.

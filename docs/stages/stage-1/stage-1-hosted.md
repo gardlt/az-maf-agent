@@ -19,9 +19,9 @@ docker build --platform linux/amd64 -t az-maf-stage1:local .
 docker run --rm --network none --entrypoint python az-maf-stage1:local -c 'import os; assert os.getuid() == 10001'
 ```
 
-Deploy [the foundation module](../infra/modules/foundation.bicep) first. It creates a Basic registry with admin access disabled, a pull-only managed identity, a Container Apps environment, and a 30-day Log Analytics workspace. Those resources are billable. For a reproducible environment deployment, use [the composition root](../infra/main.bicep) with `infra/main.dev.bicepparam` or `infra/main.stage.bicepparam`.
+Deploy [the foundation module](../../../infra/patterns/shared-foundation.bicep) first. It creates a Basic registry with admin access disabled, a pull-only managed identity, a Container Apps environment, and a 30-day Log Analytics workspace. Those resources are billable. For a reproducible environment deployment, use [the composition root](../../../infra/main.bicep) with `infra/main.dev.bicepparam` or `infra/main.stage.bicepparam`.
 
-Use the environment-specific `.bicepparam` file with [the app module](../infra/modules/container-app.bicep). It reads the Easy Auth and TMDB secrets from environment variables; never put them in source control or a CLI argument. Run `what-if` before creation:
+Use the environment-specific `.bicepparam` file with [the app module](../../../infra/modules/container-app.bicep). It reads the Easy Auth and TMDB secrets from environment variables; never put them in source control or a CLI argument. Run `what-if` before creation:
 
 ```sh
 az deployment group what-if --resource-group <TEST_RESOURCE_GROUP> \

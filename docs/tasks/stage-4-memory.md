@@ -9,7 +9,7 @@ governed recall, inspection/correction/deletion, ETag/generation fencing, hourly
 physical cleanup and overdue-cleanup monitoring are deployed. All **126 tests pass**;
 CI, infrastructure validation, restart persistence and the stable hosted lifecycle
 passed. Stage 3 case 4 is resolved at the memory layer. See the
-[guide](../stage-4-memory.md) and [validation evidence](../stage-4-validation.md).
+[guide](../stages/stage-4/stage-4-memory.md) and [validation evidence](../stages/stage-4/validation/stage-4-validation.md).
 
 Stage 1's shared/resumable-session and expired-ingress-token gaps are unchanged;
 Stage 5 production controls remain separate.
