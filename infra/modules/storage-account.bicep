@@ -8,9 +8,6 @@ param location string = resourceGroup().location
 param softDeleteDays int
 @description('Explicit backup decision. Restoring versions requires deletion fencing before serving data.')
 param enableVersioning bool
-@description('Bootstrap only: requires an operator permitted to assign roles.')
-param assignDataRole bool = false
-param workloadPrincipalId string = ''
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: accountName
@@ -46,15 +43,7 @@ resource container 'Microsoft.Storage/storageAccounts/blobServices/containers@20
   properties: { publicAccess: 'None' }
 }
 
-resource contributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (assignDataRole) {
-  name: guid(container.id, workloadPrincipalId, 'memory-blob-data-contributor')
-  scope: container
-  properties: {
-    principalId: workloadPrincipalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
-  }
-}
+
 
 output accountName string = storage.name
 output containerName string = container.name

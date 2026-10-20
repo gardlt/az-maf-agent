@@ -6,12 +6,16 @@ on:
       - 'infra/**'
       - 'azure.yaml'
       - '.github/workflows/infra.yml'
+      - 'scripts/validate_infra.py'
+      - '.github/workflows/deploy.yml'
   push:
     branches: [main]
     paths:
       - 'infra/**'
       - 'azure.yaml'
       - '.github/workflows/infra.yml'
+      - 'scripts/validate_infra.py'
+      - '.github/workflows/deploy.yml'
 
 permissions:
   contents: read
@@ -22,42 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Compile Bicep modules
+      - name: Validate resource modules, patterns, profiles and contracts
         uses: azure/cli@v2
         with:
           azcliversion: latest
           inlineScript: |
             set -euo pipefail
-            for file in infra/*.bicep infra/modules/*.bicep; do
-              az bicep build --file "$file" --stdout >/dev/null
-            done
-
-      - name: Validate parameter file syntax
-        uses: azure/cli@v2
-        env:
-          AZURE_ENV_NAME: dev
-          AZURE_LOCATION: eastus2
-          MAF_REGISTRY_NAME: crmafvalidation123
-          MAF_AGENT_IMAGE: example.azurecr.io/agent@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-          MAF_MCP_IMAGE: example.azurecr.io/mcp@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-          MAF_TENANT_ID: 00000000-0000-0000-0000-000000000000
-          MAF_AGENT_AUDIENCE: 00000000-0000-0000-0000-000000000001
-          MAF_ALLOWED_USERS: 00000000-0000-0000-0000-000000000002
-          MAF_API_CLIENT_ID: 00000000-0000-0000-0000-000000000003
-          MAF_CLI_CLIENT_ID: 00000000-0000-0000-0000-000000000004
-          MAF_AUTH_CLIENT_SECRET: validation-only
-          MAF_MCP_AUDIENCE: 00000000-0000-0000-0000-000000000005
-          TMDB_API_READ_ACCESS_TOKEN: validation-only
-          MAF_MEMORY_ACCOUNT_NAME: stmafmemvalidation123
-          MAF_INSIGHTS_INGESTION_HOST: eastus2.example.invalid
-        with:
-          azcliversion: latest
-          inlineScript: |
-            set -euo pipefail
-            az bicep build-params --file infra/main.bicepparam --stdout >/dev/null
-            az bicep build-params --file infra/main.dev.bicepparam --stdout >/dev/null
-            az bicep build-params --file infra/main.stage.bicepparam --stdout >/dev/null
-            az bicep build-params --file infra/main.prod.bicepparam --stdout >/dev/null
-            az bicep build-params --file infra/main.dev.rg.bicepparam --stdout >/dev/null
-            az bicep build-params --file infra/memory.dev.bicepparam --stdout >/dev/null
-            az bicep build-params --file infra/dev-network.bicepparam --stdout >/dev/null
+            python3 scripts/validate_infra.py

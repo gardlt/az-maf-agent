@@ -15,11 +15,13 @@ param allowedAgentOid string
 param tmdbApiReadAccessToken string
 param location string = resourceGroup().location
 
-resource app 'Microsoft.App/containerApps@2025-01-01' = {
-  name: appName
-  location: location
-  identity: { type: 'SystemAssigned, UserAssigned', userAssignedIdentities: { '${pullIdentityId}': {} } }
-  properties: {
+module app '../modules/container-app.bicep' = {
+  name: 'container-app'
+  params: {
+    appName: appName
+    location: location
+    identity: { type: 'SystemAssigned, UserAssigned', userAssignedIdentities: { '${pullIdentityId}': {} } }
+    properties: {
     managedEnvironmentId: managedEnvironmentId
     configuration: {
       activeRevisionsMode: 'Single'
@@ -43,7 +45,7 @@ resource app 'Microsoft.App/containerApps@2025-01-01' = {
       scale: { minReplicas: 1, maxReplicas: 1 }
     }
   }
+  }
 }
-
-output appId string = app.id
-output workloadPrincipalId string = app.identity.principalId
+output appId string = app.outputs.appId
+output workloadPrincipalId string = app.outputs.workloadPrincipalId

@@ -1,4 +1,5 @@
 name: az-maf-agent
+resourceGroup: rg-maf-${AZURE_ENV_NAME}-eus2-01
 
 infra:
   provider: bicep

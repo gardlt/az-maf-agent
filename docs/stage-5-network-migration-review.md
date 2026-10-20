@@ -4,7 +4,7 @@ Prepared 2026-10-19 at the user's request. **Phase-one deployment approved and i
 
 ## Proposed first phase
 
-Deploy [dev-network.bicep](../infra/dev-network.bicep) and [its parameters](../infra/dev-network.bicepparam) into `rg-maf-dev-eus2-01`. The module is [controlled-egress.bicep](../infra/modules/controlled-egress.bicep). It creates a parallel workload-profile Container Apps environment `cae-maf-dev-eus2-02`, one VNet, the delegated application subnet, Basic Firewall with its policy/rules, two Standard public IPs, an NSG, a default route through the firewall, and firewall diagnostics to the existing workspace.
+Deploy [dev-network.bicep](../infra/main.bicep) and [its parameters](../infra/main.network.dev.bicepparam) into `rg-maf-dev-eus2-01`. The module is [controlled-egress.bicep](../infra/patterns/controlled-egress.bicep). It creates a parallel workload-profile Container Apps environment `cae-maf-dev-eus2-02`, one VNet, the delegated application subnet, Basic Firewall with its policy/rules, two Standard public IPs, an NSG, a default route through the firewall, and firewall diagnostics to the existing workspace.
 
 Azure what-if succeeded with **11 creates, zero modifications, zero deletions**; inline firewall/management subnets are included in the VNet resource. See [exact what-if resource IDs](validation/stage-5-evidence/network-what-if.json). This first phase creates no app or workload role assignment and does not cut over traffic. `10.83.0.0/24` was checked against the subscription's current VNet inventory; recheck immediately before deployment.
 
@@ -64,7 +64,7 @@ The user explicitly approved phase one after reviewing the eleven creates and re
 
 ## Registry prerequisite review (separate approval)
 
-[registry-networking.bicep](../infra/modules/registry-networking.bicep) has a successful what-if showing one existing registry modification with exactly two property changes: `sku.name` Basic → Premium and `dataEndpointEnabled` false → true. Existing anonymous-pull, Microsoft-managed encryption mode and ARM authentication settings are explicitly preserved. No repositories, grants, app names or traffic endpoints are deleted or moved.
+[registry-networking.bicep](../infra/fixtures/legacy/registry-networking.bicep) has a successful what-if showing one existing registry modification with exactly two property changes: `sku.name` Basic → Premium and `dataEndpointEnabled` false → true. Existing anonymous-pull, Microsoft-managed encryption mode and ARM authentication settings are explicitly preserved. No repositories, grants, app names or traffic endpoints are deleted or moved.
 
 The incremental registry rate is **$1.50/day** (about **$45.63 per 730-hour month**). The prepared workflow and foundation templates read the dev environment variable `MAF_REGISTRY_SKU`; setting it to `Premium` makes future deployments preserve the required tier and dedicated data endpoints. Default behavior stays Basic until that reviewed variable change is approved. Existing login server and digest-pinned images stay valid. App migration/Key Vault/RBAC changes remain a subsequent review.
 

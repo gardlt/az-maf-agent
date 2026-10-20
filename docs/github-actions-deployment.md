@@ -1,33 +1,37 @@
 # GitHub Actions deployment
 
-The repository has three workflows:
+The repository has `CI`, `Infra` and `Deploy Azure environment` workflows. CI runs the application suite and lint/format checks. Infra runs `scripts/validate_infra.py` to compile resource modules, patterns, fixtures and parameter profiles and verify resource/security contracts and target isolation with synthetic values.
 
-- `CI` runs application tests, lint, formatting, and dependency checks.
-- `Infra` compiles every Bicep module and validates all parameter-file syntax with non-secret placeholder values.
-- `Deploy Azure environment` provisions the selected environment foundation, then targets `agent`, `movie-mcp`, or `all`. A targeted run builds and updates the selected Container App image; agent updates also update its dev memory-cleanup job to the same digest. An `all` run builds both images, runs an Azure what-if, and deploys `infra/main.<environment>.bicepparam`.
+## One infrastructure entry point
 
-Merging to `main` deploys the full environment to the GitHub `dev` environment automatically. A normal merge never deploys `stage` or `prod`. A manual run can select `dev`, `stage`, or `prod` and update only the agent, only the movie MCP, or both. Configure required reviewers, allowed branches, and wait timers on the protected `stage` and `prod` environments; require stricter approval and least-privilege Azure deployment identities for `prod`. Require both the `CI` and `Infra` checks in branch protection before allowing changes to `main`. The workflows use Azure workload identity federation through `azure/login`; no Azure client secret is stored in GitHub.
+All deployment steps use `infra/main.bicep` or a `main.<environment>.bicepparam` profile bound to it. `infra/modules/` contains resource-level modules; `infra/patterns/` composes the agent application, movie MCP and shared resources. See the [infrastructure guide](../infra/README.md) for targets, scope, bootstrap exceptions and migration details.
 
-Run `all` once to bootstrap an environment. After that, a targeted `agent` or `movie-mcp` run builds, pushes, and rolls out only the selected image with `az containerapp update`; it does not redeploy the other service. Changes to shared infrastructure, identity, ingress, secrets, or environment configuration should use `all` so the composed Bicep deployment reconciles both services.
+The deployment workflow first invokes the root with `deploymentTarget=foundation` to ensure the registry/environment exist. It builds the selected non-root image(s), runs import smoke tests and local SBOM/High-Critical scanning, pushes digest-pinned images, previews the selected graph, and invokes the same root in incremental mode.
 
-Configure one federated Azure application per deployment environment, or use one tightly scoped deployment identity with separate federated credentials. Ordinary dev CI needs permission to update resources in the existing dev group, push to its registry, and deploy Container Apps, memory storage, cleanup jobs, and alerts. An authorized operator separately bootstraps image-pull and memory-data role assignments; ordinary CI does not assign roles. New stage/prod group creation requires separately scoped deployment permissions. The federated credential subject should be restricted to this repository and the matching GitHub environment, for example `repo:gardlt/az-maf-agent:environment:dev` or `repo:gardlt/az-maf-agent:environment:stage`.
+Main changes matching deployment paths automatically deploy `all` to **dev**. Manual runs select `dev`, `stage` or `prod` and `agent`, `movie-mcp` or `all`. A targeted `agent` invocation reconciles the agent pattern, including its enabled cleanup job/health rule; a targeted `movie-mcp` invocation reconciles only the MCP pattern. They resolve existing shared resources and do not redeploy the other service. Shared infrastructure/configuration changes use `all`.
 
-Create GitHub environment variables for `dev`, `stage`, and `prod`:
+A single entry point does not mean one invocation before artifacts exist: registry bootstrap precedes build/push, then application provisioning uses the same file with a different target. All resource deployments use incremental mode. Do not use complete mode with target subsets.
 
-`AZURE_LOCATION`, `MAF_REGISTRY_NAME`, `MAF_TENANT_ID`, `MAF_AGENT_AUDIENCE`, `MAF_ALLOWED_USERS`, `MAF_API_CLIENT_ID`, `MAF_CLI_CLIENT_ID`, and `MAF_MCP_AUDIENCE`.
+## Permissions and promotion
 
-Create GitHub environment secrets:
+The root is resource-group scoped. Dev uses its existing resource group and does not gain subscription deployment or role-write authority from this refactor. For a selected new stage/prod environment, the workflow explicitly creates/selects the target group with `az group create`, then invokes the same group-scoped main. Its deployment identity must have that separately approved group-creation permission. No normal main merge selects stage/prod.
 
-`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `MAF_AUTH_CLIENT_SECRET`, and `TMDB_API_READ_ACCESS_TOKEN`.
+Require actual environment reviewers/branch restrictions for higher environments and required CI/Infra checks in branch protection. YAML references to environments do not establish that those protections are configured. The current `azure.yaml` points at the same main and group naming convention; offline compilation is not proof of a successful `azd up`.
 
-The registry name must be globally unique and contain only lowercase letters and numbers. The API, CLI, and MCP application registrations referenced by each environment must already exist, and their audiences must match the values supplied to that environment. Rotate the TMDB token through TMDB and replace the GitHub environment secret when it changes; never paste it into workflow files or parameters.
+Azure login uses GitHub OIDC. Restrict federation to this repository and matching environment subject, for example `repo:gardlt/az-maf-agent:environment:dev`. Deployment identity, runtime identity, Agent ID and operator identity are different authorities. All bootstrap role flags default false; ordinary CI does not grant roles. An operator separately provisions pull/storage/control/monitoring/Foundry/skill roles and the Entra directory objects. A fresh environment is not ready merely because its ARM resources exist: scoped grants, required policy/control initialization, secrets and hosted acceptance remain prerequisites.
 
-For local deployment, export the same variables and run:
+## Environment settings
+
+Supply the reviewed per-environment variables `AZURE_LOCATION`, `MAF_REGISTRY_NAME`, `MAF_REGISTRY_SKU`, `MAF_TENANT_ID`, `MAF_AGENT_AUDIENCE`, `MAF_ALLOWED_USERS`, `MAF_API_CLIENT_ID`, `MAF_CLI_CLIENT_ID` and `MAF_MCP_AUDIENCE`. Agent ID/tracing additionally use the explicit enable flags and blueprint/agent identifiers recorded in the [environment inventory](dev-environment-variables.md). The dev profile retains memory, guardrails and approved skills; stage/prod configuration and identities require their own acceptance.
+
+Environment secrets include `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `MAF_AUTH_CLIENT_SECRET` and `TMDB_API_READ_ACCESS_TOKEN`. Client/tenant/subscription identifiers are non-secret values even if stored in GitHub's secret namespace. There is no Azure deployment client secret: OIDC provides Azure authentication. The API authentication secret and TMDB token remain secret inputs; never commit or echo them.
+
+The workflow supplies `MAF_AGENT_IMAGE` and/or `MAF_MCP_IMAGE` after the selected scan/push. Empty unselected image parameters are permitted for a targeted run; a selected service requires its digest-pinned image. Local full deployment requires both image variables and all matching auth/secret settings.
 
 ```sh
-az deployment sub what-if \
-  --location "$AZURE_LOCATION" \
+az deployment group what-if \
+  --resource-group rg-maf-stage-eus2-01 \
   --parameters infra/main.stage.bicepparam
 ```
 
-The deployment workflow intentionally performs the foundation deployment before the image push because the registry is created by that foundation. The final deployment then supplies the pushed image digests through the process environment consumed by the `.bicepparam` file.
+Network/model/access/drill targets are explicit operator profiles through the same root, not ordinary workflow side effects. This cleanup does not authorize app network cutover, registry SKU upgrade, broader directory permissions or policy/accounting reset.

@@ -37,11 +37,11 @@ Agent spans include route, bounded reason and policy version; model spans includ
 
 ## Reproduce and operate
 
-The standalone `infra/modules/foundry-routing-model.bicep` and `infra/routing-model.dev.bicepparam` provision only mini in the existing account's resource group:
+The shared entry point with `infra/main.model.dev.bicepparam` provisions only mini through a module scoped to the existing Foundry resource group:
 
 ```sh
-az deployment group what-if -g rg-homelab-foundry --parameters infra/routing-model.dev.bicepparam
-az deployment group create -g rg-homelab-foundry --name stage6-routing-model --parameters infra/routing-model.dev.bicepparam
+az deployment group what-if -g rg-maf-dev-eus2-01 --parameters infra/main.model.dev.bicepparam
+az deployment group create -g rg-maf-dev-eus2-01 --name stage6-routing-model --parameters infra/main.model.dev.bicepparam
 uv run --locked pytest -q
 uv run --locked agent-chat --config config/foundry-stage1.json --api https://ca-maf-agent-dev-eus2-01.kindisland-49d1cad2.eastus2.azurecontainerapps.io
 ```

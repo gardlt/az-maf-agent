@@ -112,10 +112,10 @@ Shared Key and anonymous Blob access are disabled; HTTPS, TLS 1.2 and storage
 encryption are required. Account/container/policy/user allowlist come from operator
 settings; unsupported configuration fails startup.
 
-`infra/main.dev.rg.bicepparam` enables dev memory. `main.rg.bicep` wires storage,
+`infra/main.dev.bicepparam` enables dev memory. `main.rg.bicep` wires storage,
 agent settings, and cleanup job. `main.bicep` exposes the same optional modules for
 other environments, where memory remains disabled until separately approved.
-Operator bootstrap uses `infra/modules/memory-rbac.bicep` (or
+Operator bootstrap uses `infra/modules/blob-data-roles.bicep` (or
 `bootstrapMemoryRoles=true` with authorized role-assignment rights). Ordinary GitHub
 OIDC deployment does not assign roles. Agent-only deployments also update the dev
 cleanup job image to the same digest.

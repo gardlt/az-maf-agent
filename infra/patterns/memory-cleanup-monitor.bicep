@@ -6,7 +6,9 @@ param requireSessionCycle bool = false
 var completedFilter = requireSessionCycle ? ' | where parse_json(Log_s).session_cycle_completed == true' : ''
 
 @description('Portal alert only; no notification recipients are configured by this module.')
-resource heartbeat 'Microsoft.Insights/scheduledQueryRules@2023-12-01' = {
+module heartbeat '../modules/scheduled-query-rule.bicep' = {
+ name: 'heartbeat-alert'
+ params: {
   name: name
   location: location
   properties: {
@@ -28,4 +30,5 @@ resource heartbeat 'Microsoft.Insights/scheduledQueryRules@2023-12-01' = {
       }]
     }
   }
+ }
 }

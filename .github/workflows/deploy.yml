@@ -79,36 +79,26 @@ jobs:
             managed_environment="cae-maf-${env_name}-eus2-01"
             pull_identity="id-maf-${env_name}-eus2-01"
             logs_name="law-maf-${env_name}-eus2-01"
-            if [[ "$env_name" == dev ]]; then
-              az deployment group create \
-                --name "foundation-${env_name}-${GITHUB_RUN_ID}" \
-                --resource-group "$resource_group" \
-                --template-file infra/modules/foundation.bicep \
-                --parameters \
-                  location="$AZURE_LOCATION" \
-                  environmentName="$managed_environment" \
-                  registryName="$MAF_REGISTRY_NAME" \
-                  registrySku="$MAF_REGISTRY_SKU" \
-                  pullIdentityName="$pull_identity" \
-                  logsName="$logs_name" \
-                  assignAcrPullRole=false \
-                --output none
-            else
-              az deployment sub create \
-                --name "foundation-${env_name}-${GITHUB_RUN_ID}" \
-                --location "$AZURE_LOCATION" \
-                --template-file infra/modules/test-foundation.bicep \
-                --parameters \
-                  resourceGroupName="$resource_group" \
-                  location="$AZURE_LOCATION" \
-                  environmentName="$managed_environment" \
-                  registryName="$MAF_REGISTRY_NAME" \
-                  registrySku="$MAF_REGISTRY_SKU" \
-                  pullIdentityName="$pull_identity" \
-                  logsName="$logs_name" \
-                --subscription "$AZURE_SUBSCRIPTION_ID" \
-                --output none
+            if [[ "$env_name" != dev ]]; then
+              # The target RG must exist before a group-scoped deployment can run.
+              az group create --name "$resource_group" --location "$AZURE_LOCATION" \
+                --subscription "$AZURE_SUBSCRIPTION_ID" --output none
             fi
+            az deployment group create \
+              --name "foundation-${env_name}-${GITHUB_RUN_ID}" \
+              --resource-group "$resource_group" \
+              --mode Incremental \
+              --template-file infra/main.bicep \
+              --parameters \
+                deploymentTarget=foundation \
+                location="$AZURE_LOCATION" \
+                environmentName="$managed_environment" \
+                registryName="$MAF_REGISTRY_NAME" \
+                registrySku="$MAF_REGISTRY_SKU" \
+                pullIdentityName="$pull_identity" \
+                logsName="$logs_name" \
+              --subscription "$AZURE_SUBSCRIPTION_ID" \
+              --output none
 
       - name: Build and push digest-pinned images
         run: |
@@ -149,20 +139,11 @@ jobs:
           inlineScript: |
             set -euo pipefail
             env_name='${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}'
-            if [[ "$env_name" == dev ]]; then
-              az deployment group what-if \
-                --name "whatif-${env_name}-${GITHUB_RUN_ID}" \
-                --resource-group "rg-maf-${env_name}-eus2-01" \
-                --parameters infra/main.dev.rg.bicepparam \
-                --result-format ResourceIdOnly
-            else
-              az deployment sub what-if \
-                --name "whatif-${env_name}-${GITHUB_RUN_ID}" \
-                --location "$AZURE_LOCATION" \
-                --parameters "infra/main.${env_name}.bicepparam" \
-                --subscription "$AZURE_SUBSCRIPTION_ID" \
-                --result-format ResourceIdOnly
-            fi
+            az deployment group what-if \
+              --name "whatif-${env_name}-${GITHUB_RUN_ID}" \
+              --resource-group "rg-maf-${env_name}-eus2-01" \
+              --parameters "infra/main.${env_name}.bicepparam" \
+              --subscription "$AZURE_SUBSCRIPTION_ID"
 
       - name: Deploy full environment
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.service == 'all' }}
@@ -172,22 +153,15 @@ jobs:
           inlineScript: |
             set -euo pipefail
             env_name='${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'dev' }}'
-            if [[ "$env_name" == dev ]]; then
-              az deployment group create \
-                --name "deploy-${env_name}-${GITHUB_RUN_ID}" \
-                --resource-group "rg-maf-${env_name}-eus2-01" \
-                --parameters infra/main.dev.rg.bicepparam \
-                --output none
-            else
-              az deployment sub create \
-                --name "deploy-${env_name}-${GITHUB_RUN_ID}" \
-                --location "$AZURE_LOCATION" \
-                --parameters "infra/main.${env_name}.bicepparam" \
-                --subscription "$AZURE_SUBSCRIPTION_ID" \
-                --output none
-            fi
+            az deployment group create \
+              --name "deploy-${env_name}-${GITHUB_RUN_ID}" \
+              --resource-group "rg-maf-${env_name}-eus2-01" \
+              --mode Incremental \
+              --parameters "infra/main.${env_name}.bicepparam" \
+              --subscription "$AZURE_SUBSCRIPTION_ID" \
+              --output none
 
-      - name: Update selected service image
+      - name: Deploy selected application pattern
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.service != 'all' }}
         uses: azure/cli@v2
         with:
@@ -197,25 +171,15 @@ jobs:
             env_name='${{ inputs.environment }}'
             service='${{ inputs.service }}'
             resource_group="rg-maf-${env_name}-eus2-01"
-            if [[ "$service" == agent ]]; then
-              az containerapp update \
-                --name "ca-maf-agent-${env_name}-eus2-01" \
-                --resource-group "$resource_group" \
-                --image "$MAF_AGENT_IMAGE" \
-                --subscription "$AZURE_SUBSCRIPTION_ID" \
-                --output none
-              if [[ "$env_name" == dev ]]; then
-                az containerapp job update \
-                  --name job-maf-memory-dev-eus2-01 \
-                  --resource-group "$resource_group" \
-                  --image "$MAF_AGENT_IMAGE" \
-                  --output none
-              fi
-            else
-              az containerapp update \
-                --name "ca-maf-movie-mcp-${env_name}-eus2-01" \
-                --resource-group "$resource_group" \
-                --image "$MAF_MCP_IMAGE" \
-                --subscription "$AZURE_SUBSCRIPTION_ID" \
-                --output none
-            fi
+            az deployment group what-if \
+              --name "whatif-${service}-${GITHUB_RUN_ID}" \
+              --resource-group "$resource_group" \
+              --parameters "infra/main.${env_name}.bicepparam" deploymentTarget="$service" \
+              --subscription "$AZURE_SUBSCRIPTION_ID"
+            az deployment group create \
+              --name "deploy-${service}-${GITHUB_RUN_ID}" \
+              --resource-group "$resource_group" \
+              --mode Incremental \
+              --parameters "infra/main.${env_name}.bicepparam" deploymentTarget="$service" \
+              --subscription "$AZURE_SUBSCRIPTION_ID" \
+              --output none

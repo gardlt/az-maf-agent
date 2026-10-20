@@ -1,0 +1,656 @@
+{
+  "source_commit": "3971fcb",
+  "description": "Pre-refactor compiled resources; parameter expressions only, no secret values. Deployment conditions/dependencies are checked separately; compiler description annotations are excluded.",
+  "resources": {
+    "agent:Microsoft.App/containerApps:0": {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2025-01-01",
+      "name": "[parameters('appName')]",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "SystemAssigned, UserAssigned",
+        "userAssignedIdentities": {
+          "[format('{0}', parameters('pullIdentityId'))]": {}
+        }
+      },
+      "properties": {
+        "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "secrets": [
+            {
+              "name": "easyauth-client-secret",
+              "value": "[parameters('authClientSecret')]"
+            }
+          ],
+          "registries": [
+            {
+              "server": "[parameters('registryLoginServer')]",
+              "identity": "[parameters('pullIdentityId')]"
+            }
+          ],
+          "ingress": {
+            "external": "[parameters('externalIngress')]",
+            "targetPort": 8000,
+            "transport": "http",
+            "allowInsecure": false
+          }
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "agent-api",
+              "image": "[parameters('image')]",
+              "env": "[concat(createArray(createObject('name', 'APPLICATIONINSIGHTS_STATSBEAT_DISABLED_ALL', 'value', 'true'), createObject('name', 'APPLICATIONINSIGHTS_SDKSTATS_DISABLED', 'value', 'true'), createObject('name', 'APPLICATIONINSIGHTS_OPENTELEMETRY_RESOURCE_METRIC_DISABLED', 'value', 'true'), createObject('name', 'APPLICATIONINSIGHTS_CONTROLPLANE_DISABLED', 'value', 'true'), createObject('name', 'ENABLE_GUARDRAILS', 'value', toLower(string(parameters('enableGuardrails')))), createObject('name', 'ENABLE_SHARED_SESSIONS', 'value', toLower(string(parameters('enableGuardrails')))), createObject('name', 'CONTROL_ACCOUNT', 'value', parameters('controlAccountName')), createObject('name', 'SESSION_ACCOUNT', 'value', parameters('controlAccountName')), createObject('name', 'ENABLE_MEMORY', 'value', toLower(string(parameters('enableMemory')))), createObject('name', 'MEMORY_BACKEND', 'value', 'azure_blob'), createObject('name', 'MEMORY_POLICY', 'value', '/app/config/memory-policy.json'), createObject('name', 'MEMORY_ACCOUNT', 'value', parameters('memoryAccountName')), createObject('name', 'MEMORY_CONTAINER', 'value', parameters('memoryContainerName')), createObject('name', 'MEMORY_ALLOWED_USERS', 'value', parameters('memoryAllowedUsers')), createObject('name', 'AGENT_CONFIG', 'value', parameters('agentConfigPath')), createObject('name', 'ENTRA_TENANT_ID', 'value', parameters('tenantId')), createObject('name', 'ENABLE_ENTRA_AGENT_ID', 'value', toLower(string(parameters('enableAgentIdentity')))), createObject('name', 'AGENT_BLUEPRINT_CLIENT_ID', 'value', parameters('agentBlueprintClientId')), createObject('name', 'AGENT_IDENTITY_CLIENT_ID', 'value', parameters('agentIdentityClientId')), createObject('name', 'ENABLE_AGENT_TRACING', 'value', toLower(string(parameters('enableAgentTracing')))), createObject('name', 'AGENT_OBSERVABILITY_NAME', 'value', parameters('agentObservabilityName')), createObject('name', 'ENTRA_AUDIENCE', 'value', parameters('audience')), createObject('name', 'ENTRA_ALLOWED_USERS', 'value', parameters('allowedUsers')), createObject('name', 'ENABLE_MOVIE_MCP', 'value', toLower(string(parameters('enableMovieMcp')))), createObject('name', 'MCP_ENDPOINT', 'value', parameters('movieMcpEndpoint')), createObject('name', 'MCP_AUDIENCE', 'value', parameters('movieMcpAudience')), createObject('name', 'MCP_IDENTITY_CLIENT_ID', 'value', parameters('movieMcpIdentityClientId')), createObject('name', 'ENABLE_MOVIE_MODEL_TOOLS', 'value', toLower(string(parameters('enableMovieModelTools')))), createObject('name', 'SKILL_BUNDLE', 'value', if(parameters('enableApprovedSkills'), '/app/skills', '')), createObject('name', 'SKILL_CONTROL_RESOURCE_ID', 'value', parameters('skillControlResourceId')), createObject('name', 'SKILL_ALLOWED_USERS', 'value', if(parameters('enableApprovedSkills'), parameters('allowedUsers'), ''))), if(empty(parameters('applicationInsightsConnectionString')), createArray(), createArray(createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', parameters('applicationInsightsConnectionString')))))]",
+              "resources": {
+                "cpu": "[json('0.5')]",
+                "memory": "1Gi"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 1
+          }
+        }
+      }
+    },
+    "agent:Microsoft.App/containerApps/authConfigs:1": {
+      "type": "Microsoft.App/containerApps/authConfigs",
+      "apiVersion": "2025-01-01",
+      "name": "[format('{0}/{1}', parameters('appName'), 'current')]",
+      "properties": {
+        "platform": {
+          "enabled": true
+        },
+        "globalValidation": {
+          "unauthenticatedClientAction": "Return401",
+          "excludedPaths": []
+        },
+        "httpSettings": {
+          "requireHttps": true
+        },
+        "identityProviders": {
+          "azureActiveDirectory": {
+            "enabled": true,
+            "registration": {
+              "clientId": "[parameters('apiClientId')]",
+              "clientSecretSettingName": "easyauth-client-secret",
+              "openIdIssuer": "[variables('entraIssuer')]"
+            },
+            "validation": {
+              "allowedAudiences": [
+                "[parameters('audience')]"
+              ],
+              "jwtClaimChecks": {
+                "allowedClientApplications": [
+                  "[parameters('cliClientId')]"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "movieMcp:Microsoft.App/containerApps:0": {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2025-01-01",
+      "name": "[parameters('appName')]",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "SystemAssigned, UserAssigned",
+        "userAssignedIdentities": {
+          "[format('{0}', parameters('pullIdentityId'))]": {}
+        }
+      },
+      "properties": {
+        "managedEnvironmentId": "[parameters('managedEnvironmentId')]",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "secrets": [
+            {
+              "name": "tmdb-api-read-access-token",
+              "value": "[parameters('tmdbApiReadAccessToken')]"
+            }
+          ],
+          "registries": [
+            {
+              "server": "[parameters('registryLoginServer')]",
+              "identity": "[parameters('pullIdentityId')]"
+            }
+          ],
+          "ingress": {
+            "external": false,
+            "targetPort": 8000,
+            "transport": "http",
+            "allowInsecure": false
+          }
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "movie-mcp",
+              "image": "[parameters('image')]",
+              "env": [
+                {
+                  "name": "MOVIE_MCP_MODE",
+                  "value": "http"
+                },
+                {
+                  "name": "MCP_TENANT_ID",
+                  "value": "[parameters('tenantId')]"
+                },
+                {
+                  "name": "MCP_AUDIENCE",
+                  "value": "[parameters('mcpAudience')]"
+                },
+                {
+                  "name": "MCP_ALLOWED_AGENT_OID",
+                  "value": "[parameters('allowedAgentOid')]"
+                },
+                {
+                  "name": "TMDB_API_READ_ACCESS_TOKEN",
+                  "secretRef": "tmdb-api-read-access-token"
+                }
+              ],
+              "resources": {
+                "cpu": "[json('0.5')]",
+                "memory": "1Gi"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 1
+          }
+        }
+      }
+    },
+    "memory:Microsoft.Storage/storageAccounts:0": {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('accountName')]",
+      "location": "[parameters('location')]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "properties": {
+        "supportsHttpsTrafficOnly": true,
+        "minimumTlsVersion": "TLS1_2",
+        "allowSharedKeyAccess": false,
+        "allowBlobPublicAccess": false,
+        "defaultToOAuthAuthentication": true,
+        "encryption": {
+          "keySource": "Microsoft.Storage",
+          "services": {
+            "blob": {
+              "enabled": true,
+              "keyType": "Account"
+            }
+          }
+        }
+      }
+    },
+    "memory:Microsoft.Storage/storageAccounts/blobServices:1": {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}', parameters('accountName'), 'default')]",
+      "properties": {
+        "isVersioningEnabled": "[parameters('enableVersioning')]",
+        "deleteRetentionPolicy": "[if(greater(parameters('softDeleteDays'), 0), createObject('enabled', true(), 'days', max(1, parameters('softDeleteDays'))), createObject('enabled', false()))]",
+        "containerDeleteRetentionPolicy": "[if(greater(parameters('softDeleteDays'), 0), createObject('enabled', true(), 'days', max(1, parameters('softDeleteDays'))), createObject('enabled', false()))]"
+      }
+    },
+    "memory:Microsoft.Storage/storageAccounts/blobServices/containers:2": {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}/{2}', parameters('accountName'), 'default', parameters('containerName'))]",
+      "properties": {
+        "publicAccess": "None"
+      }
+    },
+    "memory:Microsoft.Authorization/roleAssignments:3": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', parameters('containerName'))]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', parameters('containerName')), parameters('workloadPrincipalId'), 'memory-blob-data-contributor')]",
+      "properties": {
+        "principalId": "[parameters('workloadPrincipalId')]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+      }
+    },
+    "memoryCleanup:Microsoft.App/jobs:0": {
+      "type": "Microsoft.App/jobs",
+      "apiVersion": "2025-01-01",
+      "name": "[parameters('jobName')]",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "SystemAssigned, UserAssigned",
+        "userAssignedIdentities": {
+          "[format('{0}', parameters('pullIdentityId'))]": {}
+        }
+      },
+      "properties": {
+        "environmentId": "[parameters('managedEnvironmentId')]",
+        "configuration": {
+          "triggerType": "Schedule",
+          "replicaTimeout": 600,
+          "replicaRetryLimit": 1,
+          "scheduleTriggerConfig": {
+            "cronExpression": "17 * * * *",
+            "parallelism": 1,
+            "replicaCompletionCount": 1
+          },
+          "registries": [
+            {
+              "server": "[parameters('registryLoginServer')]",
+              "identity": "[parameters('pullIdentityId')]"
+            }
+          ]
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "memory-cleanup",
+              "image": "[parameters('image')]",
+              "command": [
+                "python",
+                "-m",
+                "az_maf_agent.memory_cleanup"
+              ],
+              "env": [
+                {
+                  "name": "SESSION_ACCOUNT",
+                  "value": "[parameters('sessionAccountName')]"
+                },
+                {
+                  "name": "SESSION_CONFIG",
+                  "value": "/app/config/foundry-stage1.json"
+                },
+                {
+                  "name": "MEMORY_ACCOUNT",
+                  "value": "[parameters('memoryAccountName')]"
+                },
+                {
+                  "name": "MEMORY_CONTAINER",
+                  "value": "[parameters('memoryContainerName')]"
+                },
+                {
+                  "name": "MEMORY_POLICY",
+                  "value": "/app/config/memory-policy.json"
+                }
+              ],
+              "resources": {
+                "cpu": "[json('0.25')]",
+                "memory": "0.5Gi"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "memoryHealth:Microsoft.Insights/scheduledQueryRules:0": {
+      "type": "Microsoft.Insights/scheduledQueryRules",
+      "apiVersion": "2023-12-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "Memory cleanup has no successful execution in 20 hours",
+        "description": "Investigate before the 24-hour expiry cleanup target is breached. No preference contents are queried.",
+        "enabled": true,
+        "severity": 2,
+        "evaluationFrequency": "PT1H",
+        "windowSize": "P1D",
+        "scopes": [
+          "[parameters('workspaceId')]"
+        ],
+        "autoMitigate": true,
+        "criteria": {
+          "allOf": [
+            {
+              "query": "[format('ContainerAppConsoleLogs_CL | where TimeGenerated > ago(20h) | where Log_s has \"memory_cleanup_completed\"{0} | summarize Successes=count() | where Successes == 0', variables('completedFilter'))]",
+              "timeAggregation": "Count",
+              "operator": "GreaterThan",
+              "threshold": 0,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "controlStorage:Microsoft.Storage/storageAccounts/blobServices/containers:0": {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}/{2}', parameters('accountName'), 'default', 'guardrail-policy')]",
+      "properties": {
+        "publicAccess": "None"
+      }
+    },
+    "controlStorage:Microsoft.Storage/storageAccounts/blobServices/containers:1": {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}/{2}', parameters('accountName'), 'default', 'guardrail-state')]",
+      "properties": {
+        "publicAccess": "None"
+      }
+    },
+    "controlStorage:Microsoft.Storage/storageAccounts/blobServices/containers:2": {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}/{2}', parameters('accountName'), 'default', 'guardrail-audit')]",
+      "properties": {
+        "publicAccess": "None"
+      }
+    },
+    "controlStorage:Microsoft.Storage/storageAccounts/blobServices/containers:3": {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}/{2}', parameters('accountName'), 'default', 'agent-sessions')]",
+      "properties": {
+        "publicAccess": "None"
+      }
+    },
+    "controlStorage:Microsoft.Storage/storageAccounts/blobServices/containers/immutabilityPolicies:4": {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers/immutabilityPolicies",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}/{2}/{3}', parameters('accountName'), 'default', 'guardrail-audit', 'default')]",
+      "properties": {
+        "immutabilityPeriodSinceCreationInDays": 30,
+        "allowProtectedAppendWrites": false,
+        "allowProtectedAppendWritesAll": false
+      }
+    },
+    "controlStorage:Microsoft.Storage/storageAccounts/managementPolicies:5": {
+      "type": "Microsoft.Storage/storageAccounts/managementPolicies",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}', parameters('accountName'), 'default')]",
+      "properties": {
+        "policy": {
+          "copy": [
+            {
+              "name": "rules",
+              "count": "[length(createArray('guardrail-audit/events/', 'guardrail-policy/approvals/'))]",
+              "input": {
+                "name": "[format('retire-{0}', split(createArray('guardrail-audit/events/', 'guardrail-policy/approvals/')[copyIndex('rules')], '/')[0])]",
+                "enabled": true,
+                "type": "Lifecycle",
+                "definition": {
+                  "filters": {
+                    "blobTypes": [
+                      "blockBlob"
+                    ],
+                    "prefixMatch": [
+                      "[createArray('guardrail-audit/events/', 'guardrail-policy/approvals/')[copyIndex('rules')]]"
+                    ]
+                  },
+                  "actions": {
+                    "baseBlob": {
+                      "delete": {
+                        "daysAfterModificationGreaterThan": 30
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "controlStorage:Microsoft.Authorization/roleDefinitions:6": {
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(resourceGroup().id, 'maf-metadata-audit-writer-v1')]",
+      "properties": {
+        "roleName": "[format('MAF {0} metadata audit writer', resourceGroup().name)]",
+        "description": "Can create audit blobs; cannot delete blobs/containers or change retention. Existing blob overwrite is blocked by the container immutability policy.",
+        "type": "CustomRole",
+        "assignableScopes": [
+          "[resourceGroup().id]"
+        ],
+        "permissions": [
+          {
+            "actions": [],
+            "notActions": [],
+            "dataActions": [
+              "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/write"
+            ],
+            "notDataActions": []
+          }
+        ]
+      }
+    },
+    "controlStorage:Microsoft.Authorization/roleAssignments:7": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-policy')]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-policy'), parameters('runtimePrincipalId'), 'reader')]",
+      "properties": {
+        "principalId": "[parameters('runtimePrincipalId')]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1')]"
+      }
+    },
+    "controlStorage:Microsoft.Authorization/roleAssignments:8": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-state')]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-state'), parameters('runtimePrincipalId'), 'writer')]",
+      "properties": {
+        "principalId": "[parameters('runtimePrincipalId')]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+      }
+    },
+    "controlStorage:Microsoft.Authorization/roleAssignments:9": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'agent-sessions')]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'agent-sessions'), parameters('runtimePrincipalId'), 'writer')]",
+      "properties": {
+        "principalId": "[parameters('runtimePrincipalId')]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+      }
+    },
+    "controlStorage:Microsoft.Authorization/roleAssignments:10": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-audit')]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-audit'), parameters('runtimePrincipalId'), 'append-writer')]",
+      "properties": {
+        "principalId": "[parameters('runtimePrincipalId')]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', guid(resourceGroup().id, 'maf-metadata-audit-writer-v1'))]"
+      }
+    },
+    "controlStorage:Microsoft.Authorization/roleAssignments:11": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'agent-sessions')]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'agent-sessions'), parameters('cleanupPrincipalId'), 'cleanup')]",
+      "properties": {
+        "principalId": "[parameters('cleanupPrincipalId')]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+      }
+    },
+    "controlStorage:Microsoft.Authorization/roleAssignments:12": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-policy')]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-policy'), parameters('operatorPrincipalId'), 'operator')]",
+      "properties": {
+        "principalId": "[parameters('operatorPrincipalId')]",
+        "principalType": "User",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+      }
+    },
+    "controlStorage:Microsoft.Authorization/roleAssignments:13": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-state')]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-state'), parameters('operatorPrincipalId'), 'operator')]",
+      "properties": {
+        "principalId": "[parameters('operatorPrincipalId')]",
+        "principalType": "User",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+      }
+    },
+    "controlStorage:Microsoft.Authorization/roleAssignments:14": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-audit')]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', 'guardrail-audit'), parameters('operatorPrincipalId'), 'operator')]",
+      "properties": {
+        "principalId": "[parameters('operatorPrincipalId')]",
+        "principalType": "User",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+      }
+    },
+    "controlMonitoring:Microsoft.Insights/components:0": {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "WorkspaceResourceId": "[parameters('workspaceId')]",
+        "DisableLocalAuth": true,
+        "IngestionMode": "LogAnalytics",
+        "RetentionInDays": 30
+      }
+    },
+    "controlMonitoring:Microsoft.Authorization/roleAssignments:1": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Insights/components', parameters('name'))]",
+      "name": "[guid(resourceId('Microsoft.Insights/components', parameters('name')), parameters('runtimePrincipalId'), 'metrics-publisher')]",
+      "properties": {
+        "principalId": "[parameters('runtimePrincipalId')]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '3913510d-42f4-4e42-8a64-420c390055eb')]"
+      }
+    },
+    "controlMonitoring:Microsoft.Insights/scheduledQueryRules:2": {
+      "type": "Microsoft.Insights/scheduledQueryRules",
+      "apiVersion": "2023-12-01",
+      "name": "[format('{0}-faults', parameters('name'))]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "Agent control denial, budget, outage, or unresolved effect",
+        "description": "Inspect metadata-only control_fault categories; authorization remains enforced in the application.",
+        "enabled": true,
+        "severity": 2,
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT5M",
+        "scopes": [
+          "[parameters('workspaceId')]"
+        ],
+        "autoMitigate": true,
+        "criteria": {
+          "allOf": [
+            {
+              "query": "ContainerAppConsoleLogs_CL | where TimeGenerated > ago(5m) | extend Signal=parse_json(Log_s) | where Signal.event == \"control_fault\" | project TimeGenerated, Category=tostring(Signal.category)",
+              "timeAggregation": "Count",
+              "operator": "GreaterThan",
+              "threshold": 0,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "foundation:Microsoft.OperationalInsights/workspaces:0": {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2023-09-01",
+      "name": "[parameters('logsName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "retentionInDays": 30,
+        "sku": {
+          "name": "PerGB2018"
+        }
+      }
+    },
+    "foundation:Microsoft.ContainerRegistry/registries:1": {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2025-04-01",
+      "name": "[parameters('registryName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('registrySku')]"
+      },
+      "properties": {
+        "adminUserEnabled": false,
+        "anonymousPullEnabled": false,
+        "publicNetworkAccess": "Enabled",
+        "dataEndpointEnabled": "[equals(parameters('registrySku'), 'Premium')]",
+        "encryption": {
+          "status": "disabled"
+        },
+        "policies": {
+          "azureADAuthenticationAsArmPolicy": {
+            "status": "enabled"
+          }
+        }
+      }
+    },
+    "foundation:Microsoft.ManagedIdentity/userAssignedIdentities:2": {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "[parameters('pullIdentityName')]",
+      "location": "[parameters('location')]"
+    },
+    "foundation:Microsoft.Authorization/roleAssignments:3": {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('registryName'))]",
+      "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', parameters('registryName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('pullIdentityName')), 'acrpull')]",
+      "properties": {
+        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('pullIdentityName')), '2023-01-31').principalId]",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    "foundation:Microsoft.App/managedEnvironments:4": {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('environmentName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "appLogsConfiguration": {
+          "destination": "log-analytics",
+          "logAnalyticsConfiguration": {
+            "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', parameters('logsName')), '2023-09-01').customerId]",
+            "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', parameters('logsName')), '2023-09-01').primarySharedKey]"
+          }
+        }
+      }
+    },
+    "memoryRoles:Microsoft.Authorization/roleAssignments:0": {
+      "copy": {
+        "name": "roles",
+        "count": "[length(parameters('principalIds'))]"
+      },
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', parameters('containerName'))]",
+      "name": "[guid(resourceId('Microsoft.Storage/storageAccounts/blobServices/containers', parameters('accountName'), 'default', parameters('containerName')), parameters('principalIds')[copyIndex()], 'memory-blob-data-contributor')]",
+      "properties": {
+        "principalId": "[parameters('principalIds')[copyIndex()]]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]"
+      }
+    }
+  }
+}

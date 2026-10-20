@@ -96,7 +96,7 @@ settings; storage authentication uses each workload's managed identity.
 | `MEMORY_POLICY` | `/app/config/memory-policy.json` |
 | `MEMORY_ALLOWED_USERS` | Approved `MAF_ALLOWED_USERS` subset (agent only) |
 
-`infra/main.dev.rg.bicepparam` also pins cleanup job and portal alert names. Operator
+`infra/main.dev.bicepparam` also pins cleanup job and portal alert names. Operator
 bootstrap grants agent/job system identities container-scoped Blob Data Contributor.
 Ordinary CI leaves `bootstrapMemoryRoles=false` and cannot grant roles. See the
 [Stage 4 guide](stage-4-memory.md) for lifecycle policy, tests, and operations.

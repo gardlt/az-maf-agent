@@ -24,7 +24,7 @@ resource worker 'Microsoft.App/containerApps@2025-01-01' = {
       containers: [{
         name: 'synthetic-worker'
         image: image
-        command: ['python', '-c', loadTextContent('../fixtures/unresponsive-worker.py')]
+        command: ['python', '-c', loadTextContent('./unresponsive-worker.py')]
         resources: { cpu: json('0.25'), memory: '0.5Gi' }
       }]
       scale: { minReplicas: 1, maxReplicas: 1 }

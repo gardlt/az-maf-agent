@@ -4,32 +4,18 @@ param location string = resourceGroup().location
 param assignRuntimeRole bool = false
 param runtimePrincipalId string = ''
 
-resource insights 'Microsoft.Insights/components@2020-02-02' = {
-  name: name
-  location: location
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-    WorkspaceResourceId: workspaceId
-    DisableLocalAuth: true
-    IngestionMode: 'LogAnalytics'
-    RetentionInDays: 30
-  }
+module insights '../modules/application-insights.bicep' = {
+ name: 'insights'
+ params: {name: name, workspaceId: workspaceId, location: location}
 }
-resource publisher 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (assignRuntimeRole) {
-  name: guid(insights.id, runtimePrincipalId, 'metrics-publisher')
-  scope: insights
-  properties: {
-    principalId: runtimePrincipalId
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '3913510d-42f4-4e42-8a64-420c390055eb')
-  }
+module publisher '../modules/insights-publisher-role.bicep' = if (assignRuntimeRole) {
+ name: 'metrics-access'
+ params: {name: name, runtimePrincipalId: runtimePrincipalId}
+ dependsOn: [insights]
 }
-output connectionString string = insights.properties.ConnectionString
-output id string = insights.id
-
-@description('Portal alert; notification recipients are intentionally not configured.')
-resource faults 'Microsoft.Insights/scheduledQueryRules@2023-12-01' = {
+module faults '../modules/scheduled-query-rule.bicep' = {
+ name: 'fault-alert'
+ params: {
   name: '${name}-faults'
   location: location
   properties: {
@@ -51,4 +37,7 @@ resource faults 'Microsoft.Insights/scheduledQueryRules@2023-12-01' = {
       }]
     }
   }
+ }
 }
+output connectionString string = insights.outputs.connectionString
+output id string = insights.outputs.id
