@@ -59,3 +59,24 @@ def test_malformed_transition_never_writes():
     with pytest.raises(Denied, match="control_invalid"):
         backend.transact(lambda state: state.update(policy_epoch=0))
     assert calls == []
+
+
+@pytest.mark.parametrize("route", [None, "routine", "reasoning"])
+def test_route_audit_uses_bounded_metadata(route):
+    import json
+
+    backend, calls = backend_with_response([201])
+    backend.audit_store = SimpleNamespace()
+    backend.base = lambda store: "https://account.blob.core.windows.net/guardrail-audit/"
+    backend.telemetry = None
+    backend.audit({"event": "dispatch_authorized", "model_route": route})
+    event = json.loads(calls[0]["content"])["event"]
+    assert event["model_route"] == route
+    assert calls[0]["conditions"] == {"If-None-Match": "*"}
+
+
+def test_arbitrary_route_content_cannot_enter_audit():
+    backend, calls = backend_with_response([201])
+    with pytest.raises(Denied, match="audit_invalid"):
+        backend.audit({"event": "dispatch_authorized", "model_route": "SECRET-PROMPT"})
+    assert not calls

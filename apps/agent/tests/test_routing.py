@@ -256,3 +256,28 @@ async def test_routes_keep_cancellation_and_history_fence(routed):
     assert service.sessions[sid].revision == 0
     assert not service.sessions[sid].state.state
     assert sum(service.daily.values()) > 0
+
+
+async def test_supervised_service_reserves_selected_model(routed):
+    from az_maf_agent.supervisor import SafetySupervisor
+
+    backend = FixtureControlBackend(
+        ControlPolicy.model_validate_json(Path("config/guardrail-policy.json").read_text())
+    )
+    controls = RunControls(backend, routed)
+    transport = RecordingTransport([({"role": "assistant", "content": "Matrix"}, "stop", 10)])
+    service = Service(
+        routed,
+        transport=transport,
+        movie_client=MovieClient(),
+        movie_model_tools=True,
+        safety=SafetySupervisor(controls),
+        audit=lambda _: None,
+    )
+    sid = service.create(LOCAL)["session_id"]
+    result = await service.chat(LOCAL, sid, "Find Matrix", 0)
+    record = backend.snapshot()["runs"][result["run_id"]]
+    assert record["calls"] == 1 and not record["unresolved"]
+    assert Decimal(record["usd"]) == sum(service.daily.values())
+    dispatch = [e for e in backend.events if e.get("capability") == "model"]
+    assert dispatch[0]["model_route"] == "routine"

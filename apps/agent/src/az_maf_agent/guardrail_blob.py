@@ -210,11 +210,16 @@ class BlobControlBackend:
             "time",
             "scope_ref",
             "capability",
+            "model_route",
             "status",
             "operator_ref",
             "evidence_ref",
         }
-        if not set(event) <= allowed or len(json.dumps(event)) > 2048:
+        if (
+            not set(event) <= allowed
+            or len(json.dumps(event)) > 2048
+            or event.get("model_route") not in (None, "routine", "reasoning")
+        ):
             raise Denied("audit_invalid")
         content = json.dumps(event, sort_keys=True, separators=(",", ":")).encode()
         envelope = json.dumps(
