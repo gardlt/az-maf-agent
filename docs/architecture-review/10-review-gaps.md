@@ -52,3 +52,7 @@ No risky live exercise, new permission, changed cost limit or new platform depen
 - [Remaining telemetry cases](https://github.com/gardlt/az-maf-agent/blob/d65b5fc480a6eb8e593ac9fe0fd020dffd644b50/docs/azure-monitor-agents-view.md)
 
 Related: [review index](README.md), [evidence register](09-evidence-register.md), [open review gates](10-review-gaps.md).
+
+## Planned Stage 7 containment extension
+
+[Stage 7 plan](../stages/stage-7/README.md) and [ordered tasks](../tasks/stage-7-agent-containment.md) track automatic/manual disable of one agent, resource-specific stale-token enforcement, independent controller authority and failure/recovery QA. Status is planned only. This adds no completion evidence and does not close R01–R05 or the existing identity/operations gates.
