@@ -104,4 +104,4 @@ Reuse memory poisoning, six skill-boundary cases, secret canaries, stale control
 
 ## Out of scope
 
-Automatic Azure Monitor/Automation escalation (future option if evidence justifies complexity), API Management, required Foundry hosting/evaluation integration, automatic model routing, real destructive exercises, and guarantees of instant shutdown or rollback. Retain application controls if supplemental managed services are later adopted.
+Automatic Azure Monitor/Automation escalation (future option if evidence justifies complexity), API Management, required Foundry hosting/evaluation integration, automatic model routing (tracked separately in [Stage 6](stage-6-model-routing.md)), real destructive exercises, and guarantees of instant shutdown or rollback. Retain application controls if supplemental managed services are later adopted.
