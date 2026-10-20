@@ -2,6 +2,10 @@
 
 - [Stages and validation](stages/README.md): stage guides, validation reports and supporting evidence, grouped by stage.
 - [Automatic individual-agent containment plan](stages/stage-7/README.md): planned detection, disable, quarantine and adversarial acceptance.
+- [Operational readiness and assurance](stages/stage-8/README.md): planned closure, evaluation, release evidence and repository governance.
+- [Sensitive-data guardrails](stages/stage-9/README.md): planned PII/payment-data and receipt intake, redaction and lifecycle controls.
+- [Native framework capability adoption](stages/stage-10/README.md): planned middleware, workflows, approvals, streaming, MCP adapters and conditional orchestration.
+- [Movie-theater agent orchestration](stages/stage-11/README.md): planned five-location operations, bookings, seasonal programming and price simulation with scoped agents and no payments.
 - [Implementation roadmap](tasks/README.md): completed work, current acceptance gates and remaining tasks.
 - [Architecture review](architecture-review/README.md): system boundaries, decisions, grounding assurance and review evidence.
 - [Teaching specification](secure-agent-teaching-spec.md): requirements and security contracts.

@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "status": "planning_defaults_not_runtime_configuration",
+  "data_mode": "synthetic_only",
+  "currency": "USD",
+  "timezone": "America/Chicago",
+  "payments_enabled": false,
+  "booking_types": [
+    "ticket_reservation",
+    "private_group_event"
+  ],
+  "venue_size_basis": "Illustrative venue profiles defined by screens and seats per screen, not an industry classification.",
+  "profiles": {
+    "small": {
+      "screens": 2,
+      "seats_per_screen": 80,
+      "baseline_occupancy_at_reference_price": 0.65,
+      "fixed_cost_per_showing_cents": 6000
+    },
+    "medium": {
+      "screens": 4,
+      "seats_per_screen": 150,
+      "baseline_occupancy_at_reference_price": 0.6,
+      "fixed_cost_per_showing_cents": 10000
+    },
+    "large": {
+      "screens": 8,
+      "seats_per_screen": 250,
+      "baseline_occupancy_at_reference_price": 0.55,
+      "fixed_cost_per_showing_cents": 15000
+    }
+  },
+  "venues": [
+    {
+      "id": "theater-small-1",
+      "profile": "small"
+    },
+    {
+      "id": "theater-small-2",
+      "profile": "small"
+    },
+    {
+      "id": "theater-medium-1",
+      "profile": "medium"
+    },
+    {
+      "id": "theater-medium-2",
+      "profile": "medium"
+    },
+    {
+      "id": "theater-large-1",
+      "profile": "large"
+    }
+  ],
+  "booking": {
+    "hold_seconds": 600,
+    "turnaround_minutes": 20,
+    "price_locked_for_hold": true,
+    "private_event_blocks_screen": true,
+    "private_event_quote_requires_staff_review": true,
+    "sellable_capacity_excludes_unavailable_seats": true
+  },
+  "pricing": {
+    "mode": "recommendation_owner_approval_before_publish",
+    "reference_ticket_cents": 1200,
+    "minimum_ticket_cents": 800,
+    "maximum_ticket_cents": 1800,
+    "grid_step_cents": 50,
+    "objective": "expected_simulated_contribution_per_showing",
+    "demand_model": "clip(capacity * baseline_occupancy * scenario_multiplier - capacity * demand_slope_per_dollar * (price_dollars - reference_price_dollars), 0, capacity)",
+    "demand_slope_per_dollar": 0.05,
+    "ticket_distributor_share": 0.5,
+    "concession_contribution_per_attendee_cents": 300,
+    "variable_cost_per_attendee_cents": 100,
+    "scenario_multipliers": {
+      "ordinary": 1.0,
+      "halloween_horror_match": 1.25,
+      "christmas_holiday_match": 1.2
+    },
+    "seasonal_multipliers_are": "Synthetic hypotheses; not measured forecasts or guarantees.",
+    "tie_breaker": "closest_to_current_price_then_lower_price",
+    "protected_attribute_personalization": false,
+    "committed_bookings_repriced": false
+  },
+  "capacity_references": [
+    "https://www.bfi.org.uk/venue-hire/screenings",
+    "https://www.odeon.co.uk/corporate-events/venue-finder/northwich-barons-quay/"
+  ]
+}

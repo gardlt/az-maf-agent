@@ -48,6 +48,22 @@ flowchart LR
 
 The agent and MCP are separately packaged applications in one monorepo and deployed as separate Container Apps. The agent runs in Container Apps; Foundry supplies inference. It is not a Foundry-hosted agent service. Models, Markdown, history and tool output never become authorization sources. The separately deployed firewall foundation is **not** shown as an enforced traffic path: app migration and final network tests remain open.
 
+## Planned readiness stage
+
+[Stage 8](../stages/stage-8/README.md) consolidates the remaining operational readiness and assurance work, including earlier gate closure, broader grounding evaluation, automated evidence, operations/promotion and repository governance. It is a plan, not additional completed architecture or production approval.
+
+## Planned sensitive-data stage
+
+[Stage 9](../stages/stage-9/README.md) adds planned PII/payment-data and receipt safeguards on top of Stage 8 general DLP. Sensitive intake/storage, detector selection and compliance scope remain review decisions; no new deployed data path or certification is claimed.
+
+## Planned native framework adoption
+
+[Stage 10](../stages/stage-10/README.md) evaluates native middleware, workflow/checkpoint, approval, streaming and MCP/orchestration APIs against the existing application contracts. It is an adoption/equivalence plan, not a deployed refactor or a replacement for Stage 7/8/9 boundaries.
+
+## Planned movie-theater multi-agent scenario
+
+[Stage 11](../stages/stage-11/README.md) selects a five-theater business simulation with an owner orchestrator, venue-scoped managers and shared research/seasonality, performance and programming specialists. The diagram separates authenticated delegation, read-only movie MCP, deterministic analytics/pricing and scoped simulated operations. Ticket/private-group bookings use authoritative test state; live bookings/payments are not enabled. Distinct identities, shared root accounting, owner-approved publication and individual containment remain required.
+
 ## Evidence vocabulary
 
 - **Hosted verified:** observed against the named release/environment with retained results.

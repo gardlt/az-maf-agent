@@ -11,6 +11,10 @@ These task files track implementation against the [secure agent teaching specifi
 5. [Stage 5: production guardrails](stage-5-production-guardrails.md)
 6. [Stage 6: application-controlled model routing](stage-6-model-routing.md)
 7. [Stage 7: automatic individual-agent containment](stage-7-agent-containment.md)
+8. [Stage 8: operational readiness and assurance](stage-8-operational-readiness.md)
+9. [Stage 9: sensitive-data guardrails](stage-9-sensitive-data.md)
+10. [Stage 10: native framework capabilities](stage-10-framework-capabilities.md)
+11. [Stage 11: movie-theater agent orchestration](stage-11-movie-orchestration.md)
 
 | Stage | Current state | Next acceptance work |
 | --- | --- | --- |
@@ -21,6 +25,10 @@ These task files track implementation against the [secure agent teaching specifi
 | 5 — Production guardrails | Implemented in dev with recorded milestones; broader release gates remain open. | Complete remaining hosted isolation/control cases, final network topology and operational rehearsals. |
 | 6 — Model routing | Complete for selected dev teaching scope: 215 tests, both actual model routes, 10/10 benign checks and 77.6% lower estimated routine inference cost. | No Stage 6 dev acceptance work remains; see [evidence and limits](../stages/stage-6/validation/stage-6-model-routing.md). Stage 5 production gates remain separate. |
 | 7 — Agent containment | 235 local tests pass; approved live identity disable/restore verified. Hosted automatic containment is not deployed. | Cached Foundry/MCP tokens and workload-identity Blob access persisted; implement independent service enforcement/controller and finish [adversarial QA](../stages/stage-7/validation/README.md). |
+| 8 — Operational readiness | Planned; no acceptance executed. | Close earlier containment/isolation/network gates, strengthen grounding, automate release evidence, rehearse operations and add repository governance; plan streaming/workflows and additional injection, egress, rendering, authority and abuse controls. [Stage 8 plan](../stages/stage-8/README.md). |
+| 9 — Sensitive-data guardrails | Planned; no real sensitive-data handling enabled. | Define and test PII/payment-data policy, receipt intake/redaction, data boundaries, retention/deletion and privacy-safe evidence. [Stage 9 plan](../stages/stage-9/README.md). |
+| 10 — Framework capabilities | Planned; no SDK migration enabled. | Evaluate middleware, workflows/checkpoints, approvals, streaming, native MCP and conditional orchestration with security-equivalence tests. [Stage 10 plan](../stages/stage-10/README.md). |
+| 11 — Movie-theater orchestration | Planned; no specialist services provisioned. | Owner orchestrator, five scoped theater managers and shared research/analytics/programming agents; synthetic showings, ticket/private-group bookings, seasonal analysis and constrained ticket-price recommendations. [Stage 11 plan](../stages/stage-11/README.md). |
 
 Extend the agent application and its separately packaged services in one workspace; retain previous controls and tests at every stage. The retired hosted path was CLI → HTTPS Python API in Azure Container Apps → shared agent core, with Microsoft Entra Easy Auth for caller authentication and application code for permissions. The movie catalog MCP service remains a separate workspace package and deployment boundary. Workload identity is separate from caller identity. No API Management is required initially; Foundry hosting and API Management remain future alternatives. Stage 6 adds application-controlled routing among approved deployments from validated configuration, as requested by the user.
 

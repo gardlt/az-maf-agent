@@ -11,5 +11,9 @@ Each stage keeps its guides and validation together. Start with a stage below, t
 | 5 — Production guardrails | [Stage guide](stage-5/README.md) | [Results and evidence](stage-5/validation/README.md) |
 | 6 — Model routing | [Stage guide](stage-6/README.md) | [Results and evidence](stage-6/validation/README.md) |
 | 7 — Automatic agent containment (local implementation started) | [Stage plan](stage-7/README.md) | [QA plan and evidence register](stage-7/validation/README.md) |
+| 8 — Operational readiness and assurance (planned) | [Stage plan](stage-8/README.md) | [Validation plan](stage-8/validation/README.md) |
+| 9 — PII, payment data and receipts (planned) | [Stage plan](stage-9/README.md) | [Validation plan](stage-9/validation/README.md) |
+| 10 — Native framework capabilities (planned) | [Stage plan](stage-10/README.md) | [Validation plan](stage-10/validation/README.md) |
+| 11 — Five-theater business simulation (planned) | [Stage plan](stage-11/README.md) | [Validation plan](stage-11/validation/README.md) |
 
 Results retain their original dates, release scope and limitations. Moving a report does not rerun its tests or change a stage’s completion status. Immutable GitHub evidence links still point to their original commits.

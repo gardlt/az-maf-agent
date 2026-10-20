@@ -4,7 +4,7 @@ Status: proposed design; application implementation is outside this document's s
 
 ## Purpose and scope
 
-Build one evolving Python command-line application using **Microsoft Agent Framework**. Learners extend the same application through seven stages: basic chat, approved MCP tools, approved Markdown-defined skills, scoped memory, production guardrails with emergency controls, application-controlled model routing, and automatic individual-agent containment. The user added Stage 6 on 2026-10-19 and Stage 7 on 2026-10-20. Each stage preserves the controls and tests introduced earlier; these are not independent demos.
+Build one evolving Python command-line application using **Microsoft Agent Framework**. Learners extend the same application through eleven stages: basic chat, approved MCP tools, approved Markdown-defined skills, scoped memory, production guardrails with emergency controls, application-controlled model routing, automatic individual-agent containment, operational readiness/assurance, sensitive-data guardrails for PII/payment data and receipts, selective native Agent Framework capability adoption, and movie-theater agent orchestration. The user added Stage 6 on 2026-10-19 and Stages 7–11 on 2026-10-20. Each stage preserves the controls and tests introduced earlier; these are not independent demos.
 
 This document defines required behavior, security boundaries, deployment portability, operational controls, and acceptance evidence. **MUST** denotes a release requirement; **SHOULD** denotes a recommendation whose exceptions require a recorded rationale. Product and SDK capabilities must be verified against the selected, pinned versions during implementation. The supplied references are design inputs, not a claim that this specification or an implementation has been certified.
 
@@ -458,3 +458,21 @@ These official source pages were checked on 2026-10-14 during specification revi
 ## Stage 7 extension — Individual-agent containment
 
 [Stage 7 tasks](tasks/stage-7-agent-containment.md) and [architecture](architecture-review/14-agent-containment.md) extend the existing contracts with individual Entra Agent IDs, trusted configurable security thresholds, independent quarantine/controller authority, manual Entra portal disable, verified directory actions, per-service denial and explicitly authorized recovery. Shared blueprints/identities must not be disabled to contain one agent. Cached tokens, open sessions and direct managed-identity/alternate credential paths require measured denial and adversarial QA. The [live drill](stages/stage-7/validation/live-disable-drill-2026-10-20.md) establishes identity disable/restoration only; full containment remains open. Proposed Stage 7 timing targets are not automatically approved replacements for existing numeric contracts.
+
+## Stage 8 extension — Operational readiness and assurance
+
+[Stage 8 tasks](tasks/stage-8-operational-readiness.md) consolidate the remaining repository/readiness gaps: earlier containment, hosted isolation and network closure; source-grounded answer evaluation; repeatable release evidence; operational rehearsal/promotion controls; and maintainer-selected repository governance. This is planned work and does not supersede or close Stage 1/5/7 gates, select a license or approve production. [Validation plan](stages/stage-8/validation/README.md).
+
+Stage 8 additionally tracks application extensions (streaming/progress, durable workflows, source-backed presentation and conditional action approval/delegation) and guardrails (indirect injection, DLP, output safety, per-action authority, admission abuse and tool/delegation change control). [S8-10–20](tasks/stage-8-operational-readiness.md) preserve earlier permissions and limits; conditional features require a selected scope and reviewed authority. Arbitrary shell access, unrestricted browsing and autonomous write actions remain excluded.
+
+## Stage 9 extension — Sensitive-data guardrails
+
+[Stage 9 tasks](tasks/stage-9-sensitive-data.md) specialize Stage 8 data-egress/output controls for PII, payment-card/account data and receipts. Plan classification/minimization/rejection, authorized receipt intake/OCR, evaluated redaction, model/tool/storage/output boundaries, lifecycle/deletion and privacy-safe incident evidence. No real sensitive-data ingestion, payment authority, new detector/store or compliance certification is selected by this plan. [Scope and primary references](stages/stage-9/README.md).
+
+## Stage 10 extension — Native framework capabilities
+
+[Stage 10 tasks](tasks/stage-10-framework-capabilities.md) evaluate Python middleware, workflows/checkpoints, native approval events, streaming, MCP adapters and conditional specialist orchestration. Preserve Stage 8 product/security contracts, Stage 9 sensitive-data checks and independent Stage 7 containment. Native feature availability does not authorize a migration, dependency change or wider tool/agent authority; compare against the current implementation and retain custom controls where needed. [Validation plan](stages/stage-10/validation/README.md).
+
+## Stage 11 extension — Movie-theater agent orchestration
+
+[Stage 11 tasks](tasks/stage-11-movie-orchestration.md) select a five-location theater-business simulation: an owner orchestrator, five venue-scoped managers and shared movie/seasonality research, performance analytics and programming strategy. Defaults are two small (2 × 80 seats), two medium (4 × 150) and one large (8 × 250) location, totaling 20 screens and 3,520 seats. Authoritative synthetic operations support showings, ticket reservations and private/group appointments; deterministic demand/cost calculations recommend constrained ticket prices for owner review. Movie MCP stays read-only; a separately scoped operations API owns reviewed simulation writes. Distinguish verified facts, recorded synthetic bookings and uncertain forecasts; no real cinema availability, payment processing, rights or guaranteed profit is implied. [Architecture and validation scope](stages/stage-11/README.md) preserve Stage 7/8/9/10 contracts and require real hosted inter-agent evidence before acceptance.

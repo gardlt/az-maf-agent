@@ -56,3 +56,25 @@ Related: [review index](README.md), [evidence register](09-evidence-register.md)
 ## Stage 7 containment extension — open
 
 [Stage 7 plan](../stages/stage-7/README.md) and [ordered tasks](../tasks/stage-7-agent-containment.md) track automatic/manual disable of one agent, resource-specific stale-token enforcement, independent controller authority and failure/recovery QA. The [architecture addendum](14-agent-containment.md) now records 235 local tests and the approved live identity disable/restore drill. New token requests were denied after propagation, while cached Foundry/MCP and workload-identity Blob access continued. Independent resource containment, hosted controller/alert integration and full recovery QA remain open; the drill does not close R01–R05 or the existing identity/operations gates.
+
+## Stage 8 readiness consolidation — planned
+
+[Stage 8 tasks](../tasks/stage-8-operational-readiness.md) and [stage guide](../stages/stage-8/README.md) organize the remaining containment, isolation, final networking, grounding, release evidence, operations/promotion and repository governance work. Existing R01–R10 and Stage 1/5/7 gates keep their original scope; Stage 8 consumes their evidence without moving or marking them closed. No Stage 8 acceptance has run.
+
+Stage 8 also tracks [S8-10–20 feature/security extensions](../tasks/stage-8-operational-readiness.md): streaming, durable workflows, source presentation, conditional real approvals/delegation, indirect injection, DLP, rendering, per-action authority, admission abuse and tool contract changes. These are planned extensions with separate acceptance evidence, not completion claims or authority to add arbitrary actions.
+
+## Stage 9 sensitive-data review extension — planned
+
+[Stage 9 tasks](../tasks/stage-9-sensitive-data.md) add PII/payment-data and receipt classification, safe intake/redaction, per-owner/model/tool/storage boundaries, retention/deletion and privacy-safe incident QA. This extends R10 provider/data handling and Stage 8 DLP with a distinct sensitive-data scope; actual PCI applicability, data destinations, retention, detector coverage and named reviewers remain open. No real financial/PII workflow or compliance result is established.
+
+Stage 9 explicitly maps [Foundry deployment, Agent Service, application and resource enforcement layers](../stages/stage-9/README.md). S9-12 requires testing effective policies on both model routes and independent gates for the current Container Apps/MCP paths. Agent Service policy inheritance/override and tool applicability cannot be assumed from Agents view registration or model policy alone.
+
+Stage 9 S9-13–15 also specialize user-visible sensitive-memory control, cross-user/tool/purpose authority binding and output link/image/markup exfiltration tests. They extend existing memory and Stage 8 security controls rather than assuming these workflows are already implemented for sensitive receipts.
+
+## Stage 10 native framework adoption — planned
+
+[Stage 10 tasks](../tasks/stage-10-framework-capabilities.md) assess currently unused Python middleware, workflows/checkpoints, approvals, streaming, MCP adapters and conditional orchestration. Require pinned-version API verification, behavior/security equivalence, measurable benefit, incremental rollout and rollback. Preserve Stage 8 feature and Stage 9 data contracts; SDK hooks are not independent resource enforcement or evidence of completed adoption.
+
+## Stage 11 movie-theater orchestration — planned
+
+[Stage 11 tasks](../tasks/stage-11-movie-orchestration.md) select the multi-agent use case while keeping protocol/hosting/credential decisions open. Prove real authenticated orchestrator/specialist boundaries, peer-token isolation, aggregate root budgets, validated source/time constraints and one-agent containment with peers unaffected. Existing MCP single-Agent-ID acceptance and missing runtime/availability fields require explicit review before extension. The selected five-theater simulation adds authoritative test bookings/showtimes, location-scoped writes, owner-approved price/program publication, historical/seasonal analytics and constrained synthetic price optimization. Verify double-booking/interval conflicts, metrics/cost completeness, forecast uncertainty and no real payment processing. Local persona changes, invented availability or guaranteed-profit claims do not satisfy acceptance.
