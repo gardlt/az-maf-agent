@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "description": "Corrects title-only scoring for prompts requesting a year or catalog ID. Dataset and 90% threshold unchanged; initial failed report retained.",
+  "patterns": {
+    "b01": "\\b1999\\b",
+    "b03": "\\btmdb_27205\\b",
+    "b04": "\\b2016\\b",
+    "b09": "\\b2014\\b"
+  }
+}

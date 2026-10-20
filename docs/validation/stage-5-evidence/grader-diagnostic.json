@@ -1,0 +1,38 @@
+[
+  {
+    "case": "b01",
+    "response_characters": 5,
+    "year_tokens": [
+      "1999"
+    ],
+    "catalog_id_tokens": [],
+    "numeric_only": false
+  },
+  {
+    "case": "b03",
+    "response_characters": 10,
+    "year_tokens": [],
+    "catalog_id_tokens": [
+      "tmdb_27205"
+    ],
+    "numeric_only": false
+  },
+  {
+    "case": "b04",
+    "response_characters": 4,
+    "year_tokens": [
+      "2016"
+    ],
+    "catalog_id_tokens": [],
+    "numeric_only": true
+  },
+  {
+    "case": "b09",
+    "response_characters": 4,
+    "year_tokens": [
+      "2014"
+    ],
+    "catalog_id_tokens": [],
+    "numeric_only": true
+  }
+]
