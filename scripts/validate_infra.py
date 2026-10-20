@@ -231,6 +231,8 @@ def main():
     for file in infra.glob("*.bicepparam"):
         assert file.read_text().startswith("using './main.bicep'"), file
     env = dict(os.environ, **DUMMY)
+    # The Azure CLI container omits ICU; Bicep compilation uses invariant identifiers.
+    env.setdefault("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "1")
     command = compiler()
     compiled = {}
     with tempfile.TemporaryDirectory(prefix="maf-infra-") as temp:
