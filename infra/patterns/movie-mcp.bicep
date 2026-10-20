@@ -16,7 +16,7 @@ param tmdbApiReadAccessToken string
 param location string = resourceGroup().location
 
 module app '../modules/container-app.bicep' = {
-  name: 'container-app'
+  name: 'movie-mcp-container-app'
   params: {
     appName: appName
     location: location

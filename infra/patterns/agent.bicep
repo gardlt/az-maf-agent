@@ -54,7 +54,7 @@ var entraBase = environment().authentication.loginEndpoint
 var entraIssuer = endsWith(entraBase, '/') ? '${entraBase}${tenantId}/v2.0' : '${entraBase}/${tenantId}/v2.0'
 
 module app '../modules/container-app.bicep' = {
-  name: 'container-app'
+  name: 'agent-container-app'
   params: {
     appName: appName
     location: location

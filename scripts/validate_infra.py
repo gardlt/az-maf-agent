@@ -78,7 +78,7 @@ def verify_resource_contracts(compiled):
     checks = [
         (
             expected("agent", "Microsoft.App/containerApps"),
-            wrapper("patterns/agent.bicep", "container-app"),
+            wrapper("patterns/agent.bicep", "agent-container-app"),
         ),
         (
             expected("agent", "Microsoft.App/containerApps/authConfigs"),
@@ -86,7 +86,7 @@ def verify_resource_contracts(compiled):
         ),
         (
             expected("movieMcp", "Microsoft.App/containerApps"),
-            wrapper("patterns/movie-mcp.bicep", "container-app"),
+            wrapper("patterns/movie-mcp.bicep", "movie-mcp-container-app"),
         ),
         (expected("memoryCleanup", "Microsoft.App/jobs"), direct("modules/cleanup-job.bicep")),
         (
@@ -265,6 +265,12 @@ def main():
             )
             if result.returncode:
                 raise RuntimeError(result.stderr)
+        app_deployments = [
+            r["name"]
+            for pattern in ("patterns/agent.bicep", "patterns/movie-mcp.bicep")
+            for r in compiled[pattern]["resources"]
+        ]
+        assert len(app_deployments) == len(set(app_deployments)), "application_deployment_name_collision"
         contracts = verify_resource_contracts(compiled)
         selectors = verify_selection(compiled["main.bicep"])
     print(
