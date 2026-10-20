@@ -1,6 +1,6 @@
 # 09 — Architecture review evidence register
 
-Prepared 2026-10-20. This register links claims to retained source artifacts, with their tested scope. Evidence is pinned to repository snapshot `d65b5fc480a6eb8e593ac9fe0fd020dffd644b50`; the latest recorded runtime source is `681e8407a4097a243156d3d184d14cf7f67e37d4`. It is not a new live re-audit of Azure or directory configuration.
+Prepared 2026-10-20. This register links claims to retained source artifacts, with their tested scope. Evidence is pinned to repository snapshot `d65b5fc480a6eb8e593ac9fe0fd020dffd644b50`; the latest recorded runtime source is `681e8407a4097a243156d3d184d14cf7f67e37d4`. It is not a new live re-audit of Azure or directory configuration. E13–E15 are a dated Stage 7 addendum with their own working-tree/runtime boundaries, not claims about the earlier snapshot.
 
 ## Claim-to-evidence matrix
 
@@ -18,6 +18,9 @@ Prepared 2026-10-20. This register links claims to retained source artifacts, wi
 | E10 | Both release images passed unresolved High/Critical gate | Time-specific local Grype/SBOM scan; lower severities remain | [Scan summary](../stages/stage-6/validation/stage-6-image-scans.json), workflow artifact `image-security-39388288350` |
 | E11 | Final network topology is not yet accepted | Open gate; earlier isolated controlled-destination deny is historical, not final current egress enforcement | [Migration review](../stages/stage-5/stage-5-network-migration-review.md), [Stage 5 release checklist](../tasks/stage-5-production-guardrails.md) |
 | E12 | Hosted distinct-user data-access exercise remains pending | Explicit missing evidence, not a passed test | [SEC-001](../../cybersecurity.md) |
+| E13 | Per-agent quarantine, retries, active-run fence and live Graph projection correction pass local tests | 235 total / 20 containment fixtures; Graph HTTP mocked; no hosted controller claim | [Test summary](../stages/stage-7/validation/evidence/local-test-summary.json), [final JUnit](../stages/stage-7/validation/evidence/local-regression-final.junit.xml) |
+| E14 | Individual dev Agent ID disable/readback and eventual fresh-token rejection; cached resource access persists | One explicitly approved live identity drill, revision 33; negative all-resource containment result; no external-token/A-B/inference claim | [Drill report](../stages/stage-7/validation/live-disable-drill-2026-10-20.md), [observations](../stages/stage-7/validation/live-disable-drill-2026-10-20.json) |
+| E15 | Identity restored, fresh tokens recover, private cache removed; ordinary chat recovery budget-blocked | Restoration 204 and enabled GET; 429 shared_daily_budget retained, quotas unchanged | [Restore receipt](../stages/stage-7/validation/evidence/restore-receipt.json), [drill and cleanup record](../stages/stage-7/validation/live-disable-drill-2026-10-20.json) |
 
 ## Quantified results that may be quoted
 

@@ -189,3 +189,9 @@ This log records material implementation, deployment, authentication, and hosted
 | `303fea6` | Entra v2 API access-token configuration |
 | `8c779d8` | Container App v2 audience alignment |
 | `1a28709` | Hosted acceptance evidence |
+
+## Stage 7 evidence consolidation — 2026-10-20
+
+- Retained initial/final JUnit captures, normalized test summary, code/artifact hashes and metadata-only restoration receipt under [Stage 7 evidence](stages/stage-7/validation/evidence/README.md).
+- Recorded 235 passing tests (20 containment cases) and the approved dev identity disable/restore drill. New-token requests eventually denied; cached Foundry/MCP and workload-identity Blob access continued. Full containment stays open; chat recovery was daily-budget-blocked.
+- Added the [individual-agent containment architecture page](architecture-review/14-agent-containment.md) and updated identity, control/recovery, operations, decisions, review gaps, roadmap, specification and cybersecurity scenario links. Existing stage evidence and pinned historical source links remain intact.

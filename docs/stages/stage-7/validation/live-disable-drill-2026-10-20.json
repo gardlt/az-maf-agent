@@ -1,0 +1,137 @@
+{
+  "scope": "one explicitly approved dev Agent ID disable-and-restore drill; not automatic hosted containment acceptance",
+  "date": "2026-10-20",
+  "tenant": "c57afb80-6b3d-4bae-a466-e4d217bcb4a2",
+  "agent_object_id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+  "blueprint_app_id": "cfb45dee-91b3-498e-b43b-11310e6ef473",
+  "revision": "ca-maf-agent-dev-eus2-01--0000033",
+  "image": "crmafdevmako261018.azurecr.io/az-maf-agent@sha256:ace640d92459c4df79b5eafabe981887ce3ebed5d28d13195d1721eec175aadc",
+  "directory_disable_verified": true,
+  "directory_disabled_readback": {
+    "enabled": false,
+    "http": 200,
+    "utc": "2026-10-20T21:22:38.526665+00:00"
+  },
+  "restoration": {
+    "restore_http": 204,
+    "directory_read_http": 200,
+    "enabled": true,
+    "utc": 1792531412.359037
+  },
+  "phases": [
+    {
+      "phase": "baseline",
+      "probe_started_utc": "2026-10-20T21:21:10.747027+00:00",
+      "fresh_foundry_token_request_succeeded": true,
+      "fresh_mcp_token_request_succeeded": true,
+      "foundry_exchange_http": [
+        200,
+        200
+      ],
+      "mcp_exchange_http": [
+        200,
+        200
+      ],
+      "denied_error_code": null,
+      "cached_foundry_models_http": 200,
+      "cached_mcp_list_tools_authorized": true,
+      "cached_mcp_tool_count": 2,
+      "blob_workload_identity_container_head_http": 200
+    },
+    {
+      "phase": "disabled_first",
+      "probe_started_utc": "2026-10-20T21:22:15.033085+00:00",
+      "fresh_foundry_token_request_succeeded": true,
+      "fresh_mcp_token_request_succeeded": false,
+      "foundry_exchange_http": [
+        200,
+        200
+      ],
+      "mcp_exchange_http": [
+        200,
+        400
+      ],
+      "denied_error_code": 7000112,
+      "cached_foundry_models_http": 200,
+      "cached_mcp_list_tools_authorized": true,
+      "cached_mcp_tool_count": 2,
+      "blob_workload_identity_container_head_http": 200
+    },
+    {
+      "phase": "disabled_repeat",
+      "probe_started_utc": "2026-10-20T21:22:38.224255+00:00",
+      "fresh_foundry_token_request_succeeded": true,
+      "fresh_mcp_token_request_succeeded": false,
+      "foundry_exchange_http": [
+        200,
+        200
+      ],
+      "mcp_exchange_http": [
+        200,
+        400
+      ],
+      "denied_error_code": 7000112,
+      "cached_foundry_models_http": 200,
+      "cached_mcp_list_tools_authorized": true,
+      "cached_mcp_tool_count": 2,
+      "blob_workload_identity_container_head_http": 200
+    },
+    {
+      "phase": "disabled_final",
+      "probe_started_utc": "2026-10-20T21:23:12.328678+00:00",
+      "fresh_foundry_token_request_succeeded": false,
+      "fresh_mcp_token_request_succeeded": false,
+      "foundry_exchange_http": [
+        200,
+        400
+      ],
+      "mcp_exchange_http": [
+        200,
+        400
+      ],
+      "denied_error_code": 7000112,
+      "cached_foundry_models_http": 200,
+      "cached_mcp_list_tools_authorized": true,
+      "cached_mcp_tool_count": 2,
+      "blob_workload_identity_container_head_http": 200
+    },
+    {
+      "phase": "restored",
+      "probe_started_utc": "2026-10-20T21:23:41.620677+00:00",
+      "fresh_foundry_token_request_succeeded": true,
+      "fresh_mcp_token_request_succeeded": true,
+      "foundry_exchange_http": [
+        200,
+        200
+      ],
+      "mcp_exchange_http": [
+        200,
+        200
+      ],
+      "denied_error_code": null,
+      "cached_foundry_models_http": 200,
+      "cached_mcp_list_tools_authorized": true,
+      "cached_mcp_tool_count": 2,
+      "blob_workload_identity_container_head_http": 200
+    }
+  ],
+  "ephemeral_token_file_removed": true,
+  "raw_tokens_retained": false,
+  "resource_payloads_retained": false,
+  "full_resource_containment": false,
+  "hosted_chat_canary": {
+    "result": "blocked_by_existing_budget",
+    "http": 429,
+    "code": "shared_daily_budget",
+    "budget_reset_or_increase": false
+  },
+  "limitations": [
+    "single-agent drill; no live second-agent isolation test",
+    "no independent hosted controller/alert integration",
+    "fresh means a new HTTP token request, not proof of a newly minted token",
+    "nonbillable Foundry model-list authorization probe; no inference while disabled",
+    "no exact propagation SLO inferred from sampled probes",
+    "cached workload-identity Blob token tested; separate fresh direct-MI coverage remains open",
+    "cached tokens were exercised in the same workload, not exfiltrated externally"
+  ]
+}

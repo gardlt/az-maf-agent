@@ -1,0 +1,39 @@
+{
+  "scope": "local fixtures only; Graph HTTP mocked",
+  "source_commit": "67bb97ef1a0a107ae890a9ec6f9373c12ebd40f0",
+  "working_tree_adapter_fix": true,
+  "counts": {
+    "tests": 235,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  "containment_cases": 20,
+  "timestamp": "2026-10-20T16:24:28.497169-05:00",
+  "suite_seconds": 4.198,
+  "command": "uv run --locked pytest -q --junitxml=/tmp/stage7-all-tests-final.xml",
+  "lint": "uv run --locked ruff check apps scripts: passed",
+  "format": "uv run --locked ruff format --check apps scripts: passed",
+  "captures": [
+    {
+      "artifact": "local-containment-initial.junit.xml",
+      "original_capture_sha256": "ac3bc41cdc2a69e260fba7f4b3dad13647e0fd16517ec64f102d36a7e6cfd357",
+      "sanitization": "Removed local hostname attribute; test cases, counts, timings and timestamps retained."
+    },
+    {
+      "artifact": "local-regression-initial.junit.xml",
+      "original_capture_sha256": "c6161dd88b29af7f482a38ad482dc6e5ebf14c536f056db01459b54a7cf635ea",
+      "sanitization": "Removed local hostname attribute; test cases, counts, timings and timestamps retained."
+    },
+    {
+      "artifact": "local-regression-final.junit.xml",
+      "original_capture_sha256": "e4ea34113d2b65b2051da1ca56c13c7b6a34713db6b01772f25af39eb2bb2284",
+      "sanitization": "Removed local hostname attribute; test cases, counts, timings and timestamps retained."
+    }
+  ],
+  "source_hashes": {
+    "apps/agent/src/az_maf_agent/containment.py": "696873509b1303a7c351628598147312fd4f5ea5e19689e380451a3bcf09aa55",
+    "apps/agent/tests/test_containment.py": "7d7f3987bc3e465a9308c5391356a76fbf1fb399ef8d8909f64934e41f3a4742",
+    "apps/agent/src/az_maf_agent/guardrails.py": "2b81916aa952f1d1d7243ae78c85a03bc1f24204c127263d3b4aaf9efcdc98db"
+  }
+}

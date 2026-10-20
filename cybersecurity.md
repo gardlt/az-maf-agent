@@ -62,3 +62,16 @@ The earlier [50-session exercise](docs/stages/stage-5/validation/movie-agent-50-
 - [x] Preserve load failures and limits in the [results report](docs/stages/stage-5/validation/movie-agent-50-users.md).
 
 The current MCP has only `search_movies` and `get_movie`, and its TMDB transport sends GET. This scenario validates that existing read-only boundary; it does not exercise a privileged write capability.
+
+## SEC-003 — Contain one rogue agent without disabling other agents
+
+**Status:** local foundation tested; one live individual-identity disable/restore drill completed; full scenario remains open.
+
+- [x] Verify local threshold/deduplication, agent isolation, durable quarantine/retry, active-run cancellation and accounting preservation.
+- [x] Verify the approved dev Agent ID is disabled and new Foundry/MCP token requests eventually fail; explicitly restore it and verify fresh token recovery.
+- [x] Retain the negative evidence: cached Foundry/MCP tokens and workload-identity Blob access continued while Agent ID was disabled.
+- [ ] Independently block all affected resources, including externally held old tokens, direct MI, alternate credentials and cached sessions.
+- [ ] Prove a second real agent stays authorized, concurrent work is fenced, controller/directory outages escalate and recovery cannot replay work or refill budgets.
+- [ ] Deploy and verify authenticated alerts and the independent least-privileged controller; complete the frozen timing campaign and review.
+
+[Stage 7 QA matrix](docs/stages/stage-7/validation/README.md), [live evidence](docs/stages/stage-7/validation/live-disable-drill-2026-10-20.md), [architecture](docs/architecture-review/14-agent-containment.md). Directory disable alone is not a passing full-containment result.

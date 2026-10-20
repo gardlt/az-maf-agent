@@ -4,7 +4,7 @@ Status: proposed design; application implementation is outside this document's s
 
 ## Purpose and scope
 
-Build one evolving Python command-line application using **Microsoft Agent Framework**. Learners extend the same application through six stages: basic chat, approved MCP tools, approved Markdown-defined skills, scoped memory, production guardrails with emergency controls, and application-controlled model routing. The user added Stage 6 on 2026-10-19. Each stage preserves the controls and tests introduced earlier; these are not independent demos.
+Build one evolving Python command-line application using **Microsoft Agent Framework**. Learners extend the same application through seven stages: basic chat, approved MCP tools, approved Markdown-defined skills, scoped memory, production guardrails with emergency controls, application-controlled model routing, and automatic individual-agent containment. The user added Stage 6 on 2026-10-19 and Stage 7 on 2026-10-20. Each stage preserves the controls and tests introduced earlier; these are not independent demos.
 
 This document defines required behavior, security boundaries, deployment portability, operational controls, and acceptance evidence. **MUST** denotes a release requirement; **SHOULD** denotes a recommendation whose exceptions require a recorded rationale. Product and SDK capabilities must be verified against the selected, pinned versions during implementation. The supplied references are design inputs, not a claim that this specification or an implementation has been certified.
 
@@ -454,3 +454,7 @@ These official source pages were checked on 2026-10-14 during specification revi
 - [Container Apps Microsoft Entra authentication](https://learn.microsoft.com/en-us/azure/container-apps/authentication-entra)
 - [Hosting Agent Framework applications](https://learn.microsoft.com/en-us/agent-framework/hosting/)
 - [Foundry hosted-agent concepts](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/hosted-agents)
+
+## Stage 7 extension — Individual-agent containment
+
+[Stage 7 tasks](tasks/stage-7-agent-containment.md) and [architecture](architecture-review/14-agent-containment.md) extend the existing contracts with individual Entra Agent IDs, trusted configurable security thresholds, independent quarantine/controller authority, manual Entra portal disable, verified directory actions, per-service denial and explicitly authorized recovery. Shared blueprints/identities must not be disabled to contain one agent. Cached tokens, open sessions and direct managed-identity/alternate credential paths require measured denial and adversarial QA. The [live drill](stages/stage-7/validation/live-disable-drill-2026-10-20.md) establishes identity disable/restoration only; full containment remains open. Proposed Stage 7 timing targets are not automatically approved replacements for existing numeric contracts.

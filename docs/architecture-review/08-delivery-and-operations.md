@@ -53,3 +53,7 @@ Review **R01/R03/R05/R06/R07/R08/R09** for networking, scaling, recovery/rotatio
 - [50-session behavior and preserved failures](https://github.com/gardlt/az-maf-agent/blob/d65b5fc480a6eb8e593ac9fe0fd020dffd644b50/docs/validation/movie-agent-50-users.md)
 
 Related: [review index](README.md), [evidence register](09-evidence-register.md), [open review gates](10-review-gaps.md).
+
+## Stage 7 operations addendum
+
+The [Stage 7 architecture page](14-agent-containment.md) and [live evidence](../stages/stage-7/validation/live-disable-drill-2026-10-20.md) record the tested revision/image and approved temporary identity mutation. This was an operator drill, not deployment of an automatic response service. Directory restoration was verified and temporary tokens removed. The ordinary chat canary returned 429 `shared_daily_budget`; no quotas or reservations were reset. A controller deployment, narrowly scoped Graph authority, authenticated alert delivery, fail-closed outage handling and independent on-call escalation remain unimplemented acceptance work.

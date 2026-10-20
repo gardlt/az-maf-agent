@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "description": "Integrity inventory for retained Stage 7 captures/reports; not externally signed provenance.",
+  "files": [
+    {
+      "path": "evidence/README.md",
+      "sha256": "5b4cc31bb02763b624a7a645d9cc94bd9651252a7b899d6e754cd50577d798e8",
+      "bytes": 2744
+    },
+    {
+      "path": "evidence/chat-recovery-canary.json",
+      "sha256": "f300bb7ac1a80a69550b02abaf36131ad5e5ee28ea30bf4976ecf3b023ad9543",
+      "bytes": 444
+    },
+    {
+      "path": "evidence/container-probe-source.txt",
+      "sha256": "805588a3773db308c84973df5d7a64bb627f756c9770765a9f86268d5e7efe3a",
+      "bytes": 3031
+    },
+    {
+      "path": "evidence/graph-projection-preflight.json",
+      "sha256": "0c248914cd40b9024b93ff33608ee1363d289607c395680e44970e6745c22264",
+      "bytes": 1146
+    },
+    {
+      "path": "evidence/local-containment-initial.junit.xml",
+      "sha256": "12aad9b0673fea82c6a4f34341e703279fe596bcb1f4a23936722a40a68cc9ff",
+      "bytes": 2686
+    },
+    {
+      "path": "evidence/local-regression-final.junit.xml",
+      "sha256": "3f2c10f2c7480e9e2b0d7fabbe1b1b1645d28197189c2c5924dd79bb76851ace",
+      "bytes": 40593
+    },
+    {
+      "path": "evidence/local-regression-initial.junit.xml",
+      "sha256": "fd1a6b8ea7b508c5d2a5ca2f279c24224b3e4194552a0e740c13dbd6caf8eba4",
+      "bytes": 40298
+    },
+    {
+      "path": "evidence/local-test-summary.json",
+      "sha256": "f419749153bbd551f993d873c37df222f0602b4c4da6a3cb7f4922860fad6a71",
+      "bytes": 1801
+    },
+    {
+      "path": "evidence/restore-receipt.json",
+      "sha256": "11c4fe21336bab99ec5fbac4cdfc77601f90408ba71e7c056ffc1bf2abedc90f",
+      "bytes": 93
+    },
+    {
+      "path": "live-disable-drill-2026-10-20.json",
+      "sha256": "b63f145e22f9b014b906f7bb03711927040c054a19d0d4418fcfd42a76f17a93",
+      "bytes": 4451
+    },
+    {
+      "path": "live-disable-drill-2026-10-20.md",
+      "sha256": "7b569512ad09973c63d54fe33c31813b942a4de37c921d094889d3a0ad23a50f",
+      "bytes": 4792
+    },
+    {
+      "path": "local-quarantine-results.md",
+      "sha256": "08a88673966fda9611fe72712a1268b994dd1b94d9a0b9d2f164cbc758c0d157",
+      "bytes": 4054
+    },
+    {
+      "path": "platform-investigation.md",
+      "sha256": "d44a692744824bdbb13c58a74e1071bd06adf09cae022d11a6eaa611acfa1970",
+      "bytes": 2516
+    }
+  ]
+}

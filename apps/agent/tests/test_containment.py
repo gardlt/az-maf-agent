@@ -177,7 +177,7 @@ def test_graph_refuses_wrong_target_before_write(bad):
     )
     with pytest.raises(Denied):
         adapter.disable(T, A, BP, APP)
-    assert len(requests) == 1 and requests[0].method == "GET"
+    assert 1 <= len(requests) <= 2 and all(r.method == "GET" for r in requests)
     adapter.close()
 
 
@@ -187,10 +187,11 @@ def test_graph_disables_exact_agent_and_verifies_readback():
 
     def handler(request):
         requests.append(request)
-        assert (
-            str(request.url)
-            == f"https://graph.microsoft.com/v1.0/servicePrincipals/{A}/microsoft.graph.agentIdentity"
-        )
+        assert request.url.host == "graph.microsoft.com"
+        assert request.url.path in {
+            f"/v1.0/servicePrincipals/{A}",
+            f"/v1.0/servicePrincipals/{A}/microsoft.graph.agentIdentity",
+        }
         if request.method == "PATCH":
             assert request.content == b'{"accountEnabled":false}'
             enabled[0] = False
@@ -211,7 +212,7 @@ def test_graph_disables_exact_agent_and_verifies_readback():
         T, credential, http=httpx.Client(transport=httpx.MockTransport(handler))
     )
     adapter.disable(T, A, BP, APP)
-    assert [r.method for r in requests] == ["GET", "PATCH", "GET"]
+    assert [r.method for r in requests] == ["GET", "GET", "PATCH", "GET", "GET"]
     adapter.disable(T, A, BP, APP)
     assert [r.method for r in requests][-2:] == ["GET", "GET"]
     adapter.close()
@@ -263,7 +264,7 @@ def test_unverified_graph_disable_never_passes(failure):
     )
     with pytest.raises((Denied, httpx.ReadTimeout)):
         adapter.disable(T, A, BP, APP)
-    assert calls[:2] == ["GET", "PATCH"]
+    assert calls[:3] == ["GET", "GET", "PATCH"]
     adapter.close()
 
 
@@ -298,3 +299,48 @@ def test_late_failure_cannot_overwrite_newer_verified_disable(registry):
             db.execute("SELECT count(*) FROM audit WHERE action='containment_failed'").fetchone()[0]
             == 0
         )
+
+
+@pytest.mark.parametrize("inconsistent", [False, True])
+def test_graph_explicit_projections_match_live_response_shape(inconsistent):
+    enabled = [True]
+    writes = []
+
+    def handler(request):
+        if request.method == "PATCH":
+            writes.append(request)
+            enabled[0] = False
+            return httpx.Response(204)
+        assert "$select" in request.url.params
+        if request.url.path.endswith("/microsoft.graph.agentIdentity"):
+            # Typed Graph responses omit @odata.type and appId by default.
+            return httpx.Response(
+                200,
+                json={
+                    "id": A,
+                    "agentIdentityBlueprintId": BP,
+                    "accountEnabled": not enabled[0] if inconsistent else enabled[0],
+                },
+            )
+        return httpx.Response(
+            200,
+            json={
+                "id": A,
+                "appId": APP,
+                "accountEnabled": enabled[0],
+                "@odata.type": "#microsoft.graph.agentIdentity",
+            },
+        )
+
+    credential = SimpleNamespace(get_token=lambda _: SimpleNamespace(token="private-token"))
+    adapter = GraphAgentDisabler(
+        T, credential, http=httpx.Client(transport=httpx.MockTransport(handler))
+    )
+    if inconsistent:
+        with pytest.raises(Denied, match="directory_binding"):
+            adapter.disable(T, A, BP, APP)
+        assert not writes
+    else:
+        adapter.disable(T, A, BP, APP)
+        assert len(writes) == 1
+    adapter.close()

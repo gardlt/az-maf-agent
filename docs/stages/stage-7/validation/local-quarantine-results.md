@@ -22,3 +22,7 @@ This is a development persistence/transition adapter. It is **not** a separately
 The quarantine reader is explicitly injected in tests; the hosted application has not been configured to use it. The deployment, runtime credentials, managed identities, Blob permissions and existing token cache are unchanged. No Entra identity is disabled by this change. Existing-token and direct-managed-identity bypass remain unproven; no full containment claim is made.
 
 Automatic alert delivery, independent watchdog/controller leases, escalation delivery, resource inventory and enforcement, read-only status endpoints, production store authorization, portal-disable observation and explicitly authorized recovery still require implementation and hosted QA. There is intentionally no re-enable operation in this first slice. The manual emergency action remains the individual-identity Disable action in the Entra admin center; future controller reconciliation must connect that audit/state change to quarantine rather than treating portal disable as complete resource containment.
+
+## Later validation addendum
+
+The subsequent [live drill and local correction](live-disable-drill-2026-10-20.md) added real Graph projection coverage, reaching 235 tests / 20 containment cases. [Initial and final JUnit evidence](evidence/README.md) preserves this chronology. The earlier 233-test checkpoint above remains historical.

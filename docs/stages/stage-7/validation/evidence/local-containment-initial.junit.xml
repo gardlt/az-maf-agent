@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites name="pytest tests">
+  <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="18" time="0.965" timestamp="2026-10-20T16:17:50.716796-05:00">
+    <testcase classname="apps.agent.tests.test_containment" name="test_threshold_dedup_isolation_and_restart" time="0.027" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_unknown_stale_future_and_duplicate_registry_fail_closed" time="0.012" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_concurrent_manual_disable_is_idempotent_and_private" time="0.079" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_failure_preserves_quarantine_and_retry_is_durable" time="0.022" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_missing_corrupt_and_generation_change_deny" time="0.012" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_quarantine_fences_dispatch_and_preserves_accounting" time="0.018" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_graph_refuses_wrong_target_before_write[type]" time="0.002" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_graph_refuses_wrong_target_before_write[agent]" time="0.001" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_graph_refuses_wrong_target_before_write[blueprint]" time="0.001" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_graph_refuses_wrong_target_before_write[app]" time="0.001" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_graph_refuses_wrong_target_before_write[enabled]" time="0.001" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_graph_refuses_wrong_target_before_write[redirect]" time="0.001" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_graph_disables_exact_agent_and_verifies_readback" time="0.001" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_supervisor_cancels_active_work_after_quarantine" time="0.029" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_unverified_graph_disable_never_passes[patch]" time="0.001" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_unverified_graph_disable_never_passes[readback]" time="0.002" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_unverified_graph_disable_never_passes[timeout]" time="0.001" />
+    <testcase classname="apps.agent.tests.test_containment" name="test_late_failure_cannot_overwrite_newer_verified_disable" time="0.018" />
+  </testsuite>
+</testsuites>

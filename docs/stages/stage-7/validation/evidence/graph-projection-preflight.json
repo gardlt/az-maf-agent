@@ -1,0 +1,35 @@
+{
+  "capture": "selected metadata from actual read-only preflight command output; not a full Graph transcript",
+  "tenant": "c57afb80-6b3d-4bae-a466-e4d217bcb4a2",
+  "agent_object_id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+  "default_typed_get": {
+    "http": 200,
+    "id": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+    "displayName": "agent-maf-dev",
+    "agentIdentityBlueprintId": "cfb45dee-91b3-498e-b43b-11310e6ef473",
+    "accountEnabled": true,
+    "missing_fields": [
+      "@odata.type",
+      "appId"
+    ]
+  },
+  "selected_typed_get": {
+    "http": 200,
+    "fields": [
+      "id",
+      "appId",
+      "agentIdentityBlueprintId",
+      "accountEnabled"
+    ],
+    "appId": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+    "accountEnabled": true
+  },
+  "selected_base_principal_get": {
+    "http": 200,
+    "@odata.type": "#microsoft.graph.agentIdentity",
+    "servicePrincipalType": "ServiceIdentity",
+    "appId": "94a137c6-e4fc-481c-b45d-f2a03d868ba4",
+    "accountEnabled": true
+  },
+  "effect": "adapter corrected locally to explicitly select fields, verify base type/application, and compare typed blueprint/state before mutation"
+}

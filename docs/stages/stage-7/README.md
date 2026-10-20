@@ -1,8 +1,8 @@
 # Stage 7: Automatic containment of an individual agent
 
-Status: **local implementation started**, 2026-10-20. The [first local foundation](validation/local-quarantine-results.md) adds durable quarantine transitions, a disable-only Graph adapter and an injectable dispatch gate. Hosted controller, alert delivery and resource containment remain unimplemented; no identity or Azure changes have been made.
+Status: **local implementation started**, 2026-10-20. The [first local foundation](validation/local-quarantine-results.md) adds durable quarantine transitions, a disable-only Graph adapter and an injectable dispatch gate. The [live drill](validation/live-disable-drill-2026-10-20.md) verified approved identity disable/restoration and exposed cached-token/workload-identity access. Hosted controller, alert delivery and full resource containment remain unimplemented.
 
-[All stages](../README.md) · [Ordered implementation tasks](../../tasks/stage-7-agent-containment.md) · [Validation plan and evidence](validation/README.md)
+[All stages](../README.md) · [Ordered implementation tasks](../../tasks/stage-7-agent-containment.md) · [Validation plan and evidence](validation/README.md) · [Architecture review](../../architecture-review/14-agent-containment.md)
 
 ## Required outcome
 

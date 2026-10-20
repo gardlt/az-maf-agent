@@ -2,7 +2,7 @@
 
 Prepared: **2026-10-20**. Repository: `gardlt/az-maf-agent`. Audience: cloud architecture, software architecture, application security and operations reviewers. Status: **draft review submission; no architecture board approval recorded**.
 
-This is a local review package organized as separate pages. Nothing has been published to Confluence. The implementation snapshot is commit `d65b5fc480a6eb8e593ac9fe0fd020dffd644b50`; its deployed application source is `681e8407a4097a243156d3d184d14cf7f67e37d4`. Descriptions of cloud state refer to recorded validation, not a fresh Azure inventory performed for this document.
+This is a local review package organized as separate pages. Nothing has been published to Confluence. The implementation snapshot is commit `d65b5fc480a6eb8e593ac9fe0fd020dffd644b50`; its deployed application source is `681e8407a4097a243156d3d184d14cf7f67e37d4`. Descriptions of cloud state refer to recorded validation, not a fresh Azure inventory performed for this document. A dated [Stage 7 addendum](14-agent-containment.md) records the later local containment implementation and limited live identity drill; the original snapshot remains the baseline for earlier claims.
 
 ## Review position
 
@@ -21,6 +21,7 @@ The original stage documents include retired resources and historical experiment
 | [05 — Guardrails and recovery](05-guardrails-and-recovery.md) | How are budgets, dispatch, shutdown and recovery enforced? | 5 |
 | [13 — Agent to Foundry inference](13-agent-to-foundry.md) | How is model inference authenticated, bounded and reconciled? | Provider integration |
 | [06 — Model routing](06-model-routing.md) | How are cheaper/stronger models selected and measured? | 6 |
+| [14 — Individual-agent containment](14-agent-containment.md) | Does disabling one identity stop both new and cached resource access? | 7 |
 | [07 — Identity and permissions](07-identity-and-access.md) | Which identity accesses each downstream resource? | Cross-cutting |
 | [08 — Delivery and operations](08-delivery-and-operations.md) | How is a release reproduced, scanned, deployed and observed? | Cross-cutting |
 | [09 — Evidence register](09-evidence-register.md) | Which retained artifacts substantiate each claim? | All |
@@ -28,7 +29,7 @@ The original stage documents include retired resources and historical experiment
 | [11 — Architecture decisions](11-architecture-decisions.md) | Why were these patterns selected over alternatives? | All |
 | [12 — Grounding assurance](12-grounding-assurance.md) | What can we prove about source use, accuracy and authorization? | All |
 
-Each integration page provides its purpose, flow, trust/data boundaries, failure behavior, evidence and open review questions. Identity and operations pages describe shared controls rather than requiring reviewers to infer them from six separate stages.
+Each integration page provides its purpose, flow, trust/data boundaries, failure behavior, evidence and open review questions. Identity and operations pages describe shared controls rather than requiring reviewers to infer them from separate stage reports.
 
 ## System context
 

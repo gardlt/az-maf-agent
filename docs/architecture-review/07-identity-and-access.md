@@ -40,3 +40,7 @@ Review **R02** for hosted distinct users and **R05/R08** for revocation/rotation
 - [Provisioning evidence](https://github.com/gardlt/az-maf-agent/blob/d65b5fc480a6eb8e593ac9fe0fd020dffd644b50/docs/validation/stage-5-evidence/agent-id-provisioning.json)
 
 Related: [review index](README.md), [evidence register](09-evidence-register.md), [open review gates](10-review-gaps.md).
+
+## Stage 7 live revocation addendum — 2026-10-20
+
+The [individual-agent containment review](14-agent-containment.md) records a user-authorized dev disable/restore drill. Disabled directory readback was verified, and new Foundry/MCP token requests eventually returned AADSTS7000112. Cached Agent ID tokens still authorized Foundry model listing and MCP tool discovery; Blob metadata access with the separate workload identity also succeeded. Therefore identity disable does not yet satisfy all-resource containment. Restoration and fresh token recovery passed; the ordinary chat canary was budget-blocked. [E13–E15](09-evidence-register.md) retain local tests, live observations and restoration/cleanup evidence. Broader isolation, legacy grants and independent service enforcement remain open.
