@@ -38,6 +38,8 @@ These checks describe the completed scope only. They do not close the broader re
 - [x] Document independent stop, reconciliation, schema-compatible rollback and explicit recovery procedures in the [operator runbook](../stage-5-operator-runbook.md). Full hosted rollback/rotation rehearsal remains open.
 - [x] Add the requested [Entra Agent ID](../entra-agent-id.md) and [Azure Monitor Agents view](../azure-monitor-agents-view.md) integration plans and release tasks. Both requested integrations are now complete for dev; see [hosted acceptance](../validation/stage-5-agent-id-observability.md).
 
+- [x] Run the fixed 50-session hosted behavior exercise with 20 movie-write attempts, deterministic 403/422 tool/schema denials, protected-audit verification and sampled before/after checks. See [results and limits](../validation/movie-agent-50-users.md). This uses one Entra identity and does not replace distinct-user/replica acceptance.
+
 ## Remaining release blockers
 
 - [x] Clear the release-blocking High/Critical findings for both rebuilt dev images; the existing gate passed. See [acceptance evidence](../validation/stage-5-agent-id-observability.md).

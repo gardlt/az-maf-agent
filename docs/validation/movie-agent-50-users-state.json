@@ -1,0 +1,7 @@
+{
+  "policy_epoch": 6,
+  "global_stop": false,
+  "control_state_schema_version": 2,
+  "newly_observed_nullable_rejection_receipts": 1,
+  "unresolved_runs_in_window": 0
+}
