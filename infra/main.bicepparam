@@ -8,6 +8,7 @@ param resourceGroupName = 'rg-maf-${azdEnvironmentName}-eus2-01'
 param location = readEnvironmentVariable('AZURE_LOCATION')
 param environmentName = 'cae-maf-${azdEnvironmentName}-eus2-01'
 param registryName = readEnvironmentVariable('MAF_REGISTRY_NAME')
+param registrySku = readEnvironmentVariable('MAF_REGISTRY_SKU', 'Basic')
 param pullIdentityName = 'id-maf-${azdEnvironmentName}-eus2-01'
 param logsName = 'law-maf-${azdEnvironmentName}-eus2-01'
 param agentAppName = 'ca-maf-agent-${azdEnvironmentName}-eus2-01'

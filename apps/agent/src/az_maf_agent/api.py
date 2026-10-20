@@ -142,6 +142,7 @@ def create_app(service: Service, verifier: EntraVerifier):
 
             fault_signal(exc.code)
         status = {
+            "provider_rejected": 502,
             "global_stop": 503,
             "control_unavailable": 503,
             "control_invalid": 503,

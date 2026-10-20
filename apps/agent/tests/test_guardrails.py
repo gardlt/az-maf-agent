@@ -180,3 +180,36 @@ def test_approval_invalidation_never_commits(cause, safety):
     with pytest.raises(Denied):
         ApprovalLedger(controls).execute(LOCAL, run["run_id"], 1, args, approval.approval_id)
     assert controls.backend._state["receipts"] == {}
+
+
+def test_terminal_provider_rejection_uses_versioned_unknown_usage_receipt(safety):
+    from az_maf_agent.guardrail_blob import SharedDocument
+
+    controls, _, _ = safety
+    run = start(controls)
+    controls.gate(LOCAL, run["run_id"], 1, "model", count=500)
+    before = controls.backend.snapshot()
+    controls.reject(LOCAL, run["run_id"], 1, 400)
+    after = controls.backend.snapshot()
+    record = after["runs"][run["run_id"]]
+    assert after["schema_version"] == 2
+    assert record["call_receipts"] == {"1": None}
+    assert record["actual_tokens"] == 0 and not record["unresolved"]
+    assert after["daily"] == before["daily"]
+    assert record["usd"] == before["runs"][run["run_id"]]["usd"]
+    SharedDocument.model_validate(after)
+    after["schema_version"] = 1
+    with pytest.raises(ValueError, match="nullable usage"):
+        SharedDocument.model_validate(after)
+    controls.reconcile(LOCAL, run["run_id"], 1, 10)
+    assert controls.backend.snapshot()["runs"][run["run_id"]]["actual_tokens"] == 10
+
+
+def test_server_failure_cannot_be_misclassified_as_known_rejection(safety):
+    controls, _, _ = safety
+    run = start(controls)
+    controls.gate(LOCAL, run["run_id"], 1, "model", count=500)
+    with pytest.raises(Denied, match="provider_usage"):
+        controls.reject(LOCAL, run["run_id"], 1, 503)
+    record = controls.backend.snapshot()["runs"][run["run_id"]]
+    assert record["unresolved"] and record["call_receipts"] == {}

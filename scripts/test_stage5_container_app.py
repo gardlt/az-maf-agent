@@ -34,7 +34,13 @@ def no_prompt(*args):
 
 def require(response, status):
     if response.status_code != status:
-        raise RuntimeError(f"expected_http_{status}_received_{response.status_code}")
+        try:
+            code = response.json().get("error", "unclassified")
+        except (ValueError, AttributeError):
+            code = "unclassified"
+        if not isinstance(code, str) or not re.fullmatch("[a-z_]{1,64}", code):
+            code = "unclassified"
+        raise RuntimeError(f"expected_http_{status}_received_{response.status_code}_{code}")
     return response.json() if response.content else {}
 
 

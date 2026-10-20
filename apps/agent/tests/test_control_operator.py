@@ -107,3 +107,74 @@ def test_operator_approval_is_bound_to_current_live_run_and_arguments():
     backend.state["runs"][run_id]["cancelled"] = True
     with pytest.raises(Denied, match="approval_invalid"):
         operator.approve(run_id, arguments, "b" * 64)
+
+
+def contained_run(configured):
+    from pathlib import Path
+    from uuid import uuid4
+
+    from az_maf_agent.core import LOCAL
+    from az_maf_agent.guardrails import FixtureControlBackend, FixtureOperator, RunControls
+
+    backend = FixtureControlBackend(
+        ControlPolicy.model_validate_json(Path("config/guardrail-policy.json").read_text())
+    )
+    backend.account = "fixtureaccount"
+    controls = RunControls(
+        backend,
+        configured(input_usd_per_million=1.25, output_usd_per_million=10.0),
+        clock=lambda: 1000.0,
+    )
+    run_id = str(uuid4())
+    controls.start(LOCAL, run_id)
+    controls.gate(LOCAL, run_id, 1, "model", count=500)
+    controls.finish(LOCAL, run_id, 1, "failed")
+    FixtureOperator(backend).publish(1, stop=True)
+    operator = BlobOperator(backend, clock=lambda: 1000.0, actor_ref="b" * 64)
+    evidence = {
+        "account": "fixtureaccount",
+        "observed_at": 1000.0,
+        "resources": [
+            {
+                "id": "/known/dev/agent",
+                "revisions": [
+                    {"name": "known-revision", "active": False, "replicas": 0, "running": "Stopped"}
+                ],
+            }
+        ],
+    }
+    return backend, controls, operator, run_id, evidence
+
+
+def test_operator_containment_releases_slot_without_fabricating_usage_or_refunding(configured):
+    from az_maf_agent.core import LOCAL
+
+    backend, controls, operator, run_id, evidence = contained_run(configured)
+    before = backend.snapshot()
+    result = operator.reconcile_contained(run_id, 2, evidence)
+    after = backend.snapshot()
+    assert after["daily"] == before["daily"]
+    for key in ["tokens", "usd", "actual_tokens", "call_receipts"]:
+        assert after["runs"][run_id][key] == before["runs"][run_id][key]
+    assert result["resolution"] == "contained_unknown_usage"
+    assert not after["runs"][run_id]["unresolved"]
+    assert backend.events[-1]["operator_ref"] == "b" * 64
+    controls.reconcile(LOCAL, run_id, 1, 12)
+    assert not backend.snapshot()["runs"][run_id]["unresolved"]
+    assert backend.snapshot()["runs"][run_id]["actual_tokens"] == 12
+
+
+@pytest.mark.parametrize("invalid", ["active", "no_inventory", "stale", "wrong_account"])
+def test_operator_reconciliation_rejects_inadequate_platform_containment(configured, invalid):
+    backend, _, operator, run_id, evidence = contained_run(configured)
+    if invalid == "active":
+        evidence["resources"][0]["revisions"][0]["active"] = True
+    elif invalid == "no_inventory":
+        evidence["resources"] = []
+    elif invalid == "stale":
+        evidence["observed_at"] = 900.0
+    else:
+        evidence["account"] = "wrong"
+    with pytest.raises(Denied, match="containment_evidence_required"):
+        operator.reconcile_contained(run_id, 2, evidence)
+    assert backend.snapshot()["runs"][run_id]["unresolved"]

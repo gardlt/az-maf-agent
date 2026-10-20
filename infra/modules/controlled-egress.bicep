@@ -157,7 +157,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-05-01' = {
         name: 'allow-platform-dns'
         properties: {
           priority: 110, direction: 'Outbound', access: 'Allow', protocol: '*'
-          sourceAddressPrefix: appSubnetCidr, destinationAddressPrefix: 'AzurePlatformDNS'
+          sourceAddressPrefix: appSubnetCidr, destinationAddressPrefix: '168.63.129.16'
           sourcePortRange: '*', destinationPortRange: '53'
         }
       }

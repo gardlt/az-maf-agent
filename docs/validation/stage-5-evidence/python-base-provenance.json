@@ -1,0 +1,12 @@
+[
+  {
+    "tag": "3.12.15-slim-trixie",
+    "index_digest": "sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1",
+    "linux_amd64_digest": "sha256:2b4f19dae3a777dfc3b76730bda1e82e1f66ab2a2686fa93ca78edbfb4f04ffe"
+  },
+  {
+    "tag": "3.12.15-slim-bookworm",
+    "index_digest": "sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258",
+    "linux_amd64_digest": "sha256:2ed6491b93cd49272ee6de2b5a38440c3448360322c089fc23e370722d74179d"
+  }
+]

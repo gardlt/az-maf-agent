@@ -1,0 +1,22 @@
+{
+  "policy_epoch": 5,
+  "daily_reserved_unchanged": true,
+  "runs": [
+    {
+      "run_id": "d5389006-d237-4181-83db-362bed664efc",
+      "reserved_tokens": 4982,
+      "reserved_usd": "0.0237275",
+      "usage_status": "unknown_no_invoice_claim",
+      "no_refund": true,
+      "no_fabricated_usage": true
+    },
+    {
+      "run_id": "4dc87cea-2f98-4e80-9c6b-34474f152cfa",
+      "reserved_tokens": 4982,
+      "reserved_usd": "0.0237275",
+      "usage_status": "unknown_no_invoice_claim",
+      "no_refund": true,
+      "no_fabricated_usage": true
+    }
+  ]
+}

@@ -123,3 +123,8 @@ class SupervisedRun:
             call_number,
             actual_tokens,
         )
+
+    async def reject(self, call_number, status):
+        return await self.supervisor.call(
+            self.supervisor.controls.reject, self.principal, self.run_id, call_number, status
+        )

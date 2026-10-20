@@ -358,9 +358,41 @@ class RunControls:
             if old is not None and old != actual_tokens:
                 raise Denied("provider_usage")
             run["call_receipts"][key] = actual_tokens
-            run["actual_tokens"] = sum(run["call_receipts"].values())
+            run["actual_tokens"] = sum(v for v in run["call_receipts"].values() if v is not None)
             if run["actual_tokens"] > run["tokens"]:
                 raise Denied("provider_usage")
+            run["unresolved"] = (
+                len(run["call_receipts"]) != run["calls"] and run["operator_resolution"] is None
+            )
+            return copy.deepcopy(run)
+
+        return self.backend.transact(transition)
+
+    def reject(self, principal, run_id, call_number, status):
+        """Known terminal HTTP rejection; usage is unknown and cost stays reserved."""
+        if type(status) is not int or status not in {400, 401, 403, 404, 405, 413, 415, 422, 429}:
+            raise Denied("provider_usage")
+        owner = scope_ref(principal)
+        record = self.inspect(principal, run_id)
+        self._event(
+            "provider_request_rejected",
+            run_id,
+            record["epoch"],
+            scope_ref=owner,
+            status="http_" + str(status),
+        )
+
+        def transition(state):
+            run = state["runs"].get(run_id)
+            if not run or run["owner"] != owner:
+                raise Denied("run_not_found")
+            if type(call_number) is not int or not 1 <= call_number <= run["calls"]:
+                raise Denied("provider_usage")
+            key = str(call_number)
+            if key in run["call_receipts"] and run["call_receipts"][key] is not None:
+                raise Denied("provider_usage")
+            state["schema_version"] = 2
+            run["call_receipts"][key] = None
             run["unresolved"] = (
                 len(run["call_receipts"]) != run["calls"] and run["operator_resolution"] is None
             )

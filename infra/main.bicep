@@ -8,6 +8,8 @@ param location string
 param environmentName string
 @description('Globally unique alphanumeric Azure Container Registry name.')
 param registryName string
+@allowed(['Basic', 'Standard', 'Premium'])
+param registrySku string = 'Basic'
 param pullIdentityName string
 param logsName string
 param agentAppName string
@@ -49,6 +51,7 @@ module foundation './modules/foundation.bicep' = {
   params: {
     environmentName: environmentName
     registryName: registryName
+    registrySku: registrySku
     pullIdentityName: pullIdentityName
     logsName: logsName
     location: location

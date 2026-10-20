@@ -153,3 +153,44 @@ async def test_configured_reasoning_effort_keeps_existing_output_bound(configure
     else:
         await t.complete([Message("user", ["hello"])], cfg)
     await t.close()
+
+
+@pytest.mark.parametrize("status", [400, 401, 403, 404, 405, 413, 415, 422])
+async def test_confirmed_http_rejection_is_typed_without_response_content(configured, status):
+    from az_maf_agent.model import ProviderRejected
+
+    cfg, t = await transport(
+        configured,
+        lambda request: httpx.Response(
+            status, json={"error": {"message": "SENSITIVE_ERROR_CANARY"}}
+        ),
+    )
+    with pytest.raises(ProviderRejected) as caught:
+        await t.complete([Message("user", ["hello"])], cfg)
+    assert caught.value.status == status
+    assert "SENSITIVE_ERROR_CANARY" not in str(caught.value)
+    await t.close()
+
+
+async def test_rejection_diagnostic_emits_only_allowlisted_category(configured, capsys):
+    from az_maf_agent.model import ProviderRejected
+
+    cfg, t = await transport(
+        configured,
+        lambda request: httpx.Response(
+            400,
+            json={
+                "error": {
+                    "code": "content_filter",
+                    "message": "SENSITIVE_ERROR_CANARY",
+                    "innererror": {"code": "ResponsibleAIPolicyViolation"},
+                }
+            },
+        ),
+    )
+    with pytest.raises(ProviderRejected) as caught:
+        await t.complete([Message("user", ["hello"])], cfg)
+    assert caught.value.category == "content_policy"
+    output = capsys.readouterr().out
+    assert "content_policy" in output and "SENSITIVE_ERROR_CANARY" not in output
+    await t.close()

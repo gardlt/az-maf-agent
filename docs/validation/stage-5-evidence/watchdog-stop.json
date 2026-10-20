@@ -1,0 +1,13 @@
+{
+  "operator_stop_started_utc_seconds": 1792457703.208663,
+  "published_utc_seconds": 1792457706.667109,
+  "epoch": 3,
+  "global_stop": true,
+  "run_id": "52c5f3ef-f641-4d3e-841b-b468f360cc52",
+  "cancel_seen_utc_seconds": 1792457706.4634967,
+  "observed_seconds": 3.255,
+  "reason": "global_stop",
+  "forbidden_followups": 0,
+  "real_provider_dispatched": false,
+  "cancellation_resistance_seconds": 2
+}

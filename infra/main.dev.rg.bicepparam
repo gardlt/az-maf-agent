@@ -3,6 +3,7 @@ using './main.rg.bicep'
 param location = 'eastus2'
 param environmentName = 'cae-maf-dev-eus2-01'
 param registryName = readEnvironmentVariable('MAF_REGISTRY_NAME')
+param registrySku = readEnvironmentVariable('MAF_REGISTRY_SKU', 'Basic')
 param pullIdentityName = 'id-maf-dev-eus2-01'
 param logsName = 'law-maf-dev-eus2-01'
 param agentAppName = 'ca-maf-agent-dev-eus2-01'

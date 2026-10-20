@@ -20,8 +20,16 @@ class Denied(Exception):
         super().__init__(code)
 
 
+class ProviderRejected(Denied):
+    def __init__(self, status, category="request_rejected"):
+        self.status = status
+        self.category = category
+        super().__init__("provider_rejected")
+
+
 class Transient(Exception):
-    pass
+    def __init__(self, rejected=False):
+        self.rejected = rejected
 
 
 def tokens(text: str) -> int:
@@ -46,6 +54,7 @@ class Ledger:
     actual_tokens: int = 0
     shared_reserve: object = None
     shared_reconcile: object = None
+    shared_reject: object = None
 
     def reserve(self, count: int):
         s, lim = self.settings, self.settings.limits
@@ -77,6 +86,10 @@ class Ledger:
             await self.shared_reconcile(call_number, actual)
         self.actual_tokens += actual
 
+    async def reject(self, call_number, status):
+        if self.shared_reject is not None:
+            await self.shared_reject(call_number, status)
+
 
 async def isolated_provider_call(awaitable, ledger, call_number):
     """A cancellation-resistant adapter cannot hold its parent or commit history."""
@@ -90,18 +103,26 @@ async def isolated_provider_call(awaitable, ledger, call_number):
             if done.cancelled():
                 return
             error = done.exception()
-            if error is None and ledger.shared_reconcile is not None:
+            reconciliation = None
+            if isinstance(error, ProviderRejected) and ledger.shared_reject is not None:
+                reconciliation = asyncio.create_task(
+                    ledger.shared_reject(call_number, error.status)
+                )
+            elif (
+                isinstance(error, Transient) and error.rejected and ledger.shared_reject is not None
+            ):
+                reconciliation = asyncio.create_task(ledger.shared_reject(call_number, 429))
+            elif error is None and ledger.shared_reconcile is not None:
                 result = done.result()
                 actual = result[-1] if isinstance(result, tuple) else None
                 if type(actual) is int and actual >= 0:
                     reconciliation = asyncio.create_task(
                         ledger.shared_reconcile(call_number, actual)
                     )
-                    reconciliation.add_done_callback(
-                        lambda completed: (
-                            completed.exception() if not completed.cancelled() else None
-                        )
-                    )
+            if reconciliation is not None:
+                reconciliation.add_done_callback(
+                    lambda completed: completed.exception() if not completed.cancelled() else None
+                )
 
         task.add_done_callback(settled)
         raise
@@ -200,7 +221,34 @@ class AzureTransport:
                 headers={"Authorization": "Bearer " + token.token},
                 json=payload,
             ) as response:
-                if response.status_code in (429, 500, 502, 503, 504):
+                if response.status_code == 429:
+                    raise Transient(rejected=True)
+                if response.status_code in {400, 401, 403, 404, 405, 413, 415, 422}:
+                    error_bytes = bytearray()
+                    async for chunk in response.aiter_bytes(chunk_size=4096):
+                        error_bytes.extend(chunk)
+                        if len(error_bytes) > 16384:
+                            break
+                    category = "request_rejected"
+                    try:
+                        error = json.loads(error_bytes).get("error", {})
+                        codes = {error.get("code"), error.get("innererror", {}).get("code")}
+                        if codes & {"content_filter", "ResponsibleAIPolicyViolation"}:
+                            category = "content_policy"
+                    except (ValueError, TypeError, AttributeError):
+                        pass
+                    print(
+                        json.dumps(
+                            {
+                                "event": "provider_request_rejected",
+                                "status": response.status_code,
+                                "category": category,
+                            }
+                        ),
+                        flush=True,
+                    )
+                    raise ProviderRejected(response.status_code, category)
+                if response.status_code in (500, 502, 503, 504):
                     raise Transient()
                 if response.status_code != 200:
                     raise Denied("provider_failure")
@@ -256,7 +304,12 @@ class GuardedClient(BaseChatClient):
                     raise Denied("provider_usage")
                 await ledger.reconcile(call_number, actual)
                 return ChatResponse(messages=[Message("assistant", [text])])
-            except Transient:
+            except ProviderRejected as exc:
+                await ledger.reject(call_number, exc.status)
+                raise
+            except Transient as exc:
+                if exc.rejected:
+                    await ledger.reject(call_number, 429)
                 if attempt == lim.retries:
                     raise Denied("retry_exhausted") from None
                 await asyncio.sleep(random.uniform(0, min(0.1 * 2**attempt, 1.0)))

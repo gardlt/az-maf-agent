@@ -1,0 +1,113 @@
+{
+  "changes": [
+    {
+      "after": {
+        "apiVersion": "2025-04-01",
+        "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.ContainerRegistry/registries/crmafdevmako261018",
+        "location": "eastus2",
+        "name": "crmafdevmako261018",
+        "properties": {
+          "adminUserEnabled": false,
+          "anonymousPullEnabled": false,
+          "dataEndpointEnabled": true,
+          "encryption": {
+            "status": "disabled"
+          },
+          "networkRuleBypassOptions": "AzureServices",
+          "policies": {
+            "azureADAuthenticationAsArmPolicy": {
+              "status": "enabled"
+            },
+            "exportPolicy": {
+              "status": "enabled"
+            },
+            "quarantinePolicy": {
+              "status": "disabled"
+            },
+            "retentionPolicy": {
+              "days": 7,
+              "status": "disabled"
+            },
+            "trustPolicy": {
+              "status": "disabled",
+              "type": "Notary"
+            }
+          },
+          "publicNetworkAccess": "Enabled",
+          "zoneRedundancy": "Disabled"
+        },
+        "resourceGroup": "rg-maf-dev-eus2-01",
+        "sku": {
+          "name": "Premium"
+        },
+        "type": "Microsoft.ContainerRegistry/registries"
+      },
+      "before": {
+        "apiVersion": "2025-04-01",
+        "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.ContainerRegistry/registries/crmafdevmako261018",
+        "location": "eastus2",
+        "name": "crmafdevmako261018",
+        "properties": {
+          "adminUserEnabled": false,
+          "anonymousPullEnabled": false,
+          "dataEndpointEnabled": false,
+          "encryption": {
+            "status": "disabled"
+          },
+          "networkRuleBypassOptions": "AzureServices",
+          "policies": {
+            "azureADAuthenticationAsArmPolicy": {
+              "status": "enabled"
+            },
+            "exportPolicy": {
+              "status": "enabled"
+            },
+            "quarantinePolicy": {
+              "status": "disabled"
+            },
+            "retentionPolicy": {
+              "days": 7,
+              "status": "disabled"
+            },
+            "trustPolicy": {
+              "status": "disabled",
+              "type": "Notary"
+            }
+          },
+          "publicNetworkAccess": "Enabled",
+          "zoneRedundancy": "Disabled"
+        },
+        "resourceGroup": "rg-maf-dev-eus2-01",
+        "sku": {
+          "name": "Basic"
+        },
+        "type": "Microsoft.ContainerRegistry/registries"
+      },
+      "changeType": "Modify",
+      "delta": [
+        {
+          "after": true,
+          "before": false,
+          "children": null,
+          "path": "properties.dataEndpointEnabled",
+          "propertyChangeType": "Modify"
+        },
+        {
+          "after": "Premium",
+          "before": "Basic",
+          "children": null,
+          "path": "sku.name",
+          "propertyChangeType": "Modify"
+        }
+      ],
+      "deploymentId": null,
+      "extension": null,
+      "identifiers": null,
+      "resourceId": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.ContainerRegistry/registries/crmafdevmako261018",
+      "symbolicName": null,
+      "unsupportedReason": null
+    }
+  ],
+  "error": null,
+  "status": "Succeeded"
+}

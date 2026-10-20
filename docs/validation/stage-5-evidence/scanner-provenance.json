@@ -1,0 +1,18 @@
+[
+  {
+    "tool": "syft",
+    "version": "v1.55.0",
+    "release": "https://github.com/anchore/syft/releases/tag/v1.55.0",
+    "asset": "syft_1.55.0_darwin_amd64.tar.gz",
+    "sha256": "e2e5831cbabaec9a36fe65c34755c1113982c842a685edce3ce0b54a0ded8003",
+    "checksums_verified": true
+  },
+  {
+    "tool": "grype",
+    "version": "v0.121.0",
+    "release": "https://github.com/anchore/grype/releases/tag/v0.121.0",
+    "asset": "grype_0.121.0_darwin_amd64.tar.gz",
+    "sha256": "27eef17e42f0340af6582cdbc33ad18faf9f601c613ab81d2e1658a94cbc357f",
+    "checksums_verified": true
+  }
+]

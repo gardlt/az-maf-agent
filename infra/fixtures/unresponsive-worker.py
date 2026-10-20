@@ -1,6 +1,5 @@
 """Synthetic containment fixture: no tools, secrets, model calls, or user data."""
 import json
-import signal
 import time
 
 # Deliberately does not implement application policy polling or run cancellation.

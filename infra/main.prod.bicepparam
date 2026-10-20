@@ -6,6 +6,7 @@ param resourceGroupName = 'rg-maf-prod-eus2-01'
 param location = 'eastus2'
 param environmentName = 'cae-maf-prod-eus2-01'
 param registryName = readEnvironmentVariable('MAF_REGISTRY_NAME')
+param registrySku = readEnvironmentVariable('MAF_REGISTRY_SKU', 'Basic')
 param pullIdentityName = 'id-maf-prod-eus2-01'
 param logsName = 'law-maf-prod-eus2-01'
 param agentAppName = 'ca-maf-agent-prod-eus2-01'

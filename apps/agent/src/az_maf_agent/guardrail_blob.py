@@ -31,7 +31,7 @@ class RunDocument(BaseModel):
     memory: int = Field(ge=0, le=8)
     violations: int = Field(ge=0)
     cancelled: bool
-    call_receipts: dict[str, int] = Field(max_length=8)
+    call_receipts: dict[str, int | None] = Field(max_length=8)
     unresolved: bool
     operator_resolution: Literal["contained_unknown_usage"] | None
 
@@ -39,8 +39,14 @@ class RunDocument(BaseModel):
     def consistent_usage(self):
         if any(key not in {str(n) for n in range(1, self.calls + 1)} for key in self.call_receipts):
             raise ValueError("invalid call receipt")
+        if any(
+            value is not None and not 0 <= value <= self.tokens
+            for value in self.call_receipts.values()
+        ):
+            raise ValueError("invalid call usage")
         if (
-            sum(self.call_receipts.values()) != self.actual_tokens
+            sum(value for value in self.call_receipts.values() if value is not None)
+            != self.actual_tokens
             or self.actual_tokens > self.tokens
         ):
             raise ValueError("invalid usage total")
@@ -85,12 +91,20 @@ class SessionRegistration(BaseModel):
 
 class SharedDocument(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
-    schema_version: int = Field(ge=1, le=1)
+    schema_version: int = Field(ge=1, le=2)
     policy_epoch: int = Field(ge=1)
     runs: dict[str, RunDocument] = Field(max_length=1000)
     daily: dict[str, str] = Field(max_length=2000)
     receipts: dict[str, ReceiptDocument] = Field(max_length=1000)
     sessions: dict[str, SessionRegistration] = Field(max_length=1000)
+
+    @model_validator(mode="after")
+    def receipt_version(self):
+        if self.schema_version == 1 and any(
+            value is None for run in self.runs.values() for value in run.call_receipts.values()
+        ):
+            raise ValueError("nullable usage requires control schema 2")
+        return self
 
     @field_validator("runs")
     @classmethod
@@ -112,6 +126,7 @@ class SharedDocument(BaseModel):
 class BlobControlBackend:
     def __init__(self, account, *, credential=None, telemetry=None):
         self.telemetry = telemetry
+        self.account = account
         self.policy_store = BlobMemoryStore(account, "guardrail-policy", credential=credential)
         self.state_store = BlobMemoryStore(account, "guardrail-state", credential=credential)
         self.audit_store = BlobMemoryStore(account, "guardrail-audit", credential=credential)
@@ -188,7 +203,17 @@ class BlobControlBackend:
             return result  # Never retry a lost/ambiguous response.
 
     def audit(self, event):
-        allowed = {"event", "run_id", "epoch", "time", "scope_ref", "capability", "status"}
+        allowed = {
+            "event",
+            "run_id",
+            "epoch",
+            "time",
+            "scope_ref",
+            "capability",
+            "status",
+            "operator_ref",
+            "evidence_ref",
+        }
         if not set(event) <= allowed or len(json.dumps(event)) > 2048:
             raise Denied("audit_invalid")
         content = json.dumps(event, sort_keys=True, separators=(",", ":")).encode()

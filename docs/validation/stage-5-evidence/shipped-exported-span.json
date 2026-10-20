@@ -1,0 +1,8 @@
+[
+  {
+    "AppRoleName": "az-maf-agent-controls",
+    "Name": "control.dispatch_authorized",
+    "Properties": "{\"control.event\":\"dispatch_authorized\",\"control.run_id\":\"830d82fe-506a-4257-894c-a350a752e834\",\"control.scope_ref\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"control.epoch\":\"1\",\"control.capability\":\"model\"}",
+    "TableName": "PrimaryResult"
+  }
+]

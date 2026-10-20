@@ -5,7 +5,7 @@ import json
 import random
 import re
 
-from .model import Denied, Transient, isolated_provider_call, tokens
+from .model import Denied, ProviderRejected, Transient, isolated_provider_call, tokens
 from .movie_mcp import validate_arguments
 
 MAX_TOOL_CALLS = 2
@@ -38,7 +38,12 @@ async def _turn(transport, settings, ledger, messages, gate=None):
                 raise Denied("provider_usage")
             await ledger.reconcile(call_number, actual)
             return message, finish
-        except Transient:
+        except ProviderRejected as exc:
+            await ledger.reject(call_number, exc.status)
+            raise
+        except Transient as exc:
+            if exc.rejected:
+                await ledger.reject(call_number, 429)
             if attempt == settings.limits.retries:
                 raise Denied("retry_exhausted") from None
             await asyncio.sleep(random.uniform(0, min(0.1 * 2**attempt, 1.0)))

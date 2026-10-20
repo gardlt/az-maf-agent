@@ -601,6 +601,7 @@ class Service:
                 if guard is not None:
                     ledger.shared_reserve = guard.reserve
                     ledger.shared_reconcile = guard.reconcile
+                    ledger.shared_reject = guard.reject
                 # Work on a private snapshot: failed/reset/cancelled runs cannot commit history.
                 snapshot = copy.deepcopy(session.state)
                 if guard is not None and session.history_epoch not in (0, guard.epoch):

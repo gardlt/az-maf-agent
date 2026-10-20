@@ -2,6 +2,8 @@
 param environmentName string
 @description('Globally unique Basic Azure Container Registry name.')
 param registryName string
+@allowed(['Basic', 'Standard', 'Premium'])
+param registrySku string = 'Basic'
 @description('User-assigned identity used only to pull images.')
 param pullIdentityName string
 @description('Log Analytics workspace name.')
@@ -16,11 +18,18 @@ resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   properties: { retentionInDays: 30, sku: { name: 'PerGB2018' } }
 }
 
-resource registry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+resource registry 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   name: registryName
   location: location
-  sku: { name: 'Basic' }
-  properties: { adminUserEnabled: false, publicNetworkAccess: 'Enabled' }
+  sku: { name: registrySku }
+  properties: {
+    adminUserEnabled: false
+    anonymousPullEnabled: false
+    publicNetworkAccess: 'Enabled'
+    dataEndpointEnabled: registrySku == 'Premium'
+    encryption: { status: 'disabled' }
+    policies: { azureADAuthenticationAsArmPolicy: { status: 'enabled' } }
+  }
 }
 
 resource pullIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {

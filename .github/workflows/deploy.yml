@@ -11,6 +11,7 @@ on:
       - 'infra/**'
       - 'azure.yaml'
       - '.github/workflows/deploy.yml'
+      - 'scripts/scan_release_image.sh'
   workflow_dispatch:
     inputs:
       environment:
@@ -42,6 +43,7 @@ jobs:
       AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       MAF_REGISTRY_NAME: ${{ vars.MAF_REGISTRY_NAME }}
+      MAF_REGISTRY_SKU: ${{ vars.MAF_REGISTRY_SKU || 'Basic' }}
       MAF_TENANT_ID: ${{ vars.MAF_TENANT_ID }}
       MAF_AGENT_AUDIENCE: ${{ vars.MAF_AGENT_AUDIENCE }}
       MAF_ALLOWED_USERS: ${{ vars.MAF_ALLOWED_USERS }}
@@ -80,6 +82,7 @@ jobs:
                   location="$AZURE_LOCATION" \
                   environmentName="$managed_environment" \
                   registryName="$MAF_REGISTRY_NAME" \
+                  registrySku="$MAF_REGISTRY_SKU" \
                   pullIdentityName="$pull_identity" \
                   logsName="$logs_name" \
                   assignAcrPullRole=false \
@@ -94,6 +97,7 @@ jobs:
                   location="$AZURE_LOCATION" \
                   environmentName="$managed_environment" \
                   registryName="$MAF_REGISTRY_NAME" \
+                  registrySku="$MAF_REGISTRY_SKU" \
                   pullIdentityName="$pull_identity" \
                   logsName="$logs_name" \
                 --subscription "$AZURE_SUBSCRIPTION_ID" \
@@ -108,15 +112,26 @@ jobs:
           if [[ "$service" == agent || "$service" == all ]]; then
             agent_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-agent:${GITHUB_SHA}"
             docker build --platform linux/amd64 --file Dockerfile --tag "$agent_tag" .
+            bash scripts/scan_release_image.sh "docker:$agent_tag" security-reports/agent
             docker push "$agent_tag"
             echo "MAF_AGENT_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$agent_tag")" >> "$GITHUB_ENV"
           fi
           if [[ "$service" == movie-mcp || "$service" == all ]]; then
             mcp_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-movie-mcp:${GITHUB_SHA}"
             docker build --platform linux/amd64 --file Dockerfile.mcp --tag "$mcp_tag" .
+            bash scripts/scan_release_image.sh "docker:$mcp_tag" security-reports/movie-mcp
             docker push "$mcp_tag"
             echo "MAF_MCP_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$mcp_tag")" >> "$GITHUB_ENV"
           fi
+
+      - name: Retain local image scan evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-security-${{ github.run_id }}
+          path: security-reports/
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Preview full environment changes
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.service == 'all' }}

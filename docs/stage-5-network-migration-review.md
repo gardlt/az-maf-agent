@@ -60,3 +60,17 @@ flowchart LR
 7. Rollback selects the previous endpoint/digest while preserving stopped policy epochs, reservations, audit and user state. It does not downgrade/delete shared accounting. After approved observation, retire old apps/environment and the synthetic stop fixture; keep only the intended network foundation. Cleanup must explicitly account for firewall/public-IP charges.
 
 The user explicitly approved phase one after reviewing the eleven creates and recurring charges; deployment `stage5-network-foundation` is in progress. No current production-network completion claim is made.
+
+
+## Registry prerequisite review (separate approval)
+
+[registry-networking.bicep](../infra/modules/registry-networking.bicep) has a successful what-if showing one existing registry modification with exactly two property changes: `sku.name` Basic → Premium and `dataEndpointEnabled` false → true. Existing anonymous-pull, Microsoft-managed encryption mode and ARM authentication settings are explicitly preserved. No repositories, grants, app names or traffic endpoints are deleted or moved.
+
+The incremental registry rate is **$1.50/day** (about **$45.63 per 730-hour month**). The prepared workflow and foundation templates read the dev environment variable `MAF_REGISTRY_SKU`; setting it to `Premium` makes future deployments preserve the required tier and dedicated data endpoints. Default behavior stays Basic until that reviewed variable change is approved. Existing login server and digest-pinned images stay valid. App migration/Key Vault/RBAC changes remain a subsequent review.
+
+
+## Latest deployment and registry decision
+
+The user approved phase one, and deployment `stage5-network-foundation-retry` succeeded. The first attempt failed because Azure does not support an Allow rule with the `AzurePlatformDNS` service tag. The repaired NSG uses the documented platform DNS address `168.63.129.16`; the NSG repair and foundation retry succeeded. Existing app traffic was not moved.
+
+The user declined the separately proposed registry upgrade. Keep `crmafdevmako261018` Basic and leave the dev `MAF_REGISTRY_SKU` variable unset (default Basic). The Premium what-if and module are review artifacts, not deployment authorization. The dedicated-endpoint design above is therefore blocked for app cutover. Prepare another reviewed image-delivery design before moving apps; do not broaden storage egress or upgrade the registry implicitly. The approved Firewall foundation remains provisioned and incurs its approved recurring charges.

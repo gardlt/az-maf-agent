@@ -24,7 +24,7 @@ Do not perform the unresponsive-worker drill against the working learner app. Do
 
 ## Reconciliation and recovery
 
-Review outstanding reservations, observed usage receipts, approval consumption and simulated effect receipts. Preserve conservative reservations for unknown outcomes. Do not fabricate usage, clear state, or compensate a real effect without separate authorization. If a worker must be manually classified as contained with unknown usage, record independent platform evidence and the operator decision; a ledger repair tool for that decision remains to be implemented.
+Review outstanding reservations, observed usage receipts, approval consumption and simulated effect receipts. Preserve conservative reservations for unknown outcomes. Do not fabricate usage, clear state, or compensate a real effect without separate authorization. If a worker must be manually classified as contained with unknown usage, record independent platform evidence and the operator decision; the separate `reconcile-contained` operator command enforces fresh platform evidence before recording that decision.
 
 Repair or replace the affected component and validate its digest, identity, secrets and reviewed configuration. Keep global stop through deployment. After reconciliation, use explicit `recover --expected-epoch N`. Recovery preserves disabled capabilities. Enable a repaired component separately, then use a fresh session/run and newly issued approval for the canary. Confirm old approvals, queues and history cannot resume. Re-stop on recurrence.
 
@@ -33,3 +33,16 @@ Repair or replace the affected component and validate its digest, identity, secr
 Keep the prior digest and deployment parameters. Roll back the image while retaining the shared stopped policy, epoch, reservations and audit. Do not downgrade code past the shared-state schema it can validate; fail closed rather than reinterpret state. Check health privately before reopening dispatch.
 
 For credential compromise, stop first, revoke/rotate the compromised credential at its issuer, update the approved secret reference, and check that the old credential fails. Never copy secret values into runbooks, evidence, logs or chat. Review protected audit access and retention separately from supplemental traces. The precise hosted Key Vault/rotation and image rollback drills remain release gates.
+
+
+### Contained worker with unknown usage
+
+With global stop still enabled, use the separate operator CLI:
+
+```sh
+uv run --locked python -m az_maf_agent.control_operator --account stmafmemdevmako261019 reconcile-contained --run-id RUN_UUID --expected-epoch CURRENT_EPOCH --resource-group rg-maf-dev-eus2-01 --subscription f39e7f3b-fae5-400b-86d9-1dfe9d45f048 --evidence-output /private/tmp/contained-worker-evidence.json
+```
+
+The command independently inventories all revisions, requires fresh evidence that they are inactive/stopped with zero replicas, writes protected operator/evidence references, and conditionally marks the run contained with unknown usage. It never refunds reservations or invents provider receipts. Review the evidence and retained accounting before explicitly recovering. Reactivating an Azure revision does not recover the stopped policy.
+
+Confirmed terminal provider rejections may have null usage receipts in shared schema 2. Unknown timeout/network/server outcomes remain unresolved. Deploy schema-2-compatible code while stopped; after schema 2 is written, a schema-1-only image cannot be used for rollback.

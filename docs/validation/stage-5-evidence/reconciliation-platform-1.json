@@ -1,0 +1,191 @@
+{
+  "account": "stmafmemdevmako261019",
+  "observed_at": 1792458356.097028,
+  "resources": [
+    {
+      "id": "/subscriptions/f39e7f3b-fae5-400b-86d9-1dfe9d45f048/resourceGroups/rg-maf-dev-eus2-01/providers/Microsoft.App/containerapps/ca-maf-agent-dev-eus2-01",
+      "revisions": [
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000001",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000002",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000003",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000004",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000005",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000006",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000007",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000008",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000009",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000010",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000011",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000012",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000013",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000014",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000015",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000016",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000017",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000018",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000019",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000020",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--3ppn42q",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000021",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000022",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000023",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000024",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000025",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000026",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000027",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000028",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        },
+        {
+          "name": "ca-maf-agent-dev-eus2-01--0000029",
+          "active": false,
+          "replicas": 0,
+          "running": "Stopped"
+        }
+      ]
+    }
+  ]
+}

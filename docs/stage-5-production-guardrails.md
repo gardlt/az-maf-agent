@@ -1,6 +1,6 @@
 # Stage 5 — containment and operator recovery
 
-Status: implementation and hosted validation in progress. Stage 5 is not complete. The dev app now runs shared controls and Blob sessions. Policy recovery advanced to epoch 2 after stopped-ingress and stopped-restart checks. Production release gates remain open.
+Status: implementation and hosted validation in progress. Stage 5 is not complete. The dev app now runs shared controls and Blob sessions. The current maintenance policy is epoch 5 with global stop enabled pending a schema-aware release and explicit recovery. Production release gates remain open.
 
 ## Approved dev contract
 
@@ -18,7 +18,7 @@ The separate operator command initialized policy epoch **1**, **global_stop=true
 
 A probe inside the actual Stage 4 agent revision `ca-maf-agent-dev-eus2-01--0000024` verified the new identity boundary: policy GET 200, policy PUT 403, state GET 200, conditional same-content state PUT 201, audit create 201, audit GET 403, audit DELETE 403. The content-free `rbac-probe-*` audit record is an administrative permission test rather than a runtime event envelope and remains protected for the retention period. No preference or conversation content was read by this probe.
 
-Local validation reached **161 passing tests**, with lint passing. Operator publication failure, exact approval binding/cancellation, exported-span redaction, cleanup pagination/concurrent changes, and ambiguous Blob write outcomes have dedicated regression coverage.
+Local validation reached **182 passing tests**, with lint passing. Operator publication failure, exact approval binding/cancellation, exported-span redaction, cleanup pagination/concurrent changes, and ambiguous Blob write outcomes have dedicated regression coverage.
 
 ## Operator commands
 
@@ -42,7 +42,7 @@ Shared reservations retain conservative cost and token commitments across retrie
 
 Session documents use ETag updates and trusted tenant/user scope hashes. Revision/run fences reject stale or concurrent commits. Reset clears history while preserving aggregate counters; a newer policy epoch prevents old conversation history from being revived after recovery. Cleanup uses a durable bounded paging cursor and conditional deletion, so a concurrent update is not deleted and later pages are not indefinitely skipped.
 
-Telemetry uses an isolated explicit tracer and static resources, without HTTP/model/logging auto-instrumentation. Only enumerated event names, capability/status values, epochs and validated hashed scope/run identifiers are exported. Protected Blob audit is mandatory before dispatch; trace export is supplemental. Local exported-span inspection verifies a secret canary is absent. Actual Azure-exported spans remain to be inspected.
+Telemetry uses an isolated explicit tracer and static resources, without HTTP/model/logging auto-instrumentation. Only enumerated event names, capability/status values, epochs and validated hashed scope/run identifiers are exported. Protected Blob audit is mandatory before dispatch; trace export is supplemental. Local exported-span inspection verifies a secret canary is absent. Actual shipped Azure-exported spans were inspected; see [exported-span evidence](validation/stage-5-evidence/shipped-exported-span.json).
 
 ## Remaining release evidence
 
@@ -76,3 +76,19 @@ The first fixed evaluation reported 60% with a title-only grader; four diagnosti
 A bounded operator compatibility canary verified that the existing GPT-5 deployment/API accepts minimal reasoning effort (19 observed tokens). The app configuration now requests that effort within the same 2,000-token output and existing spend limits, following [Azure's reasoning guidance](https://learn.microsoft.com/azure/foundry/openai/how-to/reasoning). The quality gate requires a fresh deployed run; this is not a threshold relaxation.
 
 The user requested and approved the separately reviewed 11-resource phase-one VNet/Basic Firewall foundation. Deployment `stage5-network-foundation` is in progress. Registry upgrade and app migration are excluded from that approval. See [migration and cost review](stage-5-network-migration-review.md). Existing dev app traffic remains in the original environment until the later reviewed cutover.
+
+
+## Current release blockers and maintenance evidence
+
+The user selected **block unresolved High and Critical vulnerabilities**. The deployed agent digest `sha256:4e5502849017de2763d9774d1f05fdb9a59ed514b11f5b406576e7db09eb89d0` has 20 Critical and 202 High matches in the local Grype scan. It fails release. The image SBOM and [scan evidence](validation/stage-5-evidence/image-vulnerability-scan.json) are retained; image layers were not uploaded to a scanning service. Docker Scout remains skipped. A patched base and final rebuilt-image rescan are required; updating a Dockerfile alone does not satisfy the gate.
+
+Two unknown provider outcomes were independently reconciled only after every known dev agent revision was verified inactive, stopped and at zero replicas. The operator classification preserves all reserved tokens/cost and observed receipts, and explicitly retains unknown provider usage. See [reconciliation evidence](validation/stage-5-evidence/reconciliation.json). The revision was reactivated, but policy remains stopped at epoch 5. No invoice cancellation or zero-usage claim is made.
+
+The pending provider-rejection change records confirmed terminal HTTP rejections separately from unknown transport outcomes. Null usage receipts require shared-state schema 2; no zero usage is fabricated and reservations remain intact. Keep global stop through rollout. After any schema-2 write, rollback must use code that validates schema 2. A schema-1-only image is not a compatible rollback target.
+
+The fixed live benign evaluation achieved 90% under the frozen grader; [results](validation/stage-5-live-evaluation.md) describe its limits. Shared-backend synthetic watchdog containment measured 3.255 seconds. Actual multi-replica conversation/reset validation and the final network topology remain open. Phase-one network foundation succeeded, but the user declined Premium ACR; app cutover requires another reviewed image-delivery design.
+
+
+Both Dockerfiles now pin the verified official Python 3.12.15 slim Trixie index digest. A local base-only comparison found zero Critical and 55 High matches for that candidate, versus three Critical and 79 High for the Bookworm candidate. These are base-image results, not a final application-image clearance. See [comparison evidence](validation/stage-5-evidence/python-base-scan-comparison.json). No unresolved findings are suppressed because their vendor status is `wont-fix` or `not-fixed`.
+
+The deployment workflow now scans each built image locally with checksum-pinned Syft 1.55.0 and Grype 0.121.0 before pushing it. `--fail-on high` blocks unresolved High/Critical findings, including findings without fixes; scanner/database failures also block rollout. SBOM and vulnerability reports are retained as workflow artifacts for 30 days. A passing application test suite does not bypass this gate.
