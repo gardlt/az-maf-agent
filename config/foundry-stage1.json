@@ -1,5 +1,5 @@
 {
-  "policy_version": "stage-1-foundry-gpt-5-v1",
+  "policy_version": "stage-6-routing-v1",
   "mode": "azure",
   "endpoint": "https://aif-homelab-rv6t99la.openai.azure.com",
   "deployment": "gpt-5",
@@ -26,5 +26,25 @@
     "parallel": 10,
     "max_sessions": 1000
   },
-  "reasoning_effort": "minimal"
+  "reasoning_effort": "minimal",
+  "routing": {
+    "version": "stage6-v1",
+    "mode": "auto",
+    "routine": {
+      "deployment": "gpt-5-mini",
+      "api_version": "2024-06-01",
+      "reasoning_effort": "minimal",
+      "input_usd_per_million": 0.25,
+      "output_usd_per_million": 2.0,
+      "model_context_tokens": 400000
+    },
+    "reasoning": {
+      "deployment": "gpt-5",
+      "api_version": "2024-06-01",
+      "reasoning_effort": "minimal",
+      "input_usd_per_million": 1.25,
+      "output_usd_per_million": 10.0,
+      "model_context_tokens": 400000
+    }
+  }
 }

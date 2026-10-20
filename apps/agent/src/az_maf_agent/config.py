@@ -29,6 +29,26 @@ class Limits(BaseModel):
     max_sessions: int = Field(gt=0, le=1000)
 
 
+class ModelRoute(BaseModel):
+    """Trusted deployment metadata; routes cannot change origin, identity or limits."""
+
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+    deployment: str = Field(pattern=r"^[A-Za-z0-9_-]{1,100}$")
+    api_version: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}(-preview)?$")
+    reasoning_effort: Literal["minimal", "low", "medium", "high"]
+    input_usd_per_million: float = Field(gt=0, allow_inf_nan=False)
+    output_usd_per_million: float = Field(gt=0, allow_inf_nan=False)
+    model_context_tokens: int = Field(gt=0)
+
+
+class RoutingPolicy(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+    version: str = Field(pattern=r"^[A-Za-z0-9_.-]{1,100}$")
+    mode: Literal["auto", "routine", "reasoning"] = "auto"
+    routine: ModelRoute
+    reasoning: ModelRoute
+
+
 class Settings(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     policy_version: str = Field(min_length=1, max_length=100)
@@ -42,6 +62,7 @@ class Settings(BaseModel):
     output_usd_per_million: float | None = Field(default=None, ge=0, allow_inf_nan=False)
     model_context_tokens: int | None = Field(default=None, gt=0)
     managed_identity_client_id: str | None = None
+    routing: RoutingPolicy | None = None
 
     @model_validator(mode="after")
     def live_contract(self):
@@ -71,6 +92,15 @@ class Settings(BaseModel):
                 raise ValueError("approved pricing required")
             if self.limits.context_tokens + self.limits.output_tokens > self.model_context_tokens:
                 raise ValueError("context plus output exceeds approved model window")
+        if self.routing is not None:
+            if self.mode != "azure":
+                raise ValueError("routing requires approved Azure deployments")
+            for route in (self.routing.routine, self.routing.reasoning):
+                if (
+                    self.limits.context_tokens + self.limits.output_tokens
+                    > route.model_context_tokens
+                ):
+                    raise ValueError("route context window too small")
         return self
 
 

@@ -584,7 +584,25 @@ class Service:
                 raise Denied("daily_budget")
             self.daily[key] = value
 
-        ledger = Ledger(self.settings, reserve_daily)
+        from .routing import select_route
+
+        decision = select_route(
+            self.settings, text, reviewed_skill=skill.manifest.skill_id if skill else None
+        )
+        selected = decision.settings
+        span = CURRENT_AGENT_SPAN.get()
+        if span is not None:
+            span.set_attributes(
+                {
+                    "maf.routing.route": decision.name,
+                    "maf.routing.reason": decision.reason,
+                    "maf.routing.version": self.settings.routing.version
+                    if self.settings.routing
+                    else "single",
+                    "gen_ai.request.model": selected.deployment or "fake",
+                }
+            )
+        ledger = Ledger(selected, reserve_daily)
         movie_reads_before = session.movie_reads
         emit_run("run_started", run_id, principal=principal, sid=sid)
         self.active[principal] = self.active.get(principal, 0) + 1
@@ -616,7 +634,13 @@ class Service:
             )
             async with context as guard:
                 if guard is not None:
-                    ledger.shared_reserve = guard.reserve
+
+                    async def reserve_selected(count):
+                        return await guard.reserve(
+                            count, route=decision.name if self.settings.routing else None
+                        )
+
+                    ledger.shared_reserve = reserve_selected
                     ledger.shared_reconcile = guard.reconcile
                     ledger.shared_reject = guard.reject
                 # Work on a private snapshot: failed/reset/cancelled runs cannot commit history.
@@ -745,7 +769,7 @@ class Service:
 
                         answer = await run_model_tools(
                             self.transport,
-                            self.settings,
+                            selected,
                             ledger,
                             messages,
                             text,

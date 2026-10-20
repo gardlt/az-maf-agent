@@ -274,14 +274,34 @@ class RunControls:
             raise Denied("run_lease_expired")
         return run
 
-    def gate(self, principal, run_id, epoch, capability=None, *, count=None, actual_tokens=None):
+    def gate(
+        self,
+        principal,
+        run_id,
+        epoch,
+        capability=None,
+        *,
+        count=None,
+        actual_tokens=None,
+        route=None,
+    ):
         policy = self._authority(epoch, capability)
+        from .routing import resolve_route
+
+        priced = resolve_route(self.settings, route) if count is not None else self.settings
         owner, limits = scope_ref(principal), self.settings.limits
         if count is not None and (
             type(count) is not int or not 0 <= count <= limits.context_tokens
         ):
             raise Denied("context_limit")
-        self._event("dispatch_authorized", run_id, epoch, capability=capability, scope_ref=owner)
+        self._event(
+            "dispatch_authorized",
+            run_id,
+            epoch,
+            capability=capability,
+            scope_ref=owner,
+            model_route=route if count is not None else None,
+        )
 
         def transition(state):
             now = self.clock()
@@ -292,14 +312,14 @@ class RunControls:
             if count is not None:
                 if (
                     capability != "model"
-                    or self.settings.input_usd_per_million is None
-                    or self.settings.output_usd_per_million is None
+                    or priced.input_usd_per_million is None
+                    or priced.output_usd_per_million is None
                 ):
                     raise Denied("unknown_pricing")
                 total = count + limits.output_tokens
                 cost = (
-                    Decimal(str(self.settings.input_usd_per_million)) * count
-                    + Decimal(str(self.settings.output_usd_per_million)) * limits.output_tokens
+                    Decimal(str(priced.input_usd_per_million)) * count
+                    + Decimal(str(priced.output_usd_per_million)) * limits.output_tokens
                 ) / 1_000_000
                 key = f"{int(now // 86400)}:{owner}"
                 daily = Decimal(state["daily"].get(key, "0")) + cost

@@ -112,6 +112,7 @@ def main():
                     "seconds": elapsed,
                     "benign_success": meaningful,
                     "run_id": result.get("run_id"),
+                    "trace_id": result.get("trace_id"),
                     "calls": run["calls"] if run else None,
                     "tools": run["tools"] if run else None,
                     "preferences_unchanged": unchanged,

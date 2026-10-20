@@ -206,7 +206,7 @@ class AzureTransport:
         return total
 
     async def _request(self, payload, settings):
-        from .agent_telemetry import operation, record_usage
+        from .agent_telemetry import SAFE_NAME, operation, record_usage
 
         with operation(
             "chat",
@@ -218,6 +218,13 @@ class AzureTransport:
             },
         ) as span:
             result = await self._send_request(payload, settings)
+            reported_model = result.get("model") if isinstance(result, dict) else None
+            if (
+                span is not None
+                and isinstance(reported_model, str)
+                and SAFE_NAME.fullmatch(reported_model)
+            ):
+                span.set_attribute("gen_ai.response.model", reported_model)
             # Only validated observed usage; reservations are not usage metrics.
             try:
                 total = self._usage(result, settings)
@@ -321,7 +328,7 @@ class GuardedClient(BaseChatClient):
             try:
                 async with asyncio.timeout(lim.call_seconds):
                     text, actual = await isolated_provider_call(
-                        self.transport.complete(messages, self.settings), ledger, call_number
+                        self.transport.complete(messages, ledger.settings), ledger, call_number
                     )
                 if not isinstance(text, str) or not text or tokens(text) > lim.output_tokens:
                     raise Denied("output_limit")

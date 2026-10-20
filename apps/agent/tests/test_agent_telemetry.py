@@ -108,6 +108,7 @@ async def test_actual_service_transport_correlates_model_and_mcp(configured):
         return httpx.Response(
             200,
             json={
+                "model": "gpt-5-2025-08-07",
                 "choices": [
                     {
                         "message": message,

@@ -111,8 +111,8 @@ class SupervisedRun:
             await self.fence()
         return result
 
-    async def reserve(self, count):
-        state = await self.gate("model", count=count)
+    async def reserve(self, count, *, route=None):
+        state = await self.gate("model", count=count, route=route)
         return state["calls"]
 
     async def reconcile(self, call_number, actual_tokens):
