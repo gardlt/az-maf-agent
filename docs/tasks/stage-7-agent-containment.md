@@ -1,10 +1,10 @@
 # Stage 7 tasks — Automatic individual-agent containment
 
-Status: **planned; no implementation or hosted validation complete**, 2026-10-20.
+Status: **implementation started locally; hosted acceptance remains open**, 2026-10-20. See [local foundation results](../stages/stage-7/validation/local-quarantine-results.md).
 
 [Design and Microsoft references](../stages/stage-7/README.md) · [Validation matrix](../stages/stage-7/validation/README.md) · [Roadmap](README.md)
 
-Goal: a configured trusted alert/threshold or a manual emergency disable quarantines one agent and disables its individual Entra Agent ID, with independently verified denial across every Azure access path. Keep other agents working. New-token issuance denial alone is insufficient. All checkboxes below are open.
+Goal: a configured trusted alert/threshold or a manual emergency disable quarantines one agent and disables its individual Entra Agent ID, with independently verified denial across every Azure access path. Keep other agents working. New-token issuance denial alone is insufficient. All acceptance checkboxes below remain open; the first local slice is not stage completion.
 
 ## Ordered implementation tasks and dependencies
 
@@ -18,7 +18,7 @@ Goal: a configured trusted alert/threshold or a manual emergency disable quarant
 | S7-06 | S7-04, S7-05 | Specify independent controller hosting, durable inbox/quarantine, registry, append-only evidence, watchdog and service authorization leases. Produce exact Graph/Azure permission manifest and negative-permission tests; separate disable from recovery authority. | Agent cannot change controller/rules/registry/quarantine, impersonate controller or self-enable; controller cannot disable outside approved scope; `controller-permissions.md`. Infrastructure/deployment review is separate authorization. |
 | S7-07 | S7-06 | Implement shared per-Agent-ID quarantine generation, dispatch and queue fencing, active-result rejection, retry/approval fencing and reservation reconciliation across replicas. Add independent service enforcement for each selected boundary. | Quarantine precedes acknowledgment; partition/stale cache fails closed; no accounting reset, foreign data effects or late-result resurrection; `local-quarantine-results.json`. |
 | S7-08 | S7-03, S7-06, S7-07 | Implement authenticated alert handler and exact-identity disable with durable idempotency, bounded retry/backoff, Graph/resource readback, verification workers, per-action status and independent failure escalation. | Duplicate/out-of-order alerts and partial success converge without enabling or touching shared objects; all unknown outcomes remain quarantined; `controller-results.json`. |
-| S7-09 | S7-08 | Add operator-only emergency disable button using the same containment path; protect actor/tenant/identity binding, request forgery and replay, expose status and audit. Document separate portal fallback and its limitations. | Works without alert delivery or agent cooperation; unauthorized disable/reset denied; target A only; `manual-disable-results.json`. |
+| S7-09 | S7-08 | Use the individual-agent Disable action in the Entra admin center as the manual control. Implement authenticated controller observation/reconciliation of portal state/audit, actor/tenant/identity binding, status and limitations; no custom button required. | Works without alert delivery or agent cooperation; unauthorized disable/reset denied; target A only; `manual-disable-results.json`. |
 | S7-10 | S7-07, S7-08 | Implement heartbeat/lease watchdog, durable alert replay and explicit manual recovery workflow with incident review and generation-bound authorization. Keep quarantine until identity/resource canaries pass. | Controller outage fails closed; re-enable requires distinct operator action; no replayed work, old approval reuse or budget reset; `outage-recovery-results.json`. |
 | S7-11 | S7-07–S7-10 | Run deterministic local fault-injection QA and authorized hosted A/B drills across the full validation matrix, including external pre-issued tokens, MI fallback, open sessions, concurrent replicas and resource-state checks. Freeze fixtures and capture before/after state. | All safety cases pass maximums; at least 20 timing drills; zero collateral interruption/forbidden effects. `hosted-qa.md`, `timing-results.json`, redacted `evidence/`. |
 | S7-12 | S7-11 | Review worst-case/percentile latency, incident escalation, residual risks, operator rehearsal and credential/grant retirement. Update architecture review and stage status with exact release/controller/policy versions and approval references. | Sign-off only for measured scope; any uncovered service, unknown bypass or missed deadline keeps the gate open; `acceptance-review.md`. |
@@ -44,4 +44,4 @@ Goal: a configured trusted alert/threshold or a manual emergency disable quarant
 
 ## Planning scope
 
-This change creates a plan and tasks only. Runtime implementation, new identity/controller privileges, resource migration, deployment, disabling a live identity and destructive incident actions require their own reviewed authorized execution. Existing validation remains historical evidence, not Stage 7 proof.
+The initial change created this plan and tasks; local implementation has now begun. Runtime implementation, new identity/controller privileges, resource migration, deployment, disabling a live identity and destructive incident actions require their own reviewed authorized execution. Existing validation remains historical evidence, not Stage 7 proof.

@@ -1,12 +1,12 @@
 # Stage 7: Automatic containment of an individual agent
 
-Status: **planned, documentation only**, 2026-10-20. No controller, alert action, identity change or Azure deployment is implemented by this plan.
+Status: **local implementation started**, 2026-10-20. The [first local foundation](validation/local-quarantine-results.md) adds durable quarantine transitions, a disable-only Graph adapter and an injectable dispatch gate. Hosted controller, alert delivery and resource containment remain unimplemented; no identity or Azure changes have been made.
 
 [All stages](../README.md) · [Ordered implementation tasks](../../tasks/stage-7-agent-containment.md) · [Validation plan and evidence](validation/README.md)
 
 ## Required outcome
 
-Every independently containable agent has its own Microsoft Entra Agent ID. A configured bad-activity alert or threshold automatically quarantines that agent and disables authentication for that exact identity. An authenticated manual emergency disable button invokes the same operation without waiting for alert evaluation. Prefer containment when a configured security threshold fires; do not wait for model self-assessment or human confirmation. Re-enablement always requires separate, explicit operator authorization after investigation.
+Every independently containable agent has its own Microsoft Entra Agent ID. A configured bad-activity alert or threshold automatically quarantines that agent and disables authentication for that exact identity. The manual emergency control is Disable on the individual identity in the Microsoft Entra admin center. Planned controller reconciliation must observe that disable and apply quarantine without depending on alert threshold evaluation. Prefer containment when a configured security threshold fires; do not wait for model self-assessment or human confirmation. Re-enablement always requires separate, explicit operator authorization after investigation.
 
 The target is to block the affected agent from Foundry, Blob Storage, MCP and **every Azure resource reachable through any credential it can obtain**. Turning off new token issuance is one action, not proof that already issued tokens, established connections or direct managed-identity routes have stopped working. An uncovered resource or unknown result leaves containment incomplete and release blocked.
 
@@ -93,11 +93,11 @@ These are **design targets, not measured guarantees**. Approve them before tests
 
 ## Recovery and scope
 
-An authenticated manual button must display verified tenant, agent object ID, environment and affected workload, then issue a disable-only command. Restrict it to incident operators, protect against request forgery/replay, log the actor and incident reference, and expose durable per-action status. A directory portal disable is an emergency fallback, not proof that application/resource quarantine happened.
+Use Entra ID → Agents → Agent identities → select the verified individual agent → Disable as the manual emergency control. Restrict directory access to authorized incident operators and retain the directory audit actor, exact object ID and incident reference. Implement controller reconciliation of portal disable with durable quarantine and visible per-action status; test its delay and outage behavior. A portal disable alone is not proof that application/resource quarantine happened. No custom administrative button is required for this first scope.
 
 Recovery requires an incident review, identified cause, credential/grant review, reconciled unknown effects, healthy controller and current inventory. An explicitly authorized recovery action binds actor, incident, Agent ID, quarantine generation and reviewed configuration. Invalidate old caches/leases/sessions/approvals; do not resurrect queued work or reset budgets. While quarantine holds, re-enable only the exact approved identity and perform isolated canaries; release quarantine last. Partial failure restores/retains quarantine. Auto-clear alerts never authorize reset.
 
-This stage includes design, implementation tasks, manual/automatic single-agent containment and adversarial QA. It excludes an SOC replacement, autonomous remediation/re-enablement, tenant-wide disable, blueprint-wide disable, destructive shared-resource emergency actions and retroactive reversal of accepted external effects. No implementation or Azure change is authorized by this planning document.
+This stage includes design, implementation tasks, manual/automatic single-agent containment and adversarial QA. It excludes an SOC replacement, autonomous remediation/re-enablement, tenant-wide disable, blueprint-wide disable, destructive shared-resource emergency actions and retroactive reversal of accepted external effects. This plan does not itself authorize a live disable, new controller permissions or Azure deployment. Local implementation progress is recorded separately.
 
 ## Verified Microsoft sources and investigation limits
 
