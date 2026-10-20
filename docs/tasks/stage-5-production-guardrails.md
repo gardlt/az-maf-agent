@@ -75,6 +75,8 @@ These checks describe the completed scope only. They do not close the broader re
 
 ## Security and negative scenarios
 
+Track the dedicated two-user data-access exercise in [cybersecurity.md — SEC-001](../../cybersecurity.md#sec-001--access-another-persons-data). The one-identity load test does not close this hosted isolation task.
+
 | Scenario | Required response and proof |
 | --- | --- |
 | Unauthorized tool | Deny before dispatch; repeated violations cancel at the configured threshold. Record policy decision and zero backend calls. |
