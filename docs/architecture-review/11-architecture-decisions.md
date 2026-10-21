@@ -25,6 +25,10 @@ Blob ETags are per-object coordination, not a multi-object transaction. Audit re
 
 Routing's measured 77.6% routine inference cost reduction comes with slower median latency in the fixed batch. Its keyword rule is explainable but not semantic certainty. Retain model-specific quality checks and do not use a stronger route to override a safety denial.
 
+## Open architecture issue
+
+The current decision to keep TMDB behind MCP may be revisited if reducing service count becomes a demonstrated need. This is separate from whether skills are used: reviewed Markdown skills can guide either MCP-backed tools or fixed tools implemented inside the agent. Executable skills or generic HTTP access would expand authority and need a separate security design. See [15 — MCP, skills, and direct API access](15-mcp-skills-api-access.md) for the comparison and required evidence. No option is selected there.
+
 ## Change procedure
 
 Give new decisions an ID and state the concrete trigger, selected option, alternatives, impact on data/identity/network/cost, evidence needed and approval authority. Preserve superseded decisions and tested release boundaries. Do not rewrite historical experiment evidence to appear current.

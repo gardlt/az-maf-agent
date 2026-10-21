@@ -28,6 +28,7 @@ The original stage documents include retired resources and historical experiment
 | [10 — Review gaps and decisions](10-review-gaps.md) | What must be resolved before broader release? | All |
 | [11 — Architecture decisions](11-architecture-decisions.md) | Why were these patterns selected over alternatives? | All |
 | [12 — Grounding assurance](12-grounding-assurance.md) | What can we prove about source use, accuracy and authorization? | All |
+| [15 — MCP, skills, and direct API access](15-mcp-skills-api-access.md) | Should TMDB calls stay behind MCP, move into fixed agent tools, or become executable skill capabilities? | Open issue |
 
 Each integration page provides its purpose, flow, trust/data boundaries, failure behavior, evidence and open review questions. Identity and operations pages describe shared controls rather than requiring reviewers to infer them from separate stage reports.
 

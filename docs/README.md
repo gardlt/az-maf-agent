@@ -6,6 +6,7 @@
 - [AG-UI integration plan](ag-ui-integration-plan.md): status, boundaries, and follow-up work for the browser client using the Agent–User Interaction Protocol.
 - [Web UI](../apps/web/README.md): local React client for the AG-UI endpoint.
 - [Architecture review](architecture-review/README.md): system boundaries, decisions, grounding assurance and review evidence.
+- [MCP, skills, and direct API access issue](architecture-review/15-mcp-skills-api-access.md): open comparison of implementation options and security tradeoffs.
 - [Teaching specification](secure-agent-teaching-spec.md): requirements and security contracts.
 - [Deployment guide](github-actions-deployment.md) and [dev environment settings](dev-environment-variables.md).
 - [Entra Agent ID](entra-agent-id.md) and [Agents observability](azure-monitor-agents-view.md).
