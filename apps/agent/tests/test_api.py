@@ -131,7 +131,9 @@ async def test_authenticated_movie_route_keeps_read_only_scope(api):
 
 def ag_ui_events(response):
     assert response.headers["content-type"].startswith("text/event-stream")
-    return [json.loads(line[6:]) for line in response.text.splitlines() if line.startswith("data: ")]
+    return [
+        json.loads(line[6:]) for line in response.text.splitlines() if line.startswith("data: ")
+    ]
 
 
 async def test_ag_ui_runs_owned_session_and_emits_protocol_lifecycle(api):
@@ -183,9 +185,7 @@ async def test_ag_ui_requires_auth_owned_session_and_supported_text(api):
         assert (await client.post("/ag-ui", json=body)).status_code == 401
         assert (await client.post("/ag-ui", headers=auth(oid=other), json=body)).status_code == 404
         assert (
-            await client.post(
-                "/ag-ui", headers=auth(), json={**body, "state": {"revision": 0}}
-            )
+            await client.post("/ag-ui", headers=auth(), json={**body, "state": {"revision": 0}})
         ).status_code == 422
         assert (
             await client.post(

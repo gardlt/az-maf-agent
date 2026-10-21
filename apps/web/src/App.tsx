@@ -1,5 +1,7 @@
 import { HttpAgent } from "@ag-ui/client";
-import { useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import type { AccountInfo } from "@azure/msal-browser";
+import { EntraAuth, SignInRequiredError } from "./auth";
 
 type ChatMessage = { id: string; role: "user" | "assistant"; text: string };
 
@@ -14,9 +16,11 @@ const apiError = async (response: Response) => {
   return detail;
 };
 
-export default function App() {
-  const [apiUrl, setApiUrl] = useState("/api");
-  const [token, setToken] = useState("");
+export default function App({ auth, endpoint }: { auth: EntraAuth; endpoint: string }) {
+  const [account, setAccount] = useState<AccountInfo | null>(null);
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authRequired, setAuthRequired] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const [resumeId, setResumeId] = useState("");
   const [sessionId, setSessionId] = useState("");
   const [revision, setRevision] = useState<number | null>(null);
@@ -26,21 +30,77 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const agentRef = useRef<HttpAgent | null>(null);
   const stoppingRef = useRef(false);
-  const endpoint = useMemo(() => apiUrl.trim().replace(/\/$/, ""), [apiUrl]);
+  const requestPending = useRef(false);
 
-  const headers = () => ({ Authorization: `Bearer ${token.trim()}` });
+  function disconnect() {
+    agentRef.current?.abortRun();
+    setSessionId("");
+    setRevision(null);
+    setMessages([]);
+    setDraft("");
+    setResumeId("");
+    setNotice("");
+  }
+
+  function showError(error: unknown, fallback: string) {
+    if (error instanceof SignInRequiredError) {
+      setAuthRequired(true);
+      setNotice(error.message);
+    } else {
+      // Do not display raw identity-provider errors or token responses.
+      setNotice(fallback);
+    }
+  }
+
+  async function signIn() {
+    if (authBusy || requestPending.current) return;
+    setAuthBusy(true);
+    setNotice("");
+    try {
+      const signedIn = await auth.signIn();
+      // A different signed-in user must never inherit another user's visible session.
+      if (signedIn.homeAccountId !== account?.homeAccountId) disconnect();
+      setAccount(signedIn);
+      setAuthRequired(false);
+    } catch {
+      setNotice("Sign-in did not complete. Try again and allow the Microsoft sign-in popup.");
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  async function signOut() {
+    if (!account || busy || requestPending.current) return;
+    const signedOut = account;
+    disconnect();
+    setAccount(null);
+    setAuthRequired(false);
+    setAuthBusy(true);
+    try {
+      await auth.signOut(signedOut);
+    } catch {
+      setNotice("Local sign-in was cleared. Microsoft sign-out did not complete; close the tab if you are finished.");
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  async function headers() {
+    if (!account || authRequired) throw new SignInRequiredError();
+    return { Authorization: `Bearer ${await auth.getAccessToken(account)}` };
+  }
 
   async function connect(event?: FormEvent) {
     event?.preventDefault();
     setNotice("");
-    if (!token.trim()) {
-      setNotice("Enter an Entra access token to connect.");
-      return;
-    }
+    if (!account || authRequired || authBusy || requestPending.current) return;
+    requestPending.current = true;
+    setConnecting(true);
     try {
+      const authorization = await headers();
       if (resumeId.trim()) {
         const response = await fetch(`${endpoint}/sessions/${encodeURIComponent(resumeId.trim())}`, {
-          headers: headers(),
+          headers: authorization,
         });
         if (!response.ok) throw new Error(await apiError(response));
         const status = await response.json();
@@ -49,7 +109,7 @@ export default function App() {
         setResumeId("");
         setNotice("Session resumed. Earlier messages are not loaded into this UI yet.");
       } else {
-        const response = await fetch(`${endpoint}/sessions`, { method: "POST", headers: headers() });
+        const response = await fetch(`${endpoint}/sessions`, { method: "POST", headers: authorization });
         if (!response.ok) throw new Error(await apiError(response));
         const session = await response.json();
         setSessionId(session.session_id);
@@ -59,14 +119,35 @@ export default function App() {
         setNotice("New session ready.");
       }
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Could not connect to the agent.");
+      showError(error, "Could not connect. Confirm that your account has access and the agent API is available.");
+    } finally {
+      requestPending.current = false;
+      setConnecting(false);
     }
   }
 
-  function send(event?: FormEvent) {
+  async function send(event?: FormEvent) {
     event?.preventDefault();
     const text = draft.trim();
-    if (!text || busy || !sessionId || !token.trim()) return;
+    if (!text || busy || !sessionId || !account || authRequired || authBusy || requestPending.current) return;
+    requestPending.current = true;
+    setBusy(true);
+    stoppingRef.current = false;
+    let authorization: { Authorization: string };
+    try {
+      authorization = await headers();
+    } catch (error) {
+      requestPending.current = false;
+      setBusy(false);
+      showError(error, "Could not renew your sign-in. Try signing in again.");
+      return;
+    }
+    if (stoppingRef.current) {
+      requestPending.current = false;
+      setBusy(false);
+      setNotice("Response stopped.");
+      return;
+    }
 
     const userId = crypto.randomUUID();
     const assistantId = crypto.randomUUID();
@@ -80,7 +161,7 @@ export default function App() {
     ]);
     setBusy(true);
 
-    const agent = new HttpAgent({ url: `${endpoint}/ag-ui`, headers: headers() });
+    const agent = new HttpAgent({ url: `${endpoint}/ag-ui`, headers: authorization });
     agentRef.current = agent;
     stoppingRef.current = false;
     const stream = agent.run({
@@ -127,11 +208,15 @@ export default function App() {
             item.id === assistantId && !item.text ? { ...item, text: message } : item,
           ),
         );
+        setBusy(false);
+        requestPending.current = false;
+        agentRef.current = null;
       },
       complete: () => {
         setBusy(false);
         stoppingRef.current = false;
         agentRef.current = null;
+        requestPending.current = false;
       },
     });
   }
@@ -143,12 +228,14 @@ export default function App() {
   }
 
   async function resetSession() {
-    if (!sessionId) return;
+    if (!sessionId || authBusy || requestPending.current || authRequired) return;
+    requestPending.current = true;
+    setBusy(true);
     agentRef.current?.abortRun();
     try {
       const response = await fetch(`${endpoint}/sessions/${encodeURIComponent(sessionId)}/reset`, {
         method: "POST",
-        headers: headers(),
+        headers: await headers(),
       });
       if (!response.ok) throw new Error(await apiError(response));
       const result = await response.json();
@@ -156,7 +243,10 @@ export default function App() {
       setMessages([]);
       setNotice("Conversation history cleared.");
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Could not reset the session.");
+      showError(error, "Could not clear the conversation. Check your access and try again.");
+    } finally {
+      requestPending.current = false;
+      setBusy(false);
     }
   }
 
@@ -190,8 +280,12 @@ export default function App() {
       <section className="workspace">
         <header className="topbar">
           <div className="breadcrumb"><span>AGENT BONES</span><i>/</i><strong>Movie guide</strong></div>
+          <div className="session-actions">
+          {account && <span>{account.name || account.username}</span>}
+          {account && <button className="quiet-button" onClick={signOut} disabled={busy || authBusy || connecting}>Sign out</button>}
           <div className={`connection-pill ${sessionId ? "connected" : ""}`}>
             <span />{sessionId ? "SESSION ACTIVE" : "NOT CONNECTED"}
+          </div>
           </div>
         </header>
 
@@ -203,17 +297,17 @@ export default function App() {
 
             <form className="connect-card" onSubmit={connect}>
               <div className="card-heading"><div><span className="eyebrow">GET STARTED</span><h2>Connect to your agent</h2></div><span className="lock-icon">⌑</span></div>
-              <label htmlFor="api-url">Agent API address</label>
-              <input id="api-url" value={apiUrl} onChange={(event) => setApiUrl(event.target.value)} autoComplete="url" />
-              <label htmlFor="token">Entra access token</label>
-              <input id="token" type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="Paste a short-lived Chat.Access token" autoComplete="off" />
-              <p className="field-hint">Used only in this tab’s memory. It is not saved in browser storage.</p>
+              <p className="field-hint">Sign in with your organization’s Microsoft account to access your agent.</p>
+              {(!account || authRequired) && <button className="primary-button connect-button" type="button" onClick={signIn} disabled={authBusy}>
+                {authBusy ? "Signing in…" : authRequired ? "Sign in again" : "Sign in with Microsoft"}<span>↗</span>
+              </button>}
+              {account && !authRequired && <p className="field-hint">Signed in as {account.name || account.username}.</p>}
               <details className="resume-details">
                 <summary>Resume an existing session</summary>
                 <label htmlFor="session-id">Session ID</label>
                 <input id="session-id" value={resumeId} onChange={(event) => setResumeId(event.target.value)} placeholder="Optional session UUID" />
               </details>
-              <button className="primary-button connect-button" type="submit">Connect <span>↗</span></button>
+              {account && !authRequired && <button className="primary-button connect-button" type="submit" disabled={connecting || authBusy}>{connecting ? "Connecting…" : "Connect"} <span>↗</span></button>}
               {notice && <p className="notice" role="status">{notice}</p>}
             </form>
             <p className="privacy-note"><span>◈</span> Protected by your organization’s access policy</p>
@@ -228,8 +322,8 @@ export default function App() {
               <div className="session-actions">
                 <span className="revision">REV {revision ?? 0}</span>
                 <button className="quiet-button" onClick={copySessionId}>Copy session ID</button>
-                <button className="quiet-button" onClick={resetSession} disabled={busy}>Clear chat</button>
-                <button className="quiet-button" onClick={() => { agentRef.current?.abortRun(); setSessionId(""); setRevision(null); setMessages([]); setToken(""); }} disabled={busy}>Disconnect</button>
+                <button className="quiet-button" onClick={resetSession} disabled={busy || authRequired || authBusy}>Clear chat</button>
+                <button className="quiet-button" onClick={disconnect} disabled={busy || authBusy}>Disconnect</button>
               </div>
             </div>
             <div className="messages" aria-live="polite" aria-label="Conversation">
@@ -257,14 +351,15 @@ export default function App() {
               )}
             </div>
             <form className="composer" onSubmit={send}>
-              <textarea value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={onComposerKeyDown} placeholder="Tell me what you’d like to watch…" rows={2} disabled={busy} aria-label="Message the movie guide" />
+              <textarea value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={onComposerKeyDown} placeholder="Tell me what you’d like to watch…" rows={2} disabled={busy || authRequired || authBusy} aria-label="Message the movie guide" />
               <div className="composer-footer">
                 <span>ENTER TO SEND <i>·</i> SHIFT + ENTER FOR A NEW LINE</span>
-                {busy ? <button className="stop-button" type="button" onClick={stop}>Stop response <span>■</span></button> : <button className="send-button" type="submit" disabled={!draft.trim()}>Send <span>↗</span></button>}
+                {busy ? <button className="stop-button" type="button" onClick={stop}>Stop response <span>■</span></button> : <button className="send-button" type="submit" disabled={!draft.trim() || authRequired || authBusy}>Send <span>↗</span></button>}
               </div>
             </form>
             <div className="chat-footer"><span>Session <code>{sessionId.slice(0, 8)}…{sessionId.slice(-4)}</code></span><span>Responses may be imperfect. Check details before you decide.</span></div>
             {notice && <p className="notice chat-notice" role="status">{notice}</p>}
+            {authRequired && <button className="primary-button" onClick={signIn} disabled={authBusy}>{authBusy ? "Signing in…" : "Sign in again"}</button>}
           </section>
         )}
       </section>

@@ -21,6 +21,8 @@ param agentAudience string = ''
 param allowedUsers string = ''
 param apiClientId string = ''
 param cliClientId string = ''
+@description('Optional approved Entra SPA client. Empty retains CLI-only access.')
+param webClientId string = ''
 @secure()
 param authClientSecret string = ''
 param mcpAudience string = ''
@@ -120,6 +122,7 @@ module agent './patterns/agent.bicep' = if (deployAgent) {
     allowedUsers: allowedUsers
     apiClientId: apiClientId
     cliClientId: cliClientId
+    webClientId: webClientId
     authClientSecret: authClientSecret
     externalIngress: true
     enableMovieMcp: true

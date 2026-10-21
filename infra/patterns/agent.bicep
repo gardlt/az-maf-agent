@@ -11,6 +11,7 @@ param audience string
 param allowedUsers string
 param apiClientId string
 param cliClientId string
+param webClientId string = ''
 @secure()
 param authClientSecret string
 @description('Enable the private movie MCP integration.')
@@ -121,7 +122,7 @@ module auth '../modules/container-app-auth.bicep' = {
       azureActiveDirectory: {
         enabled: true
         registration: { clientId: apiClientId, clientSecretSettingName: 'easyauth-client-secret', openIdIssuer: entraIssuer }
-        validation: { allowedAudiences: [audience], jwtClaimChecks: { allowedClientApplications: [cliClientId] } }
+        validation: { allowedAudiences: [audience], jwtClaimChecks: { allowedClientApplications: empty(webClientId) ? [cliClientId] : [cliClientId, webClientId] } }
       }
     }
   } }

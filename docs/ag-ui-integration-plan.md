@@ -1,6 +1,6 @@
 # AG-UI integration plan
 
-**Status:** the initial local vertical slice is implemented. The authenticated FastAPI service exposes `POST /ag-ui` using the official Python event models and encoder, and `apps/web` provides a React/Vite client using `@ag-ui/client`. The browser client supports bearer-token entry, session creation/resume, chat, stop, and history reset. The server adapts the existing governed `Service.chat` path and emits lifecycle events with one completed text delta; it does not stream model tokens. Browser-based Entra sign-in, hosted origin configuration, and transcript history loading remain planned.
+**Status:** the local vertical slice and browser Entra sign-in are implemented. The authenticated FastAPI service exposes `POST /ag-ui` using the official Python event models and encoder, and `apps/web` provides a React/Vite client using `@ag-ui/client`. The browser client supports Microsoft sign-in, session creation/resume, chat, stop, and history reset. MSAL Browser acquires delegated `Chat.Access` tokens in memory before API calls. The server adapts the existing governed `Service.chat` path and emits lifecycle events plus a completed text delta. Hosted UI/origin configuration and transcript history loading remain planned; an interactive browser sign-in canary still requires the user to complete Microsoft sign-in.
 
 ## Goal
 
@@ -11,7 +11,7 @@ Give the movie assistant a browser UI using AG-UI’s event-based, bidirectional
 - The agent is a Python/FastAPI service in `apps/agent`; it has authenticated session create/status/chat/reset/cancel routes.
 - Chat is currently request/response. `Service.chat` runs the existing guarded model/tool loop and commits session history under a revision/run fence.
 - The hosted CLI uses Entra bearer tokens. Optional shared Blob sessions and shared safety controls support hosted operation.
-- The local web frontend is `apps/web`; it keeps the bearer token in tab memory and uses Vite's `/api` proxy during development. Hosted deployment and browser sign-in are not configured. The terminal interface and CLI remain available.
+- The local web frontend is `apps/web`; MSAL uses an in-memory token cache and Vite's `/api` proxy during development. The dedicated single-tenant SPA requests only delegated `Chat.Access`. Hosted UI deployment remains open. The terminal interface and CLI remain available.
 - Existing standalone endpoints handle explicit movie reads, memory operations, and approval simulations. Those actions must not be made implicitly available merely because the new client uses AG-UI.
 
 ## Implemented local slice
@@ -20,7 +20,7 @@ The authenticated AG-UI endpoint and React browser client are implemented as a l
 
 The current local vertical slice supports:
 
-1. Manually enter an Entra bearer token and forward it to the authenticated API. Browser sign-in is not included.
+1. Sign in through Microsoft in a popup. Silently acquire an API access token before each request; offer explicit sign-in renewal when required. Sign-out clears authentication and the visible conversation. A different account cannot inherit the prior user's visible session.
 2. Create/resume an owned session and display its session ID and revision. Resumed sessions retain server history, but prior transcript messages are not loaded into the UI.
 3. Submit a user message and consume AG-UI run events. Assistant text arrives as one completed delta after `Service.chat` returns, not incrementally while the run is active.
 4. Abort the active request and show completion, cancellation, or a sanitized error.
@@ -46,7 +46,7 @@ The current local vertical slice supports:
 
 - The client provides a chat screen, pending state, stop, session reset, and create/resume. It receives final text after the backend run completes; retry behavior and incremental tokens are not implemented.
 - Use the AG-UI client SDK if it supports the selected server contract; keep the UI’s state minimal and derive durable conversation state from the server session.
-- No Entra client secret is present. The current client accepts a manually supplied short-lived token in tab memory; public-client sign-in and deployed origin restrictions remain to be designed.
+- No Entra client secret is present. MSAL Browser uses authorization code flow with PKCE and memory storage. A dedicated `/redirect.html` bridge is included in the Vite build. Public configuration fixes the API target instead of allowing a user to redirect bearer tokens. `MAF_WEB_CLIENT_ID` adds only the approved SPA to Container Apps' existing client allowlist; user and API scope checks remain in force. See [web setup](../apps/web/README.md). Deployed origins remain to be configured.
 - Show explicit controls for skills and any memory actions. Keep memory inspect/save/correct/delete on their dedicated APIs and require the existing consent semantics.
 
 ### 4. Verify behavior and security boundaries (partial)

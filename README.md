@@ -66,14 +66,15 @@ The hosted CLI also supports reviewed skills such as `--skill movie-research`, e
 The initial AG-UI React client lives in [apps/web](apps/web/README.md). It connects to the
 same authenticated Python API as the CLI, creates or resumes an owner-scoped session, and
 supports chat, stop, and history reset. The current endpoint emits AG-UI lifecycle events
-and a completed assistant text event; token-by-token delivery and browser-based Entra
-sign-in are not implemented yet.
+and a completed assistant text event. Microsoft Entra sign-in uses a dedicated SPA
+client and MSAL's in-memory token cache; token-by-token delivery remains open.
 
 For local use, start the API with the Entra settings described in the
 [agent API guide](apps/agent/README.md#api-configuration-and-deployment), then run the web
-client from `apps/web` with `pnpm install --frozen-lockfile` and `pnpm dev`. The Vite server
-proxies `/api` to `http://127.0.0.1:8000`; the client requires a short-lived `Chat.Access`
-token, which it keeps in tab memory only. See the [web UI guide](apps/web/README.md) for
+client from `apps/web` after copying `.env.example` to `.env.local`, with
+`pnpm install --frozen-lockfile` and `pnpm dev`. The Vite server proxies `/api` to
+`http://127.0.0.1:8000` by default; set `AGENT_API_URL` to the approved Azure API to use
+dev. Select **Sign in with Microsoft**, then **Connect**. See the [web UI guide](apps/web/README.md) for
 details and limitations.
 
 ## Repository layout

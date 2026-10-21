@@ -13,6 +13,7 @@ The local deployment uses `infra/main.dev.bicepparam`. Keep actual values in a u
 | `MAF_ALLOWED_USERS` | yes | Comma-separated approved user object IDs | `az ad signed-in-user show --query id -o tsv` |
 | `MAF_API_CLIENT_ID` | yes | Agent API app registration client ID | Same dev API app ID |
 | `MAF_CLI_CLIENT_ID` | yes | Public CLI client app ID | Dev CLI app registration ID |
+| `MAF_WEB_CLIENT_ID` | optional | Approved browser SPA client admitted alongside the CLI | Dev: `a5d930a1-3d30-4d14-83d6-6992cb1bf626`; empty keeps CLI-only admission |
 | `MAF_AUTH_CLIENT_SECRET` | secret | Easy Auth registration secret | Generate once for the dev API app; store only in `.env.dev` |
 | `MAF_MCP_AUDIENCE` | yes | Movie MCP API app ID / audience | Dev MCP app registration ID |
 | `TMDB_API_READ_ACCESS_TOKEN` | secret | TMDB read-only bearer token | Read from the rotated local secret file; do not commit |
@@ -61,6 +62,7 @@ gh variable set MAF_AGENT_AUDIENCE --env dev --body "$MAF_AGENT_AUDIENCE"
 gh variable set MAF_ALLOWED_USERS --env dev --body "$MAF_ALLOWED_USERS"
 gh variable set MAF_API_CLIENT_ID --env dev --body "$MAF_API_CLIENT_ID"
 gh variable set MAF_CLI_CLIENT_ID --env dev --body "$MAF_CLI_CLIENT_ID"
+gh variable set MAF_WEB_CLIENT_ID --env dev --body "$MAF_WEB_CLIENT_ID"
 gh variable set MAF_MCP_AUDIENCE --env dev --body "$MAF_MCP_AUDIENCE"
 gh secret set AZURE_CLIENT_ID --env dev < ./azure-deploy-client-id.txt
 gh secret set AZURE_TENANT_ID --env dev < ./azure-tenant-id.txt
@@ -77,6 +79,7 @@ These are identifiers, not credentials:
 
 - API: `67b8f4b9-71e4-4815-b8b5-a0a4fd7bc0d7`
 - CLI: `d8bd0dd5-388c-4436-a64b-bdfcdbeebe7f`
+- Web SPA: `a5d930a1-3d30-4d14-83d6-6992cb1bf626` (delegated `Chat.Access`, local callback URLs; no secret)
 - Movie MCP: `f992b99b-25b8-4a99-8c00-7157b8edf4de`
 
 The dev registrations have configured service principals and consent; authenticated hosted acceptance succeeds.

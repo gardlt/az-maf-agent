@@ -8,10 +8,6 @@ from contextlib import asynccontextmanager
 from uuid import UUID
 
 import jwt
-from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
-from pydantic import BaseModel, ConfigDict, Field
 from ag_ui.core import (
     EventType,
     RunAgentInput,
@@ -23,6 +19,10 @@ from ag_ui.core import (
     TextMessageStartEvent,
 )
 from ag_ui.encoder import EventEncoder
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from pydantic import BaseModel, ConfigDict, Field
 
 from .approval_ledger import ApprovalLedger, CreditArguments
 from .config import load_settings
@@ -305,9 +305,7 @@ def create_app(service: Service, verifier: EntraVerifier):
                     )
                 )
             yield encoder.encode(
-                TextMessageEndEvent(
-                    type=EventType.TEXT_MESSAGE_END, message_id=message_id
-                )
+                TextMessageEndEvent(type=EventType.TEXT_MESSAGE_END, message_id=message_id)
             )
             yield encoder.encode(
                 RunFinishedEvent(
