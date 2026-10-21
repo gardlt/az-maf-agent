@@ -1,7 +1,9 @@
 # AG-UI and Entra sign-in: dev validation
 
-Validated on October 21, 2026. This records the local browser client connecting to
-the Azure dev agent API. Static UI hosting and hosted origin configuration remain open.
+Validated on October 21, 2026. This records both the local browser client and the
+hosted Azure UI connecting to the Azure dev agent API. The browser's interactive
+hosted Microsoft sign-in remains a user action; automated hosted canaries use the
+existing CLI user's delegated token.
 
 ## Deployed source and result
 
@@ -61,3 +63,40 @@ browser confirmation supplements these API and configuration checks.
 
 See the [web setup guide](../apps/web/README.md) for sign-in, proxy configuration,
 the client allowlist, and the remaining hosted UI requirements.
+
+## Hosted UI rollout
+
+The [Azure dev UI](https://ca-maf-web-dev-eus2-01.kindisland-49d1cad2.eastus2.azurecontainerapps.io/)
+was deployed from `6ab6fc4` through the successful
+[web-only deployment](https://github.com/gardlt/az-maf-agent/actions/runs/39688712693).
+Azure reported provisioning `Succeeded` and ready revision
+`ca-maf-web-dev-eus2-01--llpyodc`.
+
+The first web image was blocked by High/Critical findings in the bundled Caddy
+runtime and its Alpine/Go components. The replacement uses pinned
+`nginx:1.31.7-alpine-slim`, with patched `zlib==1.3.2-r1`, and passed the unchanged
+High/Critical image security gate. The frontend build stage remains a separately
+pinned Node image; the final image serves only the built assets and API proxy.
+
+Verification against the deployed site established:
+
+- The home page, `/redirect.html`, and both referenced JavaScript entry assets returned `200`.
+- Browser inspection showed the movie guide's Microsoft sign-in screen without a configuration error.
+- The callback page had no Cross-Origin-Opener-Policy header, as required by the MSAL redirect bridge.
+- Unauthenticated POST `/api/ag-ui` returned `401`; an authenticated malformed request returned `422`.
+- Source/configuration paths `/.env.local` and `/src/auth.ts` returned `404`.
+- Session creation returned `200`; a bounded greeting through the hosted `/api/ag-ui`
+  returned `200` with the complete run/message event sequence and no `RUN_ERROR`.
+- Azure readback confirmed `allowInsecure=false`, scale limits of zero to one replica,
+  and the registry identity's `lifecycle=None`. That identity is available to the
+  platform for image pulls, not to application code.
+- Entra readback confirmed the exact hosted HTTPS `/redirect.html` callback alongside
+  both existing localhost callbacks. The API continues to admit only the configured
+  CLI/web clients and approved users with delegated `Chat.Access`.
+
+Infrastructure validation passed for 40 Bicep files, nine parameter profiles,
+16 existing resource contracts, and 12 target-selection checks. The final identity
+lifecycle setting was additionally compiled through the main entry point. Local
+production-container tests also passed for the replacement runtime with upstream
+TLS certificate verification enabled. These deployment and canary checks do not
+establish production readiness or automated browser consent/cancellation coverage.

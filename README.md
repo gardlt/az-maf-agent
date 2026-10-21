@@ -63,6 +63,10 @@ The hosted CLI also supports reviewed skills such as `--skill movie-research`, e
 
 ## Browser UI
 
+[Open the Azure dev UI](https://ca-maf-web-dev-eus2-01.kindisland-49d1cad2.eastus2.azurecontainerapps.io/)
+and select **Sign in with Microsoft**, then **Connect**. Agent access requires an
+approved account. The hosted UI proxies API calls to the Azure dev agent.
+
 The initial AG-UI React client lives in [apps/web](apps/web/README.md). It connects to the
 same authenticated Python API as the CLI, creates or resumes an owner-scoped session, and
 supports chat, stop, and history reset. The current endpoint emits AG-UI lifecycle events

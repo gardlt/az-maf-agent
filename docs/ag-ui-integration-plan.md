@@ -1,6 +1,6 @@
 # AG-UI integration plan
 
-**Status:** the local vertical slice and browser Entra sign-in are implemented, and the AG-UI API is deployed to Azure dev. The authenticated FastAPI service exposes `POST /ag-ui` using the official Python event models and encoder, and `apps/web` provides a React/Vite client using `@ag-ui/client`. The browser client supports Microsoft sign-in, session creation/resume, chat, stop, and history reset. MSAL Browser acquires delegated `Chat.Access` tokens in memory before API calls. The server adapts the existing governed `Service.chat` path and emits lifecycle events plus a completed text delta. A live API/proxy canary passed and the user confirmed the browser flow worked; see the [dev validation record](ag-ui-dev-validation.md). Static UI hosting/origin configuration and transcript history loading remain planned.
+**Status:** browser Entra sign-in, the AG-UI API, and the static UI/API proxy are deployed to Azure dev. The authenticated FastAPI service exposes `POST /ag-ui` using the official Python event models and encoder, and `apps/web` provides a React/Vite client using `@ag-ui/client`. The browser client supports Microsoft sign-in, session creation/resume, chat, stop, and history reset. MSAL Browser acquires delegated `Chat.Access` tokens in memory before API calls. The server adapts the existing governed `Service.chat` path and emits lifecycle events plus a completed text delta. Live local and hosted API/proxy canaries passed; see the [dev validation record](ag-ui-dev-validation.md). The user confirmed the local browser flow worked. Interactive hosted browser sign-in requires the user to authenticate; incremental delivery, transcript loading, and broader production acceptance remain open.
 
 ## Goal
 
@@ -11,7 +11,7 @@ Give the movie assistant a browser UI using AG-UI’s event-based, bidirectional
 - The agent is a Python/FastAPI service in `apps/agent`; it has authenticated session create/status/chat/reset/cancel routes.
 - Chat is currently request/response. `Service.chat` runs the existing guarded model/tool loop and commits session history under a revision/run fence.
 - The hosted CLI uses Entra bearer tokens. Optional shared Blob sessions and shared safety controls support hosted operation.
-- The local web frontend is `apps/web`; MSAL uses an in-memory token cache and Vite's `/api` proxy during development. The dedicated single-tenant SPA requests only delegated `Chat.Access`. Hosted UI deployment remains open. The terminal interface and CLI remain available.
+- The web frontend is `apps/web`; MSAL uses an in-memory token cache. Vite proxies `/api` locally; the deployed Nginx container provides the same-origin HTTPS API proxy in dev. The dedicated single-tenant SPA requests only delegated `Chat.Access`. The terminal interface and CLI remain available.
 - Existing standalone endpoints handle explicit movie reads, memory operations, and approval simulations. Those actions must not be made implicitly available merely because the new client uses AG-UI.
 
 ## Implemented local slice
@@ -40,13 +40,13 @@ The current local vertical slice supports:
 - The adapter accepts the supported plain-text request shape and rejects unsupported tool/state inputs. It uses the server-side session revision and preserves the governed service path.
 - Lifecycle and assistant text are mapped to AG-UI events. Prompts, raw model reasoning, credentials, private memory values, and unrestricted tool payloads are not sent to the client.
 - Existing run fencing, budgets, audit, and history commit semantics remain in the governed service. The client can abort an active request.
-- The current local client uses Vite's same-origin `/api` proxy. Deployed CORS/origin policy remains part of hosted readiness.
+- Local use relies on Vite's same-origin `/api` proxy. Hosted dev uses the same-origin Nginx proxy with a fixed, TLS-verified Azure API upstream. No cross-origin API allowance is needed for this topology.
 
 ### 3. Browser UI (initial client implemented; follow-up work remains)
 
 - The client provides a chat screen, pending state, stop, session reset, and create/resume. It receives final text after the backend run completes; retry behavior and incremental tokens are not implemented.
 - Use the AG-UI client SDK if it supports the selected server contract; keep the UI’s state minimal and derive durable conversation state from the server session.
-- No Entra client secret is present. MSAL Browser uses authorization code flow with PKCE and memory storage. A dedicated `/redirect.html` bridge is included in the Vite build. Public configuration fixes the API target instead of allowing a user to redirect bearer tokens. `MAF_WEB_CLIENT_ID` adds only the approved SPA to Container Apps' existing client allowlist; user and API scope checks remain in force. See [web setup](../apps/web/README.md). Deployed origins remain to be configured.
+- No Entra client secret is present. MSAL Browser uses authorization code flow with PKCE and memory storage. A dedicated `/redirect.html` bridge is included in the Vite build. Public configuration fixes the API target instead of allowing a user to redirect bearer tokens. `MAF_WEB_CLIENT_ID` adds only the approved SPA to Container Apps' existing client allowlist; user and API scope checks remain in force. Local and hosted dev callback URLs are registered. See [web setup](../apps/web/README.md).
 - Show explicit controls for skills and any memory actions. Keep memory inspect/save/correct/delete on their dedicated APIs and require the existing consent semantics.
 
 ### 4. Verify behavior and security boundaries (partial)
@@ -64,7 +64,7 @@ The current local vertical slice supports:
 | 0. Design spike | Confirm AG-UI events, SDK compatibility, and the narrow adapter boundary | Completed for the current local implementation; hosted topology remains open |
 | 1. Local AG-UI client | Authenticated route and browser chat using lifecycle events and a completed text delta | Implemented; backend route tests and the web production build pass. Incremental delivery is still open |
 | 2. Existing agent features | Explicit skills, safe movie tool status/results, reset and supported errors | Reset is available; other UI feature contracts remain future work |
-| 3. Hosted readiness | UI hosting, browser Entra registration/origin config, telemetry and operator runbook | Pending authorized canary plus security and operational review |
+| 3. Hosted readiness | UI hosting, browser Entra registration/origin config, telemetry and operator runbook | Dev hosting, callback registration, image scan, and API/proxy chat canary passed. Interactive browser and broader operational acceptance remain open |
 | 4. Optional AG-UI capabilities | Human approval interrupts, shared state or richer multimodal UI, if product needs justify them | Separate design, threat review and acceptance criteria for each capability |
 
 ## Explicitly deferred
@@ -74,7 +74,7 @@ Do not include generative UI, arbitrary frontend-executed tools, agent-writable 
 ## Open decisions
 
 - Whether the current Agent Framework exposes a compatible AG-UI adapter at the installed version, versus a custom event adapter around `Service`.
-- Hosting location and browser Entra redirect origins, API scope, and hosting topology.
+- Hosting, custom domains, and matching Entra callbacks for other environments. Dev uses Container Apps with a same-origin API proxy and delegated `Chat.Access`; cross-origin alternatives need explicit origin configuration.
 - Whether streaming runs can be driven from a streaming model API without changing budget reservation, cancellation, and final commit semantics. The current adapter sends a final text event and treats token streaming as a later improvement.
 
 ## Source

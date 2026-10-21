@@ -75,6 +75,11 @@ the agent's separate identity.
 
 ## Deploy the UI to Azure
 
+The [Azure dev UI](https://ca-maf-web-dev-eus2-01.kindisland-49d1cad2.eastus2.azurecontainerapps.io/)
+is deployed. Select **Sign in with Microsoft**, then **Connect** using an approved
+account. See the [dev validation record](../../docs/ag-ui-dev-validation.md) for
+the deployed source and live proxy/chat checks.
+
 The `web` service in the existing deployment workflow builds `Dockerfile.web` and
 deploys `infra/patterns/web.bicep` through the shared Bicep entry point. The pinned
 Node build stage compiles the frontend; the final pinned minimal Nginx image contains
