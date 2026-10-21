@@ -1,6 +1,6 @@
 # AG-UI integration plan
 
-**Status:** implementation started on `feat/ag-ui-integration`. The backend exposes `POST /ag-ui` using the official Python event models and encoder. A local React/Vite client now supports Entra bearer-token entry, session creation/resume, chat, stop, and reset. Browser-based Entra sign-in, hosted origin configuration, and incremental token streaming remain planned.
+**Status:** the initial local vertical slice is implemented. The authenticated FastAPI service exposes `POST /ag-ui` using the official Python event models and encoder, and `apps/web` provides a React/Vite client using `@ag-ui/client`. The browser client supports bearer-token entry, session creation/resume, chat, stop, and history reset. The server adapts the existing governed `Service.chat` path and emits lifecycle events with one completed text delta; it does not stream model tokens. Browser-based Entra sign-in, hosted origin configuration, and transcript history loading remain planned.
 
 ## Goal
 
@@ -11,47 +11,47 @@ Give the movie assistant a browser UI using AG-UI’s event-based, bidirectional
 - The agent is a Python/FastAPI service in `apps/agent`; it has authenticated session create/status/chat/reset/cancel routes.
 - Chat is currently request/response. `Service.chat` runs the existing guarded model/tool loop and commits session history under a revision/run fence.
 - The hosted CLI uses Entra bearer tokens. Optional shared Blob sessions and shared safety controls support hosted operation.
-- The local web frontend is `apps/web`; hosted deployment and browser sign-in are not configured yet. The terminal interface and CLI remain available.
+- The local web frontend is `apps/web`; it keeps the bearer token in tab memory and uses Vite's `/api` proxy during development. Hosted deployment and browser sign-in are not configured. The terminal interface and CLI remain available.
 - Existing standalone endpoints handle explicit movie reads, memory operations, and approval simulations. Those actions must not be made implicitly available merely because the new client uses AG-UI.
 
-## Proposed first slice
+## Implemented local slice
 
-Implement an authenticated AG-UI-compatible HTTP streaming endpoint in the existing FastAPI service and a small React browser client. Use AG-UI’s standard run lifecycle, text-message and error events first. The server should adapt the current governed run to protocol events; it must not create a second model/tool loop. The endpoint emits lifecycle events and one completed text delta through the existing `Service.chat`; it does not yet provide incremental token delivery. The first browser client is under `apps/web` and holds the bearer token only in tab memory.
+The authenticated AG-UI endpoint and React browser client are implemented as a local first slice. The server adapts the current governed run to protocol events without creating a second model/tool loop. It emits lifecycle events and one completed text delta through the existing `Service.chat`; incremental token delivery is not available. The client is under `apps/web` and holds the bearer token only in tab memory.
 
-The initial vertical slice should support:
+The current local vertical slice supports:
 
-1. Entra sign-in and bearer-token forwarding from the browser client.
-2. Create/resume an owned session and display its stable session ID and revision.
-3. Submit a user message and stream assistant text while the run is active.
-4. Cancel the active run and show completion, cancellation, or a sanitized error.
-5. Preserve existing skill selection only as an explicit, validated request option.
+1. Manually enter an Entra bearer token and forward it to the authenticated API. Browser sign-in is not included.
+2. Create/resume an owned session and display its session ID and revision. Resumed sessions retain server history, but prior transcript messages are not loaded into the UI.
+3. Submit a user message and consume AG-UI run events. Assistant text arrives as one completed delta after `Service.chat` returns, not incrementally while the run is active.
+4. Abort the active request and show completion, cancellation, or a sanitized error.
+5. Reset server-side session history. Skills remain unavailable in this client until explicit UI controls are designed.
 
 ## Work sequence
 
-### 1. Confirm protocol and runtime compatibility
+### 1. Protocol and runtime compatibility (done for the local slice)
 
-- Read the AG-UI event specification and current Python/React SDK guidance before selecting package versions. Pin compatible versions in the respective lockfiles.
-- Confirm whether the current Microsoft Agent Framework version has a supported AG-UI adapter. Prefer an adapter only if it can invoke the existing `Service` policy and commit path; otherwise build a narrow adapter at the FastAPI boundary.
-- Decide the browser app location and build tooling after inspecting repository conventions; add a dedicated `apps/web` package if no existing frontend is present.
+- The backend uses the official Python event models/encoder; the browser uses the pinned `@ag-ui/client` SDK in `apps/web/pnpm-lock.yaml`.
+- The adapter is at the FastAPI boundary and invokes the existing `Service.chat` path so governance and session commit behavior stay in the current service.
+- The dedicated Vite/React app is in `apps/web`.
 
-### 2. Define the server protocol adapter
+### 2. Server protocol adapter (implemented)
 
-- Add a dedicated AG-UI route that authenticates exactly as existing API routes do and resolves the session through the existing owner check.
-- Validate message size, event types, session ID, revision and optional skill fields. Reject unsupported frontend tool/state commands.
-- Map lifecycle and assistant text to AG-UI events. Do not emit prompts, raw model reasoning, credentials, private memory values, or unrestricted tool payloads. Tool activity may be represented by safe status labels and bounded public movie results where the existing product already permits their display.
-- Make the run ID, session ID and revision relationship explicit. Preserve current fencing, budgets, audit, and history commit semantics. On disconnect/cancel, cancel the governed run and ensure uncommitted history is discarded.
-- Return protocol-compliant content types, framing, terminal events and sanitized error behavior; support CORS only for configured UI origins.
+- `POST /ag-ui` authenticates through the API's existing Entra boundary and resolves the session through the existing owner check.
+- The adapter accepts the supported plain-text request shape and rejects unsupported tool/state inputs. It uses the server-side session revision and preserves the governed service path.
+- Lifecycle and assistant text are mapped to AG-UI events. Prompts, raw model reasoning, credentials, private memory values, and unrestricted tool payloads are not sent to the client.
+- Existing run fencing, budgets, audit, and history commit semantics remain in the governed service. The client can abort an active request.
+- The current local client uses Vite's same-origin `/api` proxy. Deployed CORS/origin policy remains part of hosted readiness.
 
-### 3. Build the browser UI
+### 3. Browser UI (initial client implemented; follow-up work remains)
 
-- Add a basic chat screen with streaming transcript, pending state, cancel, retry after recoverable transport failure, and session reset.
+- The client provides a chat screen, pending state, stop, session reset, and create/resume. It receives final text after the backend run completes; retry behavior and incremental tokens are not implemented.
 - Use the AG-UI client SDK if it supports the selected server contract; keep the UI’s state minimal and derive durable conversation state from the server session.
-- Do not put Entra client secrets in the browser. Use the approved public-client flow and existing API audience/scope. Apply secure token storage and origin restrictions consistent with the deployment model.
+- No Entra client secret is present. The current client accepts a manually supplied short-lived token in tab memory; public-client sign-in and deployed origin restrictions remain to be designed.
 - Show explicit controls for skills and any memory actions. Keep memory inspect/save/correct/delete on their dedicated APIs and require the existing consent semantics.
 
-### 4. Verify behavior and security boundaries
+### 4. Verify behavior and security boundaries (partial)
 
-- Protocol conformance: ordered lifecycle events, text deltas, one terminal event, malformed request rejection, disconnect and cancellation behavior.
+- Backend route tests cover the current event adaptation and supported request boundary; the web production build succeeds. Full protocol conformance, browser-origin testing, and end-to-end browser cancellation verification remain open.
 - Session safety: owner isolation, stale revision conflict, concurrent run rejection, reset/cancel fencing, and no partial history commit after interrupted runs.
 - Governance: model/tool budgets, kill switch/capability disable, audit availability, skill allowlist, and memory consent remain enforced through the AG-UI path.
 - Browser boundary: origin/CORS policy, token audience, no credential leakage, XSS-safe rendering, and no unintended HTML execution.
@@ -61,22 +61,21 @@ The initial vertical slice should support:
 
 | Phase | Deliverable | Exit condition |
 | --- | --- | --- |
-| 0. Design spike | Confirm current AG-UI events, SDK compatibility, auth flow and deploy topology | Small end-to-end fake-mode proof; no governance bypass identified |
-| 1. Text streaming | Authenticated stream route and browser chat | Session ownership, revisions, cancellation and terminal events verified |
-| 2. Existing agent features | Explicit skills, safe movie tool status/results, reset and supported errors | Feature behavior matches existing CLI/API semantics |
-| 3. Hosted readiness | UI hosting, Entra registration/origin config, telemetry and operator runbook | Authorized canary plus security and operational review |
+| 0. Design spike | Confirm AG-UI events, SDK compatibility, and the narrow adapter boundary | Completed for the current local implementation; hosted topology remains open |
+| 1. Local AG-UI client | Authenticated route and browser chat using lifecycle events and a completed text delta | Implemented; backend route tests and the web production build pass. Incremental delivery is still open |
+| 2. Existing agent features | Explicit skills, safe movie tool status/results, reset and supported errors | Reset is available; other UI feature contracts remain future work |
+| 3. Hosted readiness | UI hosting, browser Entra registration/origin config, telemetry and operator runbook | Pending authorized canary plus security and operational review |
 | 4. Optional AG-UI capabilities | Human approval interrupts, shared state or richer multimodal UI, if product needs justify them | Separate design, threat review and acceptance criteria for each capability |
 
 ## Explicitly deferred
 
 Do not include generative UI, arbitrary frontend-executed tools, agent-writable shared state, raw chain-of-thought, voice/media, or sub-agent composition in the first release. AG-UI supports a wider set of interaction patterns, but each would require new product contracts and threat analysis. The initial UI should represent the current assistant behavior faithfully.
 
-## Decisions to resolve during Phase 0
+## Open decisions
 
 - Whether the current Agent Framework exposes a compatible AG-UI adapter at the installed version, versus a custom event adapter around `Service`.
-- UI package/build framework and hosting location.
-- Whether streaming runs can be driven from a streaming model API without changing budget reservation, cancellation, and final commit semantics. If not, start with evented status plus a final text event and treat token streaming as a later improvement.
-- Entra browser redirect origins, API scope, and hosting topology.
+- Hosting location and browser Entra redirect origins, API scope, and hosting topology.
+- Whether streaming runs can be driven from a streaming model API without changing budget reservation, cancellation, and final commit semantics. The current adapter sends a final text event and treats token streaming as a later improvement.
 
 ## Source
 
