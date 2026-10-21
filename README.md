@@ -27,7 +27,7 @@ These capabilities are introduced incrementally, but the application is one inte
 
 ```mermaid
 flowchart LR
-  U[Authenticated CLI user] --> A[Agent API and governed core]
+  U[Authenticated CLI or browser user] --> A[Agent API and governed core]
   A -->|Agent identity| F[Foundry model inference]
   A -->|Approved read tools| M[Private FastMCP service]
   M --> T[TMDB]
@@ -60,6 +60,26 @@ uv run --locked agent-chat --api https://YOUR_APPROVED_AGENT_API
 Hosted use requires the matching Entra client configuration and an authorized account. The CLI uses an encrypted, OS-user-scoped token cache and silently refreshes when authentication policy permits. Do not commit tokens or pass credentials as command-line arguments.
 
 The hosted CLI also supports reviewed skills such as `--skill movie-research`, explicit movie reads with `--movies`, and preference commands such as `/memory`, `/remember preferred_genre comedy` and `/forget all`. Ordinary chat does not consent to saving a preference. See the [skills guide](docs/stages/stage-3/stage-3-skills.md), [memory guide](docs/stages/stage-4/stage-4-memory.md) and [TMDB integration guide](docs/tmdb-integration.md) for setup and behavior.
+
+## Browser UI
+
+[Open the Azure dev UI](https://ca-maf-web-dev-eus2-01.kindisland-49d1cad2.eastus2.azurecontainerapps.io/)
+and select **Sign in with Microsoft**, then **Connect**. Agent access requires an
+approved account. The hosted UI proxies API calls to the Azure dev agent.
+
+The initial AG-UI React client lives in [apps/web](apps/web/README.md). It connects to the
+same authenticated Python API as the CLI, creates or resumes an owner-scoped session, and
+supports chat, stop, and history reset. The current endpoint emits AG-UI lifecycle events
+and a completed assistant text event. Microsoft Entra sign-in uses a dedicated SPA
+client and MSAL's in-memory token cache; token-by-token delivery remains open.
+
+For local use, start the API with the Entra settings described in the
+[agent API guide](apps/agent/README.md#api-configuration-and-deployment), then run the web
+client from `apps/web` after copying `.env.example` to `.env.local`, with
+`pnpm install --frozen-lockfile` and `pnpm dev`. The Vite server proxies `/api` to
+`http://127.0.0.1:8000` by default; set `AGENT_API_URL` to the approved Azure API to use
+dev. Select **Sign in with Microsoft**, then **Connect**. See the [web UI guide](apps/web/README.md) for
+details and limitations.
 
 ## Repository layout
 

@@ -83,9 +83,7 @@
                 "[parameters('audience')]"
               ],
               "jwtClaimChecks": {
-                "allowedClientApplications": [
-                  "[parameters('cliClientId')]"
-                ]
+                "allowedClientApplications": "[if(empty(parameters('webClientId')), createArray(parameters('cliClientId')), createArray(parameters('cliClientId'), parameters('webClientId')))]"
               }
             }
           }

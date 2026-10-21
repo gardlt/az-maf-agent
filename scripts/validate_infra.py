@@ -22,6 +22,8 @@ DUMMY = {
     "MAF_ALLOWED_USERS": "00000000-0000-0000-0000-000000000002",
     "MAF_API_CLIENT_ID": "00000000-0000-0000-0000-000000000003",
     "MAF_CLI_CLIENT_ID": "00000000-0000-0000-0000-000000000004",
+    "MAF_WEB_IMAGE": "example.azurecr.io/web@sha256:" + "d" * 64,
+    "MAF_ENABLE_WEB": "false",
     "MAF_AUTH_CLIENT_SECRET": "validation-only",
     "MAF_MCP_AUDIENCE": "00000000-0000-0000-0000-000000000005",
     "TMDB_API_READ_ACCESS_TOKEN": "validation-only",
@@ -202,6 +204,7 @@ def verify_selection(main):
         "foundation": {"foundation"},
         "agent": {"agent"},
         "movie-mcp": {"movieMcp"},
+        "web": {"web"},
         "memory": {"memory-storage"},
         "controls": {"guardrail-storage", "control-monitoring"},
         "network": {"controlled-egress"},
@@ -217,10 +220,16 @@ def verify_selection(main):
             if expression(r["condition"], params, main["variables"])
         }
         assert actual == wanted, (target, actual, wanted)
+    params.update(deploymentTarget="all", enableWeb=True)
+    assert {
+        resource["name"]
+        for resource in main["resources"]
+        if expression(resource["condition"], params, main["variables"])
+    } == expected["all"] | {"web"}
     assert params["registrySku"] == "Basic"
     assert main["parameters"]["authClientSecret"]["type"].lower() == "securestring"
     assert main["parameters"]["tmdbApiReadAccessToken"]["type"].lower() == "securestring"
-    return len(expected)
+    return len(expected) + 1
 
 
 def main():

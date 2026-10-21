@@ -1,3 +1,4 @@
+import json
 import time
 from types import SimpleNamespace
 from uuid import uuid4
@@ -9,6 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 from az_maf_agent.api import EntraVerifier, create_app
 from az_maf_agent.core import Service
+from az_maf_agent.model import Denied
 
 
 class FakeMovieClient:
@@ -125,6 +127,112 @@ async def test_authenticated_movie_route_keeps_read_only_scope(api):
             assert forbidden.status_code == 403
     finally:
         await app.state.agent_service.close()
+
+
+def ag_ui_events(response):
+    assert response.headers["content-type"].startswith("text/event-stream")
+    return [
+        json.loads(line[6:]) for line in response.text.splitlines() if line.startswith("data: ")
+    ]
+
+
+async def test_ag_ui_runs_owned_session_and_emits_protocol_lifecycle(api):
+    app, auth, _ = api
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="https://test"
+    ) as client:
+        sid = (await client.post("/sessions", headers=auth())).json()["session_id"]
+        response = await client.post(
+            "/ag-ui",
+            headers=auth(),
+            json={
+                "threadId": sid,
+                "runId": "ui-run-1",
+                "messages": [
+                    {"id": "old", "role": "user", "content": "ignored prior turn"},
+                    {"id": "current", "role": "user", "content": "hello from AG-UI"},
+                ],
+            },
+        )
+        assert response.status_code == 200
+        events = ag_ui_events(response)
+        assert [event["type"] for event in events] == [
+            "RUN_STARTED",
+            "TEXT_MESSAGE_START",
+            "TEXT_MESSAGE_CONTENT",
+            "TEXT_MESSAGE_END",
+            "RUN_FINISHED",
+        ]
+        assert events[0]["threadId"] == sid
+        assert events[0]["runId"] == "ui-run-1"
+        assert events[2]["delta"].startswith("Offline reply:")
+        assert events[-1]["result"] == {"revision": 1}
+        assert (await client.get(f"/sessions/{sid}", headers=auth())).json()["revision"] == 1
+    await app.state.agent_service.close()
+
+
+async def test_ag_ui_requires_auth_owned_session_and_supported_text(api):
+    app, auth, other = api
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="https://test"
+    ) as client:
+        sid = (await client.post("/sessions", headers=auth())).json()["session_id"]
+        body = {
+            "threadId": sid,
+            "runId": "ui-run-2",
+            "messages": [{"id": "current", "role": "user", "content": "hello"}],
+        }
+        assert (await client.post("/ag-ui", json=body)).status_code == 401
+        assert (await client.post("/ag-ui", headers=auth(oid=other), json=body)).status_code == 404
+        assert (
+            await client.post("/ag-ui", headers=auth(), json={**body, "state": {"revision": 0}})
+        ).status_code == 422
+        assert (
+            await client.post(
+                "/ag-ui",
+                headers=auth(),
+                json={
+                    **body,
+                    "messages": [
+                        {
+                            "id": "current",
+                            "role": "user",
+                            "content": [{"type": "text", "text": "hello"}],
+                        }
+                    ],
+                },
+            )
+        ).status_code == 422
+    await app.state.agent_service.close()
+
+
+async def test_ag_ui_returns_sanitized_run_error(api, monkeypatch):
+    app, auth, _ = api
+    service = app.state.agent_service
+
+    async def fail(*args, **kwargs):
+        raise Denied("global_stop")
+
+    monkeypatch.setattr(service, "chat", fail)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app), base_url="https://test"
+    ) as client:
+        sid = (await client.post("/sessions", headers=auth())).json()["session_id"]
+        response = await client.post(
+            "/ag-ui",
+            headers=auth(),
+            json={
+                "threadId": sid,
+                "runId": "ui-run-3",
+                "messages": [{"id": "current", "role": "user", "content": "hello"}],
+            },
+        )
+        events = ag_ui_events(response)
+        assert [event["type"] for event in events] == ["RUN_STARTED", "RUN_ERROR"]
+        assert events[-1]["code"] == "global_stop"
+        assert events[-1]["message"] == "The agent could not complete this run."
+        assert "traceback" not in response.text.lower()
+    await service.close()
 
 
 async def test_about_credits_require_authentication(api):

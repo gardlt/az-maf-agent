@@ -1,6 +1,12 @@
 __pycache__/
 *.py[cod]
 .venv/
+.pnpm-store/
+node_modules/
+.vite/
+# The web app uses its pnpm lockfile; no npm package is defined at the root.
+/package-lock.json
+*.tsbuildinfo
 dist/
 .env
 .env.*

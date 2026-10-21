@@ -8,9 +8,20 @@ from contextlib import asynccontextmanager
 from uuid import UUID
 
 import jwt
+from ag_ui.core import (
+    EventType,
+    RunAgentInput,
+    RunErrorEvent,
+    RunFinishedEvent,
+    RunStartedEvent,
+    TextMessageContentEvent,
+    TextMessageEndEvent,
+    TextMessageStartEvent,
+)
+from ag_ui.encoder import EventEncoder
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from .approval_ledger import ApprovalLedger, CreditArguments
@@ -222,6 +233,94 @@ def create_app(service: Service, verifier: EntraVerifier):
             )
         except asyncio.CancelledError:
             return JSONResponse({"error": "run_cancelled"}, 409)
+
+    @app.post("/ag-ui")
+    async def ag_ui_chat(body: RunAgentInput, who=Depends(principal)):
+        """AG-UI transport adapter over the existing governed session chat path."""
+        if (
+            len(body.thread_id) > 64
+            or len(body.run_id) > 128
+            or body.tools
+            or body.context
+            or body.resume
+            or body.state is not None
+            or body.forwarded_props is not None
+        ):
+            raise HTTPException(422, "unsupported_ag_ui_input")
+        user_messages = [message for message in body.messages if message.role == "user"]
+        if not user_messages:
+            raise HTTPException(422, "user_message_required")
+        content = user_messages[-1].content
+        if not isinstance(content, str):
+            # This initial integration deliberately supports plain text only.
+            raise HTTPException(422, "text_only_input_required")
+        status = await service.session_status(who, body.thread_id)
+        revision = status["revision"]
+        encoder = EventEncoder()
+        message_id = f"msg-{body.run_id}"
+
+        async def events():
+            yield encoder.encode(
+                RunStartedEvent(
+                    type=EventType.RUN_STARTED,
+                    thread_id=body.thread_id,
+                    run_id=body.run_id,
+                )
+            )
+            try:
+                result = await service.chat(who, body.thread_id, content, revision)
+            except asyncio.CancelledError:
+                raise
+            except Denied as exc:
+                yield encoder.encode(
+                    RunErrorEvent(
+                        type=EventType.RUN_ERROR,
+                        message="The agent could not complete this run.",
+                        code=exc.code,
+                    )
+                )
+                return
+            except Exception:
+                yield encoder.encode(
+                    RunErrorEvent(
+                        type=EventType.RUN_ERROR,
+                        message="The agent could not complete this run.",
+                        code="agent_error",
+                    )
+                )
+                return
+            yield encoder.encode(
+                TextMessageStartEvent(
+                    type=EventType.TEXT_MESSAGE_START,
+                    message_id=message_id,
+                    role="assistant",
+                )
+            )
+            if result["text"]:
+                yield encoder.encode(
+                    TextMessageContentEvent(
+                        type=EventType.TEXT_MESSAGE_CONTENT,
+                        message_id=message_id,
+                        delta=result["text"],
+                    )
+                )
+            yield encoder.encode(
+                TextMessageEndEvent(type=EventType.TEXT_MESSAGE_END, message_id=message_id)
+            )
+            yield encoder.encode(
+                RunFinishedEvent(
+                    type=EventType.RUN_FINISHED,
+                    thread_id=body.thread_id,
+                    run_id=body.run_id,
+                    result={"revision": result["revision"]},
+                )
+            )
+
+        return StreamingResponse(
+            events(),
+            media_type=encoder.get_content_type(),
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
 
     @app.post("/sessions/{sid}/reset")
     async def reset(sid: str, who=Depends(principal)):

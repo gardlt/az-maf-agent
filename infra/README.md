@@ -1,6 +1,6 @@
 # Infrastructure architecture
 
-The repository has **two application patterns**, an agent and a movie MCP, sharing resource-level building blocks. **`main.bicep` is the only active environment entry point.** Every environment and optional deployment profile binds to that file.
+The repository has **three application patterns**: the agent, private movie MCP, and optional web UI, sharing resource-level building blocks. **`main.bicep` is the only active environment entry point.** Every environment and optional deployment profile binds to that file.
 
 This is a local implementation of the [resource-module/pattern-module separation](https://learn.microsoft.com/en-us/community/content/azure-verified-modules), not a claim that these custom modules are published or certified Azure Verified Modules.
 
@@ -16,6 +16,7 @@ infra/
   patterns/
     agent.bicep                 # agent app, Easy Auth, cleanup job and health rule
     movie-mcp.bicep             # private authenticated movie MCP app
+    web.bicep                   # public static UI and fixed HTTPS agent API proxy
     shared-foundation.bicep    # logs, ACR, pull identity and managed environment
     control-monitoring.bicep   # Insights, fault alert and optional publisher role
     controlled-egress.bicep    # parallel network foundation; no application cutover
@@ -30,10 +31,11 @@ Resource modules do not invoke other modules. Application configuration, depende
 
 | `deploymentTarget` | Managed resources | Shared/application resources it does not redeploy |
 | --- | --- | --- |
-| `all` (default) | Shared foundation, both applications and enabled memory/control features | Parallel networking, shared Foundry model and drills remain opt-in |
+| `all` (default) | Shared foundation, agent/MCP, enabled web UI and memory/control features | Parallel networking, shared Foundry model and drills remain opt-in |
 | `foundation` | Log Analytics, ACR, pull identity and the working managed environment | Applications, memory, controls, Foundry and parallel networking |
 | `agent` | Agent app/authentication, plus enabled cleanup job and health rule | MCP, shared foundation/storage and other optional infrastructure |
 | `movie-mcp` | MCP application pattern | Agent, cleanup job and shared foundation/storage |
+| `web` | Static UI and API proxy, using the existing registry pull identity | Agent, MCP, cleanup jobs, storage and shared foundation |
 | `memory` | Selected preference account/blob configuration when enabled | Applications and their jobs |
 | `controls` | Control containers/retention/lifecycle and monitoring when enabled | Applications and preference account backup configuration |
 | `access` | Only explicitly enabled bootstrap role assignments | Ordinary resource deployment and data-plane policy initialization |
@@ -42,6 +44,14 @@ Resource modules do not invoke other modules. Application configuration, depende
 | `containment` | Explicit isolated synthetic worker | Learner applications |
 
 Targeted updates read existing foundation identifiers rather than recreating the foundation. The pull identity client ID comes from the identity resource, replacing the dev-only literal. Images for unselected services may be empty; selected applications still require valid digest-pinned images and their authenticated configuration.
+
+The UI listens on port 8080 behind HTTPS-only Container Apps ingress, scales from
+zero to one replica, and proxies `/api/*` to the configured agent app's HTTPS host.
+Its container runs as a non-root user and receives only the registry pull identity;
+its image-pull identity is unavailable to application code through lifecycle `None`.
+It has no model, Blob, Graph, or TMDB credential. The browser obtains its own delegated
+API token through MSAL. `enableWeb` defaults false; explicitly selecting the `web`
+target deploys it, while all-service runs include it only when enabled.
 
 **Use incremental deployments.** Complete mode with a subset target could delete resources omitted from that target. Conditions are not a deletion strategy. An environment profile is not production-readiness approval; retained acceptance and final-topology gates still apply.
 

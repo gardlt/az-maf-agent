@@ -76,6 +76,16 @@ uv run --locked uvicorn az_maf_agent.api:from_env --factory \
 
 The hosted CLI requires HTTPS; the command above starts the application process without a TLS ingress. API routes cover sessions, chat, cancellation, movie reads, preferences, and approval simulations. See [api.py](src/az_maf_agent/api.py) for request schemas and [API/session architecture](../../docs/architecture-review/01-agent-api-sessions.md) for ownership and authentication.
 
+The initial AG-UI transport is available at `POST /ag-ui` and is used by the local React
+client in [apps/web](../web/README.md). Send the owned session ID as
+`threadId` and the latest plain-text user message in the AG-UI `messages` array. The route
+uses the session's current server-side revision and the same governed `Service.chat` path
+as the hosted API. It emits AG-UI run/message lifecycle events and one completed text
+delta; incremental token streaming and multimodal input are not supported yet. The route
+does not execute frontend tools or accept client-provided state, context, or resume data.
+See the [AG-UI integration plan](../../docs/ag-ui-integration-plan.md) for the follow-up
+work and current limitations.
+
 Build the service image from the repository root:
 
 ```sh

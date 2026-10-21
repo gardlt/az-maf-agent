@@ -8,7 +8,16 @@ All deployment steps use `infra/main.bicep` or a `main.<environment>.bicepparam`
 
 The deployment workflow first invokes the root with `deploymentTarget=foundation` to ensure the registry/environment exist. It builds the selected non-root image(s), runs import smoke tests and local SBOM/High-Critical scanning, pushes digest-pinned images, previews the selected graph, and invokes the same root in incremental mode.
 
-Main changes matching deployment paths automatically deploy `all` to **dev**. Manual runs select `dev`, `stage` or `prod` and `agent`, `movie-mcp` or `all`. A targeted `agent` invocation reconciles the agent pattern, including its enabled cleanup job/health rule; a targeted `movie-mcp` invocation reconciles only the MCP pattern. They resolve existing shared resources and do not redeploy the other service. Shared infrastructure/configuration changes use `all`.
+Main changes matching deployment paths automatically deploy `all` to **dev**. Manual runs select `dev`, `stage` or `prod` and `agent`, `movie-mcp`, `web` or `all`. A targeted `agent` invocation reconciles the agent pattern, including its enabled cleanup job/health rule; a targeted `movie-mcp` or `web` invocation reconciles only that application pattern. They resolve existing shared resources and do not redeploy the other services. Shared infrastructure/configuration changes use `all`.
+
+`MAF_ENABLE_WEB=true` includes the UI in all-service builds/deployments. A selected
+`web` run builds `Dockerfile.web` with the public tenant, SPA client, and API IDs,
+validates the Nginx configuration, scans the final image with the same High/Critical
+gate, pushes a digest-pinned image, and deploys the web pattern. The image contains
+the static Vite build and a fixed HTTPS API proxy. Only the three public Entra IDs
+are build arguments; API/registry/TMDB secrets are not frontend configuration.
+Register the resulting hosted `/redirect.html` URL as a SPA callback separately
+in Entra before attempting browser sign-in.
 
 A single entry point does not mean one invocation before artifacts exist: registry bootstrap precedes build/push, then application provisioning uses the same file with a different target. All resource deployments use incremental mode. Do not use complete mode with target subsets.
 
@@ -26,7 +35,7 @@ Supply the reviewed per-environment variables `AZURE_LOCATION`, `MAF_REGISTRY_NA
 
 Environment secrets include `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `MAF_AUTH_CLIENT_SECRET` and `TMDB_API_READ_ACCESS_TOKEN`. Client/tenant/subscription identifiers are non-secret values even if stored in GitHub's secret namespace. There is no Azure deployment client secret: OIDC provides Azure authentication. The API authentication secret and TMDB token remain secret inputs; never commit or echo them.
 
-The workflow supplies `MAF_AGENT_IMAGE` and/or `MAF_MCP_IMAGE` after the selected scan/push. Empty unselected image parameters are permitted for a targeted run; a selected service requires its digest-pinned image. Local full deployment requires both image variables and all matching auth/secret settings.
+The workflow supplies selected `MAF_AGENT_IMAGE`, `MAF_MCP_IMAGE`, and/or `MAF_WEB_IMAGE` after scan/push. Empty unselected image parameters are permitted for a targeted run; each selected service requires its digest-pinned image. Local full deployment requires the agent/MCP images and, when `MAF_ENABLE_WEB=true`, the web image, plus matching auth/secret settings.
 
 ```sh
 az deployment group what-if \
