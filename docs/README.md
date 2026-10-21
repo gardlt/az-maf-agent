@@ -4,6 +4,7 @@
 - [Automatic individual-agent containment plan](stages/stage-7/README.md): planned detection, disable, quarantine and adversarial acceptance.
 - [Implementation roadmap](tasks/README.md): completed work, current acceptance gates and remaining tasks.
 - [AG-UI integration plan](ag-ui-integration-plan.md): proposed browser UI integration using the Agent–User Interaction Protocol.
+- [Web UI](../apps/web/README.md): local React client for the AG-UI endpoint.
 - [Architecture review](architecture-review/README.md): system boundaries, decisions, grounding assurance and review evidence.
 - [Teaching specification](secure-agent-teaching-spec.md): requirements and security contracts.
 - [Deployment guide](github-actions-deployment.md) and [dev environment settings](dev-environment-variables.md).

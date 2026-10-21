@@ -1,6 +1,6 @@
 # AG-UI integration plan
 
-**Status:** implementation started on `feat/ag-ui-integration`. The first backend slice exposes `POST /ag-ui` using the official Python event models and encoder. The web client and incremental token streaming remain planned.
+**Status:** implementation started on `feat/ag-ui-integration`. The backend exposes `POST /ag-ui` using the official Python event models and encoder. A local React/Vite client now supports Entra bearer-token entry, session creation/resume, chat, stop, and reset. Browser-based Entra sign-in, hosted origin configuration, and incremental token streaming remain planned.
 
 ## Goal
 
@@ -11,12 +11,12 @@ Give the movie assistant a browser UI using AG-UI’s event-based, bidirectional
 - The agent is a Python/FastAPI service in `apps/agent`; it has authenticated session create/status/chat/reset/cancel routes.
 - Chat is currently request/response. `Service.chat` runs the existing guarded model/tool loop and commits session history under a revision/run fence.
 - The hosted CLI uses Entra bearer tokens. Optional shared Blob sessions and shared safety controls support hosted operation.
-- There is no web frontend in this repository. The terminal interface and CLI are current clients.
+- The local web frontend is `apps/web`; hosted deployment and browser sign-in are not configured yet. The terminal interface and CLI remain available.
 - Existing standalone endpoints handle explicit movie reads, memory operations, and approval simulations. Those actions must not be made implicitly available merely because the new client uses AG-UI.
 
 ## Proposed first slice
 
-Implement an authenticated AG-UI-compatible HTTP streaming endpoint in the existing FastAPI service and a small React browser client. Use AG-UI’s standard run lifecycle, text-message and error events first. The server should adapt the current governed run to protocol events; it must not create a second model/tool loop. The first endpoint now emits lifecycle events and one completed text delta through the existing `Service.chat`; it does not yet provide incremental token delivery.
+Implement an authenticated AG-UI-compatible HTTP streaming endpoint in the existing FastAPI service and a small React browser client. Use AG-UI’s standard run lifecycle, text-message and error events first. The server should adapt the current governed run to protocol events; it must not create a second model/tool loop. The endpoint emits lifecycle events and one completed text delta through the existing `Service.chat`; it does not yet provide incremental token delivery. The first browser client is under `apps/web` and holds the bearer token only in tab memory.
 
 The initial vertical slice should support:
 
