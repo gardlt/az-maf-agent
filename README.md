@@ -63,6 +63,8 @@ The hosted CLI also supports reviewed skills such as `--skill movie-research`, e
 
 ## Browser UI
 
+Use the [recorded demo script](docs/demo-script.md) for a repeatable walkthrough of movie assistance, security probes, usage limits, and containment caveats.
+
 [Open the Azure dev UI](https://ca-maf-web-dev-eus2-01.kindisland-49d1cad2.eastus2.azurecontainerapps.io/)
 and select **Sign in with Microsoft**, then **Connect**. Agent access requires an
 approved account. The hosted UI proxies API calls to the Azure dev agent.
