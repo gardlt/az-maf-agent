@@ -24,7 +24,7 @@ on:
         description: Service to update
         required: true
         type: choice
-        options: [agent, movie-mcp, all]
+        options: [agent, movie-mcp, web, all]
         default: all
 
 permissions:
@@ -56,6 +56,7 @@ jobs:
       MAF_API_CLIENT_ID: ${{ vars.MAF_API_CLIENT_ID }}
       MAF_CLI_CLIENT_ID: ${{ vars.MAF_CLI_CLIENT_ID }}
       MAF_WEB_CLIENT_ID: ${{ vars.MAF_WEB_CLIENT_ID }}
+      MAF_ENABLE_WEB: ${{ vars.MAF_ENABLE_WEB || 'false' }}
       MAF_MCP_AUDIENCE: ${{ vars.MAF_MCP_AUDIENCE }}
       MAF_AUTH_CLIENT_SECRET: ${{ secrets.MAF_AUTH_CLIENT_SECRET }}
       TMDB_API_READ_ACCESS_TOKEN: ${{ secrets.TMDB_API_READ_ACCESS_TOKEN }}
@@ -121,6 +122,19 @@ jobs:
             bash scripts/scan_release_image.sh "docker:$mcp_tag" security-reports/movie-mcp
             docker push "$mcp_tag"
             echo "MAF_MCP_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$mcp_tag")" >> "$GITHUB_ENV"
+          fi
+          if [[ "$service" == web || ( "$service" == all && "$MAF_ENABLE_WEB" == true ) ]]; then
+            test -n "$MAF_WEB_CLIENT_ID"
+            web_tag="$MAF_REGISTRY_NAME.azurecr.io/az-maf-web:${GITHUB_SHA}"
+            docker build --platform linux/amd64 --file Dockerfile.web --tag "$web_tag" \
+              --build-arg VITE_ENTRA_TENANT_ID="$MAF_TENANT_ID" \
+              --build-arg VITE_ENTRA_CLIENT_ID="$MAF_WEB_CLIENT_ID" \
+              --build-arg VITE_ENTRA_API_CLIENT_ID="$MAF_API_CLIENT_ID" .
+            docker run --rm --env AGENT_API_HOST=example.invalid --entrypoint caddy "$web_tag" \
+              validate --config /etc/caddy/Caddyfile --adapter caddyfile
+            bash scripts/scan_release_image.sh "docker:$web_tag" security-reports/web
+            docker push "$web_tag"
+            echo "MAF_WEB_IMAGE=$(docker inspect --format='{{index .RepoDigests 0}}' "$web_tag")" >> "$GITHUB_ENV"
           fi
 
       - name: Retain local image scan evidence

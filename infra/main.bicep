@@ -12,6 +12,11 @@ param pullIdentityName string
 param logsName string
 param agentAppName string = 'ca-agent-${uniqueString(environmentName)}'
 param movieMcpAppName string = 'ca-mcp-${uniqueString(environmentName)}'
+param webAppName string = 'ca-web-${uniqueString(environmentName)}'
+@description('Include the web UI in all-service deployments only when explicitly enabled.')
+param enableWeb bool = false
+@description('Digest-pinned web image; required for the web target or enabled all-service deployment.')
+param webImage string = ''
 @description('Digest-pinned agent image.')
 param agentImage string = ''
 @description('Digest-pinned movie MCP image.')
@@ -49,7 +54,7 @@ param agentIdentityObjectId string = ''
 param enableAgentTracing bool = false
 param agentObservabilityName string = 'az-maf-agent'
 
-@allowed(['all', 'foundation', 'agent', 'movie-mcp', 'memory', 'controls', 'network', 'model', 'access', 'containment'])
+@allowed(['all', 'foundation', 'agent', 'movie-mcp', 'web', 'memory', 'controls', 'network', 'model', 'access', 'containment'])
 param deploymentTarget string = 'all'
 @description('Privileged bootstrap only. Ordinary CI never changes role assignments.')
 param bootstrapAcrPullRole bool = false
@@ -75,6 +80,7 @@ param containmentRevisionSuffix string = 'drill-a'
 var deployFoundation = contains(['all', 'foundation'], deploymentTarget)
 var deployAgent = contains(['all', 'agent'], deploymentTarget)
 var deployMcp = contains(['all', 'movie-mcp'], deploymentTarget)
+var deployWeb = deploymentTarget == 'web' || (enableWeb && deploymentTarget == 'all')
 var deployMemory = enableMemory && contains(['all', 'memory'], deploymentTarget)
 var deployControls = enableGuardrails && contains(['all', 'controls'], deploymentTarget)
 var deployAccess = contains(['all', 'access'], deploymentTarget)
@@ -174,6 +180,21 @@ output agentId string = deployAgent ? agent!.outputs.appId : ''
 output movieMcpId string = deployMcp ? movieMcp!.outputs.appId : ''
 output agentPrincipalId string = deployAgent ? agent!.outputs.workloadPrincipalId : ''
 output movieMcpPrincipalId string = deployMcp ? movieMcp!.outputs.workloadPrincipalId : ''
+
+module web './patterns/web.bicep' = if (deployWeb) {
+  name: 'web'
+  params: {
+    managedEnvironmentId: managedEnvironmentId
+    appName: webAppName
+    image: webImage
+    registryLoginServer: registryLoginServer
+    pullIdentityId: pullIdentityId
+    agentApiHost: '${agentAppName}.${environmentDefaultDomain}'
+    location: location
+  }
+}
+output webId string = deployWeb ? web!.outputs.appId : ''
+output webUrl string = deployWeb ? 'https://${webAppName}.${environmentDefaultDomain}' : ''
 
 module memory './modules/storage-account.bicep' = if (deployMemory) {
   name: 'memory-storage'

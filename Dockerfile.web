@@ -1,0 +1,23 @@
+FROM node:24-alpine@sha256:6a1c190e17215d844926b0677f4bf87273ff7d5e54db06d3b5b5863ab0b09a3d AS build
+WORKDIR /build
+RUN npm install --global pnpm@11.25.0
+COPY apps/web/package.json apps/web/pnpm-lock.yaml apps/web/pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY apps/web/index.html apps/web/redirect.html apps/web/tsconfig.json apps/web/vite.config.ts ./
+COPY apps/web/src ./src
+ARG VITE_ENTRA_TENANT_ID
+ARG VITE_ENTRA_CLIENT_ID
+ARG VITE_ENTRA_API_CLIENT_ID
+ENV VITE_ENTRA_TENANT_ID=$VITE_ENTRA_TENANT_ID \
+    VITE_ENTRA_CLIENT_ID=$VITE_ENTRA_CLIENT_ID \
+    VITE_ENTRA_API_CLIENT_ID=$VITE_ENTRA_API_CLIENT_ID \
+    VITE_AGENT_API_URL=/api
+RUN test -n "$VITE_ENTRA_TENANT_ID" && test -n "$VITE_ENTRA_CLIENT_ID" && test -n "$VITE_ENTRA_API_CLIENT_ID" && pnpm build
+
+FROM caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+COPY apps/web/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /build/dist /srv
+ENV XDG_CONFIG_HOME=/tmp/caddy/config XDG_DATA_HOME=/tmp/caddy/data
+USER 10001:10001
+EXPOSE 8080
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

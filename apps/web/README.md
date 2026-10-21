@@ -73,12 +73,40 @@ is approved. Signing in does not admit new users: the API still validates tenant
 audience, scope, and `ENTRA_ALLOWED_USERS`. Downstream inference/tools continue using
 the agent's separate identity.
 
-For hosted UI use, deploy the static build and configure a same-origin `/api` reverse
-proxy, or set an approved HTTPS API URL and configure exact API CORS origins, methods,
-and the Authorization header. Add the hosted callback URL to the SPA registration.
-The local Vite proxy does not exist in the static production build. UI hosting and
-hosted origin/CORS setup remain separate deployment work. Incremental token delivery
-and transcript history loading also remain open.
+## Deploy the UI to Azure
+
+The `web` service in the existing deployment workflow builds `Dockerfile.web` and
+deploys `infra/patterns/web.bicep` through the shared Bicep entry point. The pinned
+Node build stage compiles the frontend; the final pinned Caddy image contains only
+the static build and production proxy. The workflow validates Caddy configuration
+and scans the final image before pushing it by digest.
+
+Select environment `dev` and service `web` to deploy just the UI. Set
+`MAF_ENABLE_WEB=true` to include it in later all-service deployments. The build uses
+`MAF_TENANT_ID`, `MAF_WEB_CLIENT_ID`, and `MAF_API_CLIENT_ID` as public frontend
+configuration. `VITE_AGENT_API_URL` is fixed to `/api` in this image. At runtime,
+`AGENT_API_HOST` comes from the approved agent app and environment domain in Bicep.
+
+The web app has external HTTPS-only ingress, runs as a non-root user, and scales
+from zero to one replica. Public assets include the sign-in screen; access to the
+agent still requires a valid user token, admitted client, scope and user. The web
+container app uses the existing ACR pull identity only for platform image pulls;
+`identitySettings.lifecycle=None` keeps it unavailable to the running container.
+No API credential or user
+token is built into the image, and access logging is not enabled.
+
+Caddy serves the UI and `/redirect.html`, and proxies `/api/*` to the fixed Azure
+API host over HTTPS while preserving bearer authentication and event streaming.
+The proxy strips the `/api` prefix and does not forward browser cookies. Keeping
+UI and API requests on one browser origin avoids adding CORS permissions to the
+agent. The callback page receives no Cross-Origin-Opener-Policy header.
+
+Add the resulting hosted `https://<web-host>/redirect.html` to the SPA registration
+while retaining required localhost callbacks. This directory provisioning remains
+separate from ordinary ARM deployment. The dev app is named `ca-maf-web-dev-eus2-01`;
+the Bicep `webUrl` output gives its HTTPS address. A scaled-to-zero app may take a
+moment to wake on its first request. Incremental token delivery and transcript
+history loading remain open.
 
 Build the static UI with:
 

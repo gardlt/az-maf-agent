@@ -14,6 +14,8 @@ The local deployment uses `infra/main.dev.bicepparam`. Keep actual values in a u
 | `MAF_API_CLIENT_ID` | yes | Agent API app registration client ID | Same dev API app ID |
 | `MAF_CLI_CLIENT_ID` | yes | Public CLI client app ID | Dev CLI app registration ID |
 | `MAF_WEB_CLIENT_ID` | optional | Approved browser SPA client admitted alongside the CLI | Dev: `a5d930a1-3d30-4d14-83d6-6992cb1bf626`; empty keeps CLI-only admission |
+| `MAF_ENABLE_WEB` | optional | Include web UI in all-service builds/deployments | `true` for approved dev UI; defaults `false` |
+| `MAF_WEB_IMAGE` | selected web target | Digest-pinned static UI/proxy image | Supplied after the workflow builds/scans/pushes `Dockerfile.web` |
 | `MAF_AUTH_CLIENT_SECRET` | secret | Easy Auth registration secret | Generate once for the dev API app; store only in `.env.dev` |
 | `MAF_MCP_AUDIENCE` | yes | Movie MCP API app ID / audience | Dev MCP app registration ID |
 | `TMDB_API_READ_ACCESS_TOKEN` | secret | TMDB read-only bearer token | Read from the rotated local secret file; do not commit |

@@ -4,5 +4,10 @@ __pycache__
 *.py[cod]
 dist
 .env
+.env.*
+**/.env*
+**/node_modules
+**/.vite
+.pnpm-store
 .tdb-token
 *.parameters.json
