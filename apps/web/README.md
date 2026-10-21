@@ -42,6 +42,11 @@ requires signing in again. The UI does not persist tokens or transcripts in loca
 
 ## Entra registration and API admission
 
+The branch's agent API adapter is deployed to Azure dev. The local UI can connect
+through its Vite proxy by setting `AGENT_API_URL` to the approved dev API origin.
+See the [dev validation record](../../docs/ag-ui-dev-validation.md) for the deployed
+source, successful live event stream, and verification limits.
+
 The dedicated single-tenant dev SPA is `az-maf-agent-web-dev`, client ID
 `a5d930a1-3d30-4d14-83d6-6992cb1bf626`, in tenant
 `c57afb80-6b3d-4bae-a466-e4d217bcb4a2`. It requests delegated permission
