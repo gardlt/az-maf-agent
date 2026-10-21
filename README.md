@@ -61,12 +61,6 @@ Hosted use requires the matching Entra client configuration and an authorized ac
 
 The hosted CLI also supports reviewed skills such as `--skill movie-research`, explicit movie reads with `--movies`, and preference commands such as `/memory`, `/remember preferred_genre comedy` and `/forget all`. Ordinary chat does not consent to saving a preference. See the [skills guide](docs/stages/stage-3/stage-3-skills.md), [memory guide](docs/stages/stage-4/stage-4-memory.md) and [TMDB integration guide](docs/tmdb-integration.md) for setup and behavior.
 
-## Optional terminal interface
-
-Use `uv run --locked --extra tui agent-chat --tui` for a Textual interface with styled
-responses, multiline input, and a recent-session sidebar. See the [terminal UI guide](docs/terminal-ui.md)
-for installation, hosted connections, keyboard shortcuts, and session privacy/expiry behavior.
-
 ## Browser UI
 
 The initial AG-UI React client lives in [apps/web](apps/web/README.md). It connects to the

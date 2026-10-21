@@ -23,8 +23,3 @@ dependencies = [
 
 [project.scripts]
 agent-chat = "az_maf_agent.cli:main"
-
-[project.optional-dependencies]
-tui = [
-    "textual>=6,<7",
-]
