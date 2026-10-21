@@ -12,7 +12,7 @@ Main changes matching deployment paths automatically deploy `all` to **dev**. Ma
 
 `MAF_ENABLE_WEB=true` includes the UI in all-service builds/deployments. A selected
 `web` run builds `Dockerfile.web` with the public tenant, SPA client, and API IDs,
-validates the Caddy configuration, scans the final image with the same High/Critical
+validates the Nginx configuration, scans the final image with the same High/Critical
 gate, pushes a digest-pinned image, and deploys the web pattern. The image contains
 the static Vite build and a fixed HTTPS API proxy. Only the three public Entra IDs
 are build arguments; API/registry/TMDB secrets are not frontend configuration.

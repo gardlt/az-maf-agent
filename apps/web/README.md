@@ -77,8 +77,8 @@ the agent's separate identity.
 
 The `web` service in the existing deployment workflow builds `Dockerfile.web` and
 deploys `infra/patterns/web.bicep` through the shared Bicep entry point. The pinned
-Node build stage compiles the frontend; the final pinned Caddy image contains only
-the static build and production proxy. The workflow validates Caddy configuration
+Node build stage compiles the frontend; the final pinned minimal Nginx image contains
+the static build and production proxy. The workflow validates Nginx configuration
 and scans the final image before pushing it by digest.
 
 Select environment `dev` and service `web` to deploy just the UI. Set
@@ -95,8 +95,9 @@ container app uses the existing ACR pull identity only for platform image pulls;
 No API credential or user
 token is built into the image, and access logging is not enabled.
 
-Caddy serves the UI and `/redirect.html`, and proxies `/api/*` to the fixed Azure
-API host over HTTPS while preserving bearer authentication and event streaming.
+Nginx serves the UI and `/redirect.html`, and proxies `/api/*` to the fixed Azure
+API host over HTTPS with explicit upstream certificate verification, bearer
+authentication, and response buffering disabled for event streaming.
 The proxy strips the `/api` prefix and does not forward browser cookies. Keeping
 UI and API requests on one browser origin avoids adding CORS permissions to the
 agent. The callback page receives no Cross-Origin-Opener-Policy header.
