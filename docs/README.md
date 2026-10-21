@@ -1,5 +1,6 @@
 # Documentation
 
+- [Agent orchestration scenarios](agent-orchestration.md): theater, e-commerce, field service, software delivery, gym/personal training and vending-machine fleet roles, handoffs, state and approval boundaries.
 - [Stages and validation](stages/README.md): stage guides, validation reports and supporting evidence, grouped by stage.
 - [Automatic individual-agent containment plan](stages/stage-7/README.md): planned detection, disable, quarantine and adversarial acceptance.
 - [Operational readiness and assurance](stages/stage-8/README.md): planned closure, evaluation, release evidence and repository governance.
