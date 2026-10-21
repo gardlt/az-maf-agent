@@ -2,19 +2,9 @@ import { HttpAgent } from "@ag-ui/client";
 import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { AccountInfo } from "@azure/msal-browser";
 import { EntraAuth, SignInRequiredError } from "./auth";
+import { ApiError, errorMessage, responseError } from "./errors";
 
 type ChatMessage = { id: string; role: "user" | "assistant"; text: string };
-
-const apiError = async (response: Response) => {
-  let detail = `Request failed (${response.status})`;
-  try {
-    const body = await response.json();
-    detail = typeof body.error === "string" ? body.error : detail;
-  } catch {
-    // Keep the status message when the server did not return JSON.
-  }
-  return detail;
-};
 
 export default function App({ auth, endpoint }: { auth: EntraAuth; endpoint: string }) {
   const [account, setAccount] = useState<AccountInfo | null>(null);
@@ -45,6 +35,8 @@ export default function App({ auth, endpoint }: { auth: EntraAuth; endpoint: str
   function showError(error: unknown, fallback: string) {
     if (error instanceof SignInRequiredError) {
       setAuthRequired(true);
+      setNotice(error.message);
+    } else if (error instanceof ApiError) {
       setNotice(error.message);
     } else {
       // Do not display raw identity-provider errors or token responses.
@@ -102,7 +94,7 @@ export default function App({ auth, endpoint }: { auth: EntraAuth; endpoint: str
         const response = await fetch(`${endpoint}/sessions/${encodeURIComponent(resumeId.trim())}`, {
           headers: authorization,
         });
-        if (!response.ok) throw new Error(await apiError(response));
+        if (!response.ok) throw await responseError(response);
         const status = await response.json();
         setSessionId(status.session_id);
         setRevision(status.revision);
@@ -110,7 +102,7 @@ export default function App({ auth, endpoint }: { auth: EntraAuth; endpoint: str
         setNotice("Session resumed. Earlier messages are not loaded into this UI yet.");
       } else {
         const response = await fetch(`${endpoint}/sessions`, { method: "POST", headers: authorization });
-        if (!response.ok) throw new Error(await apiError(response));
+        if (!response.ok) throw await responseError(response);
         const session = await response.json();
         setSessionId(session.session_id);
         setRevision(session.revision);
@@ -184,13 +176,8 @@ export default function App({ auth, endpoint }: { auth: EntraAuth; endpoint: str
           if (typeof result?.revision === "number") setRevision(result.revision);
           setNotice("Response complete.");
         } else if (event.type === "RUN_ERROR") {
-          const message =
-            typeof event.message === "string"
-              ? event.message
-              : "The agent could not complete this run.";
-          setNotice(
-            message,
-          );
+          const message = errorMessage(event.code);
+          setNotice(message);
           setMessages((current) =>
             current.map((item) =>
               item.id === assistantId && !item.text ? { ...item, text: message } : item,
@@ -237,11 +224,11 @@ export default function App({ auth, endpoint }: { auth: EntraAuth; endpoint: str
         method: "POST",
         headers: await headers(),
       });
-      if (!response.ok) throw new Error(await apiError(response));
+      if (!response.ok) throw await responseError(response);
       const result = await response.json();
       setRevision(result.revision);
       setMessages([]);
-      setNotice("Conversation history cleared.");
+      setNotice("Conversation history cleared. Usage limits have not been reset.");
     } catch (error) {
       showError(error, "Could not clear the conversation. Check your access and try again.");
     } finally {
