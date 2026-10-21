@@ -18,7 +18,13 @@ dependencies = [
   "uvicorn==0.54.0",
   "aiohttp>=3.12,<4",
   "azure-monitor-opentelemetry-exporter==1.0.0b58",
+  "ag-ui-protocol==1.0.0",
 ]
 
 [project.scripts]
 agent-chat = "az_maf_agent.cli:main"
+
+[project.optional-dependencies]
+tui = [
+    "textual>=6,<7",
+]
