@@ -120,7 +120,8 @@ async def test_permission_intersection(settings, tmp_path):
 
 
 @pytest.mark.parametrize("skill_id", ["movie-research", "movie-night"])
-async def test_selected_skills(settings, skill_id):
+@pytest.mark.parametrize("version", ["1.0.0", "1.1.0"])
+async def test_selected_skills(settings, skill_id, version):
     registry = reviewed_registry(Path("skills"))
     movie = MovieClient()
     transport = ToolTransport(
@@ -137,9 +138,10 @@ async def test_selected_skills(settings, skill_id):
     )
     sid = service.create(LOCAL)["session_id"]
     result = await service.chat(
-        LOCAL, sid, "Find a movie", 0, skill_id=skill_id, skill_version="1.0.0"
+        LOCAL, sid, "Find a movie", 0, skill_id=skill_id, skill_version=version
     )
     assert result["skill"]["id"] == skill_id
+    assert result["skill"]["version"] == version
     assert len(movie.calls) == 1
 
 
@@ -457,3 +459,82 @@ async def test_final_model_response_fenced_after_revoke(settings, tmp_path):
         await service.chat(LOCAL, sid, "Hello", 0, skill_id="test", skill_version="1.0.0")
     assert service.sessions[sid].revision == 0
     assert not service.sessions[sid].state.state.get("stage1_history", {}).get("messages")
+
+
+def package_bundle(tmp_path, header=None):
+    header = header or (
+        "name: test\ndescription: Test movie lookup\n"
+        'allowed-tools: search_movies get_movie\nmetadata:\n  version: "1.1.0"'
+    )
+    folder = tmp_path / "test"
+    folder.mkdir(exist_ok=True)
+    content = f"---\n{header}\n---\n\nReviewed movie guidance.\n".encode()
+    (folder / "SKILL.md").write_bytes(content)
+    manifest = Manifest(
+        "test",
+        "1.1.0",
+        "owner",
+        "purpose",
+        "input",
+        "output",
+        "test/SKILL.md",
+        hashlib.sha256(content).hexdigest(),
+        READ_TOOLS,
+    )
+    registry = SkillRegistry(tmp_path)
+    registry.publish(manifest)
+    return registry, manifest
+
+
+def test_package_metadata_validated_but_not_injected(tmp_path):
+    registry, manifest = package_bundle(tmp_path)
+    skill = load(registry, manifest)
+    assert skill.markdown == "Reviewed movie guidance.\n"
+    assert skill.tools == READ_TOOLS
+    assert "metadata:" not in skill.markdown
+    (tmp_path / "test" / "SKILL.md").write_text("tampered")
+    with pytest.raises(Denied, match="skill_integrity"):
+        load(registry, manifest)
+
+
+@pytest.mark.parametrize(
+    "header",
+    [
+        "name: other\ndescription: test",
+        "name: test\nname: test\ndescription: test",
+        "name: test\ndescription: ''",
+        "name: test\ndescription: test\nmetadata:\n  version: 1.0.0",
+        "name: test\ndescription: test\nmetadata:\n  max-calls: 2",
+        "name: test\ndescription: test\nallowed-tools: read_file",
+        "name: test\ndescription: test\nunknown: ignored",
+        "name: &n test\ndescription: *n",
+        "name: test\ndescription: !!python/object:builtins.object {}",
+    ],
+)
+def test_package_invalid_metadata_fails_closed(tmp_path, header):
+    registry, manifest = package_bundle(tmp_path, header)
+    with pytest.raises(Denied, match="skill_integrity"):
+        load(registry, manifest)
+
+
+@pytest.mark.parametrize("component", ["directory", "file"])
+def test_package_symlinks_denied(tmp_path, component):
+    registry, manifest = package_bundle(tmp_path)
+    folder = tmp_path / "test"
+    if component == "directory":
+        folder.rename(tmp_path / "outside")
+        folder.symlink_to(tmp_path / "outside", target_is_directory=True)
+    else:
+        (folder / "SKILL.md").rename(tmp_path / "outside.md")
+        (folder / "SKILL.md").symlink_to(tmp_path / "outside.md")
+    with pytest.raises(Denied, match="skill_integrity"):
+        load(registry, manifest)
+
+
+@pytest.mark.parametrize(
+    "filename", ["../test/SKILL.md", "other/SKILL.md", "test/../SKILL.md", "/test/SKILL.md"]
+)
+def test_package_paths_bound_to_approved_skill(tmp_path, filename):
+    _, manifest = package_bundle(tmp_path)
+    with pytest.raises(ValueError, match="invalid skill manifest"):
+        replace(manifest, filename=filename)

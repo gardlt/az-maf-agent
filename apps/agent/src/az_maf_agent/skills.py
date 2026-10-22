@@ -9,6 +9,8 @@ import threading
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
 from .model import Denied
 
 READ_TOOLS = frozenset({"search_movies", "get_movie"})
@@ -31,7 +33,10 @@ class Manifest:
         if (
             not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", self.skill_id)
             or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", self.version)
-            or not re.fullmatch(r"[a-zA-Z0-9_-]+\.md", self.filename)
+            or not (
+                re.fullmatch(r"[a-zA-Z0-9_-]+\.md", self.filename)
+                or self.filename == f"{self.skill_id}/SKILL.md"
+            )
             or not re.fullmatch(r"[a-f0-9]{64}", self.sha256)
             or any(
                 not isinstance(v, str) or not 1 <= len(v) <= 500
@@ -113,11 +118,21 @@ class SkillRegistry:
         if manifest is None:
             raise Denied("skill_not_approved")
         self.control_check(skill_id, version)
-        directory = descriptor = None
+        directory = package = descriptor = None
         try:
             directory = os.open(self.root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            filename = manifest.filename
+            if "/" in filename:
+                package = os.open(
+                    manifest.skill_id,
+                    os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                    dir_fd=directory,
+                )
+                filename = "SKILL.md"
             descriptor = os.open(
-                manifest.filename, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory
+                filename,
+                os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                dir_fd=package if package is not None else directory,
             )
             if not stat.S_ISREG(os.fstat(descriptor).st_mode):
                 raise ValueError("not regular")
@@ -129,11 +144,15 @@ class SkillRegistry:
             if hashlib.sha256(content).hexdigest() != manifest.sha256:
                 raise ValueError("digest")
             markdown = content.decode("utf-8")
+            if package is not None:
+                markdown = package_body(markdown, manifest)
         except (OSError, ValueError):
             raise Denied("skill_integrity") from None
         finally:
             if descriptor is not None:
                 os.close(descriptor)
+            if package is not None:
+                os.close(package)
             if directory is not None:
                 os.close(directory)
         tools = (
@@ -145,6 +164,71 @@ class SkillRegistry:
         skill = Skill(manifest, markdown, tools)
         self.check(skill)
         return skill
+
+
+class _UniqueLoader(yaml.SafeLoader):
+    """Reject duplicate metadata keys rather than silently accepting the last one."""
+
+    def construct_mapping(self, node, deep=False):
+        mapping = {}
+        for key_node, value_node in node.value:
+            key = self.construct_object(key_node, deep=deep)
+            if not isinstance(key, str) or key in mapping:
+                raise ValueError("invalid metadata key")
+            mapping[key] = self.construct_object(value_node, deep=deep)
+        return mapping
+
+
+def package_body(markdown: str, manifest: Manifest) -> str:
+    """Validate the supported standard fields; metadata never grants authority."""
+    try:
+        if not markdown.startswith("---\n"):
+            raise ValueError("missing frontmatter")
+        header, body = markdown[4:].split("\n---\n", 1)
+        if any(isinstance(token, yaml.tokens.AliasToken) for token in yaml.scan(header)):
+            raise ValueError("aliases unsupported")
+        data = yaml.load(header, Loader=_UniqueLoader)
+        if not isinstance(data, dict) or set(data) - {
+            "name",
+            "description",
+            "license",
+            "compatibility",
+            "metadata",
+            "allowed-tools",
+        }:
+            raise ValueError("unsupported metadata")
+        name = data.get("name")
+        if (
+            name != manifest.skill_id
+            or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name)
+            or len(name) > 64
+        ):
+            raise ValueError("name mismatch")
+        description = data.get("description")
+        if not isinstance(description, str) or not 1 <= len(description.strip()) <= 1024:
+            raise ValueError("invalid description")
+        for field, limit in (("license", 1024), ("compatibility", 500)):
+            if field in data and (
+                not isinstance(data[field], str) or not 1 <= len(data[field].strip()) <= limit
+            ):
+                raise ValueError("invalid optional field")
+        metadata = data.get("metadata", {})
+        if not isinstance(metadata, dict) or any(
+            not isinstance(k, str) or not isinstance(v, str) for k, v in metadata.items()
+        ):
+            raise ValueError("invalid metadata")
+        if "version" in metadata and metadata["version"] != manifest.version:
+            raise ValueError("version mismatch")
+        if "allowed-tools" in data and (
+            not isinstance(data["allowed-tools"], str)
+            or frozenset(data["allowed-tools"].split()) != manifest.tools
+        ):
+            raise ValueError("tool declaration mismatch")
+        if not body.strip():
+            raise ValueError("empty instructions")
+        return body.lstrip("\n")
+    except (yaml.YAMLError, ValueError, TypeError):
+        raise ValueError("invalid skill package") from None
 
 
 def reviewed_registry(root: Path, control_path: Path | None = None) -> SkillRegistry:

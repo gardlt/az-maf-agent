@@ -52,7 +52,7 @@ tags/write on the group. The 256-character tag bound is enforced; this deliberat
 small store supports the two-skill lesson, not a production control plane.
 
 The loader looks up IDs before filesystem access, bounds regular-file reads to 8 KiB,
-refuses final-component symlinks and escaping filenames, verifies the pinned digest,
+refuses package-directory and final-file symlinks and escaping filenames, verifies the pinned digest,
 and consumes the same immutable bytes. The root and ancestor directories are trusted
 operator-owned paths. Caller, application, agent, and manifest capabilities intersect;
 the caller callback defaults to no tools and is checked again at dispatch. Existing
@@ -120,3 +120,35 @@ Case 4 is completed in [Stage 4 validation](../stage-4/validation/stage-4-valida
 tests show no other-user disclosure and no skill write effects. Reviewed skills still
 have no memory capability and cannot inherit earlier personalized history. Stage 1's
 remaining shared-session and expired-ingress-token gates are tracked separately.
+
+## Authoring review and candidate versions
+
+The [Agent Skills / Anthropic comparison](../../skills/anthropic-comparison.md) records
+format gaps, authoring improvements, and a repeatable quality evaluation plan.
+Local candidate artifacts `movie-night@1.1.0` and `movie-research@1.1.0` are pinned in
+the bundle index without replacing 1.0.0. After deployment, select one explicitly with
+`--skill movie-research --skill-version 1.1.0` (or `movie-night`). The default stays at
+1.0.0 until model-based evaluation supports promotion. The 1.1.0 packages use `<skill-name>/SKILL.md` with validated YAML frontmatter.
+Legacy 1.0.0 flat files remain supported. Automatic discovery, supporting resource
+loading, and executable scripts are not implemented.
+
+
+### Package metadata
+
+New instruction-only packages live at `skills/movie-night/SKILL.md` and
+`skills/movie-research/SKILL.md`. Standard fields are `name`, `description`,
+`compatibility`, and `allowed-tools`, plus a string-valued `metadata` mapping for
+maintainer, version, repository, inputs/outputs, provenance, invocation, limits,
+trust boundaries, and evaluation status. `license` is supported but omitted because
+this repository has no declared license; metadata records that uncertainty.
+
+Names must match the approved skill and directory. A declared version must match
+the manifest; declared tools must match its tool set and still undergo runtime
+permission intersection. YAML aliases, duplicate keys, unsupported top-level fields,
+and malformed metadata fail closed. Hashes cover the entire file including metadata.
+No frontmatter field authorizes scripts, resource loading, or additional tools.
+
+Keep future versions immutable: retain the old artifact and digest when releasing
+a replacement, using the legacy version-specific artifact form if necessary until
+multiple package-version roots are supported. Do not overwrite published 1.1.0
+bytes under its existing manifest after release.

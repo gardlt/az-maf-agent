@@ -26,5 +26,33 @@
       "search_movies",
       "get_movie"
     ]
+  },
+  {
+    "skill_id": "movie-research",
+    "version": "1.1.0",
+    "owner": "agent-bones maintainers",
+    "purpose": "Compare movies using TMDB reads",
+    "inputs": "User movie question or preferences",
+    "outputs": "TMDB-attributed movie suggestions or comparison",
+    "filename": "movie-research/SKILL.md",
+    "sha256": "0abc7f6913096f697f56a59c9482cf554a8e61a809ca8abcf5c6ba5225fd8dc2",
+    "tools": [
+      "search_movies",
+      "get_movie"
+    ]
+  },
+  {
+    "skill_id": "movie-night",
+    "version": "1.1.0",
+    "owner": "agent-bones maintainers",
+    "purpose": "Suggest a movie-night shortlist using TMDB reads",
+    "inputs": "User movie question or preferences",
+    "outputs": "TMDB-attributed movie suggestions or comparison",
+    "filename": "movie-night/SKILL.md",
+    "sha256": "ec0f54c36d1366af1e295a4c04e2cf84fc8f4cff8546934d191383b4a9e276a7",
+    "tools": [
+      "search_movies",
+      "get_movie"
+    ]
   }
 ]
