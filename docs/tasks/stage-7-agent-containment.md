@@ -2,6 +2,11 @@
 
 Status: **implementation started locally; hosted acceptance remains open**, 2026-10-20. The [live identity drill](../stages/stage-7/validation/live-disable-drill-2026-10-20.md) verified disable/restoration but left resource containment open. See [local foundation results](../stages/stage-7/validation/local-quarantine-results.md).
 
+The [first controller-contract slice](../stages/stage-7/controller-contract.md) now
+binds authenticated caller identity to a configured tenant/sender set, selects rules
+from operator configuration, persists quarantine before Graph I/O, and reconciles
+duplicate triggering alerts. It remains local code, not a hosted alert endpoint.
+
 [Design and Microsoft references](../stages/stage-7/README.md) · [Validation matrix](../stages/stage-7/validation/README.md) · [Roadmap](README.md)
 
 Goal: a configured trusted alert/threshold or a manual emergency disable quarantines one agent and disables its individual Entra Agent ID, with independently verified denial across every Azure access path. Keep other agents working. New-token issuance denial alone is insufficient. All acceptance checkboxes below remain open; the first local slice is not stage completion.

@@ -7,7 +7,9 @@ Production requires an independently authorized controller/store and service gat
 import sqlite3
 import time
 from contextlib import closing, contextmanager
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 from uuid import UUID
 
 import httpx
@@ -26,6 +28,45 @@ class DetectionRule(BaseModel):
     threshold: int = Field(ge=1, le=100)
     window_seconds: int = Field(ge=1, le=300)
     max_age_seconds: int = Field(ge=1, le=300)
+
+
+class TrustedAlert(BaseModel):
+    """Versioned alert body accepted only after transport authentication."""
+
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+    schema_version: Literal[1]
+    alert_id: str
+    tenant_id: str
+    agent_id: str
+    signal: str = Field(pattern=r"^[a-z][a-z0-9_.-]{0,79}$")
+    observed_at: float = Field(allow_inf_nan=False)
+
+    def model_post_init(self, _context):
+        object.__setattr__(self, "alert_id", str(UUID(self.alert_id)))
+        tenant, agent = identity(self.tenant_id, self.agent_id)
+        object.__setattr__(self, "tenant_id", tenant)
+        object.__setattr__(self, "agent_id", agent)
+
+
+@dataclass(frozen=True)
+class AlertPrincipal:
+    """Identity produced by the future hosted transport verifier."""
+
+    tenant_id: str
+    subject_id: str
+
+    def __post_init__(self):
+        object.__setattr__(self, "tenant_id", str(UUID(self.tenant_id)))
+        object.__setattr__(self, "subject_id", str(UUID(self.subject_id)))
+
+
+@dataclass(frozen=True)
+class ContainmentResult:
+    alert_id: str
+    agent_id: str
+    state: str
+    quarantined: bool
+    directory_disabled: bool
 
 
 class ContainmentStore:
@@ -177,6 +218,89 @@ class ContainmentStore:
                 (tenant, agent, incident, state, self.clock()),
             )
         return state
+
+    def incident_status(self, tenant, agent, incident):
+        """Return bounded controller state without provider payloads or identities."""
+        tenant, agent = identity(tenant, agent)
+        incident = str(UUID(incident))
+        with self.transaction() as db:
+            row = db.execute(
+                "SELECT state,attempts,next_attempt,code FROM incidents "
+                "WHERE tenant=? AND agent=? AND incident=?",
+                (tenant, agent, incident),
+            ).fetchone()
+            if row is None:
+                return None
+            return {
+                "state": row["state"],
+                "attempts": row["attempts"],
+                "next_attempt": row["next_attempt"],
+                "code": row["code"],
+            }
+
+
+class ContainmentController:
+    """Authenticate-bound alert orchestration; transport and hosting remain separate."""
+
+    def __init__(self, store, directory, *, tenant, senders, rules):
+        self.store = store
+        self.directory = directory
+        self.tenant = str(UUID(tenant))
+        self.senders = frozenset(str(UUID(value)) for value in senders)
+        self.rules = dict(rules)
+        if not self.senders or not self.rules or any(
+            not isinstance(name, str) or not isinstance(rule, DetectionRule)
+            for name, rule in self.rules.items()
+        ):
+            raise ValueError("invalid containment controller configuration")
+
+    def receive(self, principal: AlertPrincipal, alert: TrustedAlert):
+        """Persist signal/quarantine before directory I/O; duplicate alerts reconcile."""
+        if (
+            principal.tenant_id != self.tenant
+            or alert.tenant_id != self.tenant
+            or principal.subject_id not in self.senders
+        ):
+            raise Denied("containment_alert_forbidden")
+        rule = self.rules.get(alert.signal)
+        if rule is None:
+            raise Denied("containment_signal_unknown")
+
+        triggered = self.store.signal(
+            alert.tenant_id,
+            alert.agent_id,
+            alert.alert_id,
+            alert.observed_at,
+            rule,
+        )
+        incident = self.store.incident_status(
+            alert.tenant_id, alert.agent_id, alert.alert_id
+        )
+        if not triggered and incident is None:
+            return ContainmentResult(
+                alert.alert_id, alert.agent_id, "signal_recorded", False, False
+            )
+
+        try:
+            state = self.store.attempt_disable(
+                alert.tenant_id, alert.agent_id, alert.alert_id, self.directory
+            )
+        except Denied as exc:
+            if exc.code != "containment_retry_deferred":
+                raise
+            current = self.store.incident_status(
+                alert.tenant_id, alert.agent_id, alert.alert_id
+            )
+            if current is None:
+                raise Denied("containment_incident_required") from None
+            state = current["state"]
+        return ContainmentResult(
+            alert.alert_id,
+            alert.agent_id,
+            state,
+            True,
+            state == "directory_disabled",
+        )
 
 
 class QuarantineReader:

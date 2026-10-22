@@ -22,6 +22,11 @@ flowchart TD
 
 Dashed edges are planned integration, not deployed controls. Local implementations exist for durable development quarantine, detection windows/deduplication, bounded retry state, a disable-only Graph adapter and an injected runtime admission/dispatch gate. SQLite under one developer account is not a hosted isolation boundary. The model/runtime has no exposed containment mutation endpoint; production controller identity, storage authorization, alert attribution and watchdog authority still need design and hosted proof.
 
+The local [controller contract](../stages/stage-7/controller-contract.md) now joins
+authenticated-principal binding, configured rule selection, quarantine-first ordering,
+exact identity disable and duplicate-incident reconciliation. Authentication transport,
+shared hosted persistence and service-specific denial remain unimplemented.
+
 The manual control is Entra admin center → Entra ID → Agents → Agent identities → select the verified individual agent → Disable. Portal disable and automated Graph disable must eventually feed the same independent quarantine/reconciliation process. A portal click alone is not full application/resource containment.
 
 ## Local and live evidence

@@ -44,6 +44,9 @@ param memoryCleanupAlertName string = 'al-memory-${uniqueString(agentAppName)}'
 param enableGuardrails bool = false
 param controlAccountName string = memoryAccountName
 param controlInsightsName string = 'appi-${agentAppName}'
+@description('Outlook or other operator email that receives Azure Monitor control alerts. Empty disables external delivery.')
+param alertEmail string = ''
+param controlActionGroupName string = 'ag-control-${uniqueString(agentAppName)}'
 
 @description('Use the separately provisioned Entra Agent ID for inference and MCP reads.')
 param enableAgentIdentity bool = false
@@ -229,9 +232,12 @@ module controlMonitoring './patterns/control-monitoring.bicep' = if (deployContr
     name: controlInsightsName
     workspaceId: resourceId('Microsoft.OperationalInsights/workspaces', logsName)
     location: location
+    alertEmail: alertEmail
+    actionGroupName: controlActionGroupName
   }
   dependsOn: [foundation]
 }
+output controlAlertActionGroupId string = deployControls ? controlMonitoring!.outputs.actionGroupId : ''
 
 module controlRoles './modules/guardrail-roles.bicep' = if (enableGuardrails && bootstrapControlRoles && deployAccess) {
  name: 'control-access'
